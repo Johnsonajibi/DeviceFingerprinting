@@ -1,0 +1,49 @@
+2025-08-03 20:06:38,223 - INFO - log_security_event:326 - encryption_operation: Dynamic page sizing: 100 passwords -> 1KB pages (medium_vault)
+2025-08-03 20:06:38,224 - INFO - log_security_event:326 - backup_created: Secure file write completed: vault_epoch.json
+2025-08-03 20:10:04,835 - INFO - log_security_event:326 - encryption_operation: Key derived for purpose: vault_encryption
+2025-08-03 20:10:04,836 - INFO - log_security_event:326 - login_attempt: Function derive_key - Time: 1.2226s, Success: True
+2025-08-03 20:10:35,818 - INFO - log_security_event:326 - encryption_operation: Key derived for purpose: security_questions
+2025-08-03 20:10:37,165 - INFO - log_security_event:326 - encryption_operation: Key derived for purpose: security_qr
+2025-08-03 20:10:37,165 - INFO - log_security_event:326 - login_attempt: Function derive_key - Time: 1.0471s, Success: True
+2025-08-03 20:10:39,102 - INFO - log_security_event:326 - encryption_operation: Key derived for purpose: stego_recovery
+2025-08-03 20:10:39,102 - INFO - log_security_event:326 - login_attempt: Function derive_key - Time: 1.3189s, Success: True
+2025-08-03 20:10:58,933 - INFO - log_security_event:326 - encryption_operation: Key derived for purpose: vault_encryption
+2025-08-03 20:10:58,933 - INFO - log_security_event:326 - login_attempt: Function derive_key - Time: 1.6622s, Success: True
+2025-08-03 20:11:15,082 - INFO - log_security_event:326 - encryption_operation: Dynamic page sizing: 1 passwords -> 0.5KB pages (small_vault)
+2025-08-03 20:11:15,082 - INFO - log_security_event:326 - encryption_operation: Dynamic page size updated: 100 -> 1 passwords, 1KB -> 0.5KB pages
+2025-08-03 20:11:41,966 - INFO - log_security_event:326 - encryption_operation: Key derived for purpose: vault_encryption
+2025-08-03 20:13:34,569 - INFO - log_security_event:326 - encryption_operation: Key derived for purpose: vault_encryption
+2025-08-03 20:16:35,791 - INFO - log_security_event:326 - encryption_operation: Dynamic page sizing: 100 passwords -> 1KB pages (medium_vault)
+2025-08-03 20:19:31,219 - INFO - log_security_event:326 - encryption_operation: Key derived for purpose: vault_encryption
+2025-08-03 20:19:31,717 - INFO - log_security_event:326 - encryption_operation: Dynamic page sizing: 5 passwords -> 0.5KB pages (small_vault)
+2025-08-03 20:19:31,717 - INFO - log_security_event:326 - encryption_operation: Dynamic page size updated: 100 -> 5 passwords, 1KB -> 0.5KB pages
+2025-08-03 20:19:45,595 - INFO - log_security_event:326 - encryption_operation: Key derived for purpose: vault_encryption
+2025-08-03 20:24:13,590 - INFO - log_security_event:326 - encryption_operation: Key derived for purpose: vault_encryption
+2025-08-03 20:32:30,937 - INFO - log_security_event:326 - encryption_operation: Dynamic page sizing: 86405 passwords -> 4KB pages (xlarge_vault)
+2025-08-03 20:32:30,938 - INFO - log_security_event:326 - encryption_operation: Dynamic page size updated: 5 -> 86405 passwords, 0.5KB -> 4KB pages
+2025-08-03 20:34:07,596 - INFO - log_security_event:326 - encryption_operation: Key derived for purpose: vault_encryption
+2025-08-03 20:37:15,093 - INFO - log_security_event:326 - encryption_operation: Key derived for purpose: vault_encryption
+2025-08-03 20:38:20,043 - INFO - log_security_event:326 - encryption_operation: Key derived for purpose: vault_encryption
+2025-08-03 20:41:45,851 - INFO - log_security_event:326 - encryption_operation: Key derived for purpose: vault_encryption
+2025-08-03 22:20:35,972 - INFO - log_security_event:340 - encryption_operation: Dynamic page sizing: 100 passwords -> 1.0KB pages (medium_vault)
+2025-08-03 22:20:35,974 - INFO - log_security_event:340 - backup_created: Secure file write completed: vault_epoch.json
+2025-08-03 22:22:59,135 - INFO - log_security_event:340 - encryption_operation: Dynamic page sizing: 100 passwords -> 1.0KB pages (medium_vault)
+2025-08-03 22:26:04,041 - INFO - log_security_event:340 - encryption_operation: Dynamic page sizing: 100 passwords -> 1.0KB pages (medium_vault)
+2025-08-03 22:30:46,951 - INFO - log_security_event:341 - encryption_operation: Dynamic page sizing: 100 passwords -> 1.0KB pages (medium_vault)
+2025-08-03 22:30:56,524 - INFO - log_security_event:341 - encryption_operation: Dynamic page sizing: 100 passwords -> 1.0KB pages (medium_vault)
+2025-08-03 22:30:56,528 - WARNING - log_security_event:339 - authentication_failure: Password validation failed: Password contains common weak patterns
+2025-08-03 22:38:31,212 - INFO - log_security_event:340 - encryption_operation: Dynamic page sizing: 100 passwords -> 1.0KB pages (medium_vault)
+2025-09-03 09:48:47,178 - INFO - log_security_event:412 - encryption_operation: PM-PQC quantum-resistant cryptography initialized
+2025-09-03 09:48:47,178 - INFO - log_security_event:412 - encryption_operation: Dynamic page sizing: 100 passwords -> 1.0KB pages (medium_vault)
+2025-09-03 09:48:47,218 - INFO - log_security_event:412 - encryption_operation: Enhanced [REDACTED] initialized: 100 entries, 1.0KB pages
+2025-09-03 09:48:47,225 - INFO - log_security_event:412 - encryption_operation: PM-PQC quantum-resistant cryptography initialized
+2025-09-03 09:51:48,182 - INFO - log_security_event:412 - encryption_operation: PM-PQC quantum-resistant cryptography initialized
+2025-09-03 09:51:48,182 - WARNING - log_security_event:410 - authentication_failure: Password validation failed: Password needs at least 3 of 4 character types. Missing: uppercase letters, numbers, special characters (!@#$%^&*()_+-=[]{}|;:,.<>?)
+2025-09-03 09:56:35,680 - INFO - log_security_event:412 - encryption_operation: PM-PQC quantum-resistant cryptography initialized
+2025-09-03 09:56:35,680 - INFO - log_security_event:412 - encryption_operation: Dynamic page sizing: 100 passwords -> 1.0KB pages (medium_vault)
+2025-09-03 09:56:35,681 - INFO - log_security_event:412 - encryption_operation: Enhanced [REDACTED] initialized: 100 entries, 1.0KB pages
+2025-09-03 09:56:35,682 - INFO - log_security_event:412 - encryption_operation: PM-PQC quantum-resistant cryptography initialized
+2025-09-03 16:58:46,417 - INFO - log_security_event:412 - encryption_operation: PM-PQC quantum-resistant cryptography initialized
+2025-09-03 16:58:46,417 - INFO - log_security_event:412 - encryption_operation: Dynamic page sizing: 100 passwords -> 1.0KB pages (medium_vault)
+2025-09-03 16:58:46,421 - INFO - log_security_event:412 - encryption_operation: Enhanced [REDACTED] initialized: 100 entries, 1.0KB pages
+2025-09-03 16:58:46,422 - INFO - log_security_event:412 - encryption_operation: PM-PQC quantum-resistant cryptography initialized
