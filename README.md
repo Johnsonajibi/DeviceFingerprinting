@@ -9,70 +9,83 @@ Post Quantum Offline Manager (QuantumVault) is a comprehensive password manageme
 ## 🏗️ System Architecture
 
 ```mermaid
-graph TB
-    subgraph "User Interface Layer"
-        CLI[Command Line Interface]
-        Menu[Interactive Menu System]
+flowchart TD
+    subgraph UI ["🖥️ User Interface Layer"]
+        CLI[📟 Command Line Interface]
+        Menu[📋 Interactive Menu System]
+        Input[⌨️ User Input Handler]
     end
     
-    subgraph "Core Application Layer"
-        App[CorrectPQC.py - Main Application]
-        Auth[Authentication Manager]
-        Session[Session Manager]
+    subgraph Core ["⚙️ Core Application Layer"]
+        App[🏢 CorrectPQC.py<br/>Main Application]
+        Auth[🔐 Authentication<br/>Manager]
+        Session[⏱️ Session<br/>Manager]
+        Router[🔀 Menu Router]
     end
     
-    subgraph "Cryptographic Libraries"
-        QRC[Quantum Resistant Crypto]
-        DQR[Dual QR Recovery]
-        SQR[Steganographic QR]
-        FSE[Forward Secure Encryption]
-        DPS[Dynamic Page Sizing]
+    subgraph Crypto ["🔒 Cryptographic Libraries"]
+        QRC[🛡️ Quantum Resistant<br/>Crypto Engine]
+        DQR[📱 Dual QR<br/>Recovery System]
+        SQR[🎯 Steganographic<br/>QR System]
+        FSE[⏳ Forward Secure<br/>Encryption]
+        DPS[📊 Dynamic Page<br/>Sizing Optimizer]
     end
     
-    subgraph "Storage Layer"
-        Vault[Encrypted Vault Files]
-        Token[Quantum Tokens]
-        Backup[Backup Systems]
-        Config[Configuration Files]
+    subgraph Storage ["💾 Storage Layer"]
+        Vault[🗄️ Encrypted<br/>Vault Files]
+        Token[🎫 Quantum<br/>Tokens]
+        Backup[💾 Backup<br/>Systems]
+        Config[⚙️ Configuration<br/>Files]
+        Logs[📜 Security<br/>Logs]
     end
     
-    subgraph "Security Layer"
-        Audit[Security Auditing]
-        Logger[Secure Logging]
-        Validator[Input Validation]
-        Monitor[Performance Monitoring]
+    subgraph Security ["🛡️ Security Layer"]
+        Audit[🔍 Security<br/>Auditing]
+        Logger[📝 Secure<br/>Logging]
+        Validator[✅ Input<br/>Validation]
+        Monitor[📊 Performance<br/>Monitoring]
     end
     
-    CLI --> Menu
-    Menu --> App
+    %% User Interface Flow
+    CLI --> Input
+    Input --> Menu
+    Menu --> Router
+    Router --> App
+    
+    %% Core Application Flow
     App --> Auth
     App --> Session
-    
     Auth --> QRC
     Session --> FSE
+    
+    %% Cryptographic Integration
     App --> DQR
     App --> SQR
     App --> DPS
-    
     QRC --> Vault
     DQR --> Token
     FSE --> Backup
     SQR --> Config
     
+    %% Security Integration
     App --> Audit
     App --> Logger
     App --> Validator
     App --> Monitor
+    Logger --> Logs
     
-    classDef crypto fill:#e1f5fe
-    classDef storage fill:#f3e5f5
-    classDef security fill:#e8f5e8
-    classDef core fill:#fff3e0
+    %% Styling
+    classDef uiStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef coreStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef cryptoStyle fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef storageStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef securityStyle fill:#ffebee,stroke:#d32f2f,stroke-width:2px,color:#000
     
-    class QRC,DQR,SQR,FSE,DPS crypto
-    class Vault,Token,Backup,Config storage
-    class Audit,Logger,Validator,Monitor security
-    class App,Auth,Session core
+    class CLI,Menu,Input uiStyle
+    class App,Auth,Session,Router coreStyle
+    class QRC,DQR,SQR,FSE,DPS cryptoStyle
+    class Vault,Token,Backup,Config,Logs storageStyle
+    class Audit,Logger,Validator,Monitor securityStyle
 ```
 
 ## 🔑 Cryptographic Architecture
@@ -80,31 +93,32 @@ graph TB
 ### Quantum-Resistant Cryptography Module
 
 ```mermaid
-graph LR
-    subgraph "Input Processing"
-        PWD[Password Input]
-        Salt[Salt Generation]
-        Data[Data Input]
+flowchart LR
+    subgraph Input ["🔤 Input Processing"]
+        PWD[🔑 Password<br/>Input]
+        Salt[🧂 Salt<br/>Generation]
+        Data[📄 Data<br/>Input]
     end
     
-    subgraph "Key Derivation"
-        PBKDF2[PBKDF2 100K+ Iterations]
-        SHA3[SHA3-512 Hashing]
-        KeyMat[Key Material]
+    subgraph KDF ["🔄 Key Derivation"]
+        PBKDF2[🔐 PBKDF2<br/>100K+ Iterations]
+        SHA3[🛡️ SHA3-512<br/>Quantum-Safe Hashing]
+        KeyMat[🗝️ Key Material<br/>256-bit]
     end
     
-    subgraph "Encryption Layer"
-        AES[AES-256-GCM]
-        AEAD[AEAD Encryption]
-        IV[IV Generation]
+    subgraph Encrypt ["🔒 Encryption Layer"]
+        AES[🔐 AES-256-GCM<br/>Symmetric Encryption]
+        AEAD[✅ AEAD<br/>Authenticated Encryption]
+        IV[🎲 IV Generation<br/>Random 96-bit]
     end
     
-    subgraph "Output"
-        Cipher[Encrypted Data]
-        MAC[Authentication Tag]
-        Metadata[Encryption Metadata]
+    subgraph Output ["📤 Secure Output"]
+        Cipher[🔒 Encrypted<br/>Ciphertext]
+        MAC[🔏 Authentication<br/>Tag (128-bit)]
+        Metadata[📋 Encryption<br/>Metadata]
     end
     
+    %% Data Flow
     PWD --> PBKDF2
     Salt --> PBKDF2
     PBKDF2 --> SHA3
@@ -119,293 +133,492 @@ graph LR
     AEAD --> MAC
     AES --> Metadata
     
-    classDef input fill:#ffebee
-    classDef kdf fill:#e8f5e8
-    classDef encrypt fill:#e3f2fd
-    classDef output fill:#f3e5f5
+    %% Security Properties
+    subgraph Properties ["🛡️ Security Properties"]
+        Quantum[⚛️ Quantum<br/>Resistant]
+        Forward[⏭️ Forward<br/>Secure]
+        Timing[⏱️ Timing Attack<br/>Protection]
+    end
     
-    class PWD,Salt,Data input
-    class PBKDF2,SHA3,KeyMat kdf
-    class AES,AEAD,IV encrypt
-    class Cipher,MAC,Metadata output
+    SHA3 -.-> Quantum
+    KeyMat -.-> Forward
+    PBKDF2 -.-> Timing
+    
+    %% Styling
+    classDef inputStyle fill:#e8f5e8,stroke:#4caf50,stroke-width:2px,color:#000
+    classDef kdfStyle fill:#e3f2fd,stroke:#2196f3,stroke-width:2px,color:#000
+    classDef encryptStyle fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000
+    classDef outputStyle fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px,color:#000
+    classDef propStyle fill:#ffebee,stroke:#f44336,stroke-width:2px,color:#000
+    
+    class PWD,Salt,Data inputStyle
+    class PBKDF2,SHA3,KeyMat kdfStyle
+    class AES,AEAD,IV encryptStyle
+    class Cipher,MAC,Metadata outputStyle
+    class Quantum,Forward,Timing propStyle
 ```
 
 ### Dual QR Recovery System Architecture
 
 ```mermaid
-graph TB
-    subgraph "Master Recovery Data"
-        Master[Master Password Hash]
-        DeviceID[Device Fingerprint]
-        RecoveryKey[Recovery Key Material]
+flowchart TD
+    subgraph MasterData ["🔐 Master Recovery Data"]
+        Master[🔑 Master Password<br/>Hash + Salt]
+        DeviceID[📱 Device<br/>Fingerprint]
+        RecoveryKey[🗝️ Recovery Key<br/>Material (256-bit)]
+        Timestamp[⏰ Creation<br/>Timestamp]
     end
     
-    subgraph "QR Code Generation"
-        Split[Data Splitting Algorithm]
-        Primary[Primary QR Code]
-        Secondary[Secondary QR Code]
+    subgraph Generation ["⚡ QR Generation Process"]
+        Combine[🔗 Combine<br/>Recovery Data]
+        Split[✂️ Cryptographic<br/>Splitting Algorithm]
+        Primary[📱 Primary QR<br/>50% + Checksum]
+        Secondary[📱 Secondary QR<br/>50% + Verification]
     end
     
-    subgraph "Security Layers"
-        Encrypt[Individual QR Encryption]
-        Cross[Cross-QR Verification]
-        Binding[Device Binding]
+    subgraph Security ["🛡️ Security Layers"]
+        IndivEncrypt[🔒 Individual QR<br/>Encryption (AES-256)]
+        CrossVerify[🔍 Cross-QR<br/>Verification Codes]
+        DeviceBinding[📱 Device-Specific<br/>Binding Keys]
+        Integrity[✅ Integrity<br/>Checksums]
     end
     
-    subgraph "Storage Options"
-        Print[Physical Printouts]
-        Digital[Digital Storage]
-        Vault[Secure Vault Storage]
+    subgraph Storage ["💾 Storage Options"]
+        direction TB
+        PhysicalPrint[🖨️ Physical<br/>Printouts]
+        DigitalVault[💾 Digital<br/>Secure Storage]
+        USBBackup[💿 USB Drive<br/>Backup]
+        PaperWallet[📄 Paper<br/>Wallet Storage]
     end
     
-    subgraph "Recovery Process"
-        Scan[QR Code Scanning]
-        Verify[Dual Verification]
-        Reconstruct[Data Reconstruction]
-        Unlock[Master Password Reset]
+    subgraph Recovery ["🔄 Recovery Process"]
+        ScanBoth[📷 Scan Both<br/>QR Codes]
+        CrossCheck[🔍 Cross-Reference<br/>Verification]
+        DeviceVerify[📱 Device<br/>Authentication]
+        Reconstruct[🔧 Data<br/>Reconstruction]
+        MasterReset[🔄 Master Password<br/>Reset]
     end
     
-    Master --> Split
-    DeviceID --> Split
-    RecoveryKey --> Split
+    %% Data Flow - Generation
+    Master --> Combine
+    DeviceID --> Combine
+    RecoveryKey --> Combine
+    Timestamp --> Combine
     
+    Combine --> Split
     Split --> Primary
     Split --> Secondary
     
-    Primary --> Encrypt
-    Secondary --> Encrypt
-    Encrypt --> Cross
-    Cross --> Binding
+    Primary --> IndivEncrypt
+    Secondary --> IndivEncrypt
+    IndivEncrypt --> CrossVerify
+    CrossVerify --> DeviceBinding
+    DeviceBinding --> Integrity
     
-    Primary --> Print
-    Secondary --> Print
-    Primary --> Digital
-    Secondary --> Digital
-    Primary --> Vault
-    Secondary --> Vault
+    %% Storage Flow
+    Primary --> PhysicalPrint
+    Secondary --> PhysicalPrint
+    Primary --> DigitalVault
+    Secondary --> DigitalVault
+    Primary --> USBBackup
+    Secondary --> USBBackup
+    Primary --> PaperWallet
+    Secondary --> PaperWallet
     
-    Print --> Scan
-    Digital --> Scan
-    Vault --> Scan
+    %% Recovery Flow
+    PhysicalPrint --> ScanBoth
+    DigitalVault --> ScanBoth
+    USBBackup --> ScanBoth
+    PaperWallet --> ScanBoth
     
-    Scan --> Verify
-    Verify --> Reconstruct
-    Reconstruct --> Unlock
+    ScanBoth --> CrossCheck
+    CrossCheck --> DeviceVerify
+    DeviceVerify --> Reconstruct
+    Reconstruct --> MasterReset
     
-    classDef data fill:#e8f5e8
-    classDef qr fill:#e3f2fd
-    classDef security fill:#fff3e0
-    classDef storage fill:#f3e5f5
-    classDef recovery fill:#ffebee
+    %% Security Indicators
+    subgraph SecurityFeatures ["🔒 Security Features"]
+        TwoFactor[👥 Two-Factor<br/>Recovery Required]
+        NoSinglePoint[🚫 No Single Point<br/>of Failure]
+        DeviceSpecific[📱 Device-Specific<br/>Binding]
+        CryptoSplit[🔐 Cryptographic<br/>Splitting]
+    end
     
-    class Master,DeviceID,RecoveryKey data
-    class Split,Primary,Secondary qr
-    class Encrypt,Cross,Binding security
-    class Print,Digital,Vault storage
-    class Scan,Verify,Reconstruct,Unlock recovery
+    Split -.-> TwoFactor
+    DeviceBinding -.-> DeviceSpecific
+    CrossVerify -.-> NoSinglePoint
+    IndivEncrypt -.-> CryptoSplit
+    
+    %% Styling
+    classDef dataStyle fill:#e8f5e8,stroke:#4caf50,stroke-width:3px,color:#000
+    classDef genStyle fill:#e3f2fd,stroke:#2196f3,stroke-width:3px,color:#000
+    classDef secStyle fill:#fff3e0,stroke:#ff9800,stroke-width:3px,color:#000
+    classDef storageStyle fill:#f3e5f5,stroke:#9c27b0,stroke-width:3px,color:#000
+    classDef recoveryStyle fill:#ffebee,stroke:#f44336,stroke-width:3px,color:#000
+    classDef featureStyle fill:#fce4ec,stroke:#e91e63,stroke-width:2px,color:#000
+    
+    class Master,DeviceID,RecoveryKey,Timestamp dataStyle
+    class Combine,Split,Primary,Secondary genStyle
+    class IndivEncrypt,CrossVerify,DeviceBinding,Integrity secStyle
+    class PhysicalPrint,DigitalVault,USBBackup,PaperWallet storageStyle
+    class ScanBoth,CrossCheck,DeviceVerify,Reconstruct,MasterReset recoveryStyle
+    class TwoFactor,NoSinglePoint,DeviceSpecific,CryptoSplit featureStyle
 ```
 
 ### Steganographic QR System Architecture
 
 ```mermaid
-graph LR
-    subgraph "Data Preparation"
-        Secret[Secret Data]
-        Compress[Compression]
-        Encrypt[Encryption]
+flowchart LR
+    subgraph DataPrep ["📝 Data Preparation"]
+        Secret[🔐 Secret Data<br/>Input]
+        Compress[🗜️ ZLIB<br/>Compression]
+        Encrypt[🔒 AES-256<br/>Encryption]
+        Format[📋 Data<br/>Formatting]
     end
     
-    subgraph "QR Code Generation"
-        Visible[Visible QR Data]
-        ErrorSpace[Error Correction Space]
-        ReedSolomon[Reed-Solomon Analysis]
+    subgraph QRGen ["📱 QR Code Generation"]
+        Visible[👁️ Visible QR<br/>Data Payload]
+        ErrorCalc[📊 Error Correction<br/>Space Analysis]
+        ReedSolomon[🧮 Reed-Solomon<br/>ECC Analysis]
+        Capacity[📏 Available<br/>Steganographic Space]
     end
     
-    subgraph "Steganographic Embedding"
-        ECC[Error Correction Calculation]
-        BitManip[Bit Manipulation]
-        Embed[Data Embedding]
+    subgraph StegoEmbed ["🎯 Steganographic Embedding"]
+        BitAnalysis[🔍 Bit-Level<br/>Analysis]
+        ECCManip[⚙️ Error Correction<br/>Manipulation]
+        HiddenEmbed[🫥 Hidden Data<br/>Embedding]
+        IntegrityCheck[✅ Dual Integrity<br/>Verification]
     end
     
-    subgraph "Verification Layer"
-        Integrity[QR Code Integrity]
-        Hidden[Hidden Data Integrity]
-        CrossCheck[Cross Verification]
+    subgraph Verification ["🔍 Verification Layer"]
+        QRIntegrity[📱 Standard QR<br/>Functionality Test]
+        HiddenIntegrity[🔐 Hidden Data<br/>Integrity Check]
+        CrossValidation[🔗 Cross-Reference<br/>Validation]
+        ErrorTolerance[🛡️ Error Tolerance<br/>Testing]
     end
     
-    subgraph "Output QR Code"
-        Standard[Standard QR Function]
-        Steganographic[Hidden Data Layer]
-        Combined[Combined QR Code]
+    subgraph Output ["📤 Final Output"]
+        StandardFunc[📱 Standard QR<br/>Functionality]
+        HiddenLayer[🫥 Hidden Data<br/>Layer]
+        CombinedQR[📱 Combined QR Code<br/>Dual Function]
+        MetaData[📋 Steganographic<br/>Metadata]
     end
     
+    %% Data Preparation Flow
     Secret --> Compress
     Compress --> Encrypt
+    Encrypt --> Format
     
-    Encrypt --> ErrorSpace
-    Visible --> ErrorSpace
-    ErrorSpace --> ReedSolomon
+    %% QR Generation Flow
+    Format --> Visible
+    Visible --> ErrorCalc
+    ErrorCalc --> ReedSolomon
+    ReedSolomon --> Capacity
     
-    ReedSolomon --> ECC
-    ECC --> BitManip
-    BitManip --> Embed
+    %% Steganographic Embedding
+    Capacity --> BitAnalysis
+    BitAnalysis --> ECCManip
+    ECCManip --> HiddenEmbed
+    HiddenEmbed --> IntegrityCheck
     
-    Embed --> Integrity
-    Integrity --> Hidden
-    Hidden --> CrossCheck
+    %% Verification Process
+    IntegrityCheck --> QRIntegrity
+    QRIntegrity --> HiddenIntegrity
+    HiddenIntegrity --> CrossValidation
+    CrossValidation --> ErrorTolerance
     
-    Visible --> Standard
-    Embed --> Steganographic
-    Standard --> Combined
-    Steganographic --> Combined
+    %% Output Generation
+    Visible --> StandardFunc
+    HiddenEmbed --> HiddenLayer
+    StandardFunc --> CombinedQR
+    HiddenLayer --> CombinedQR
+    IntegrityCheck --> MetaData
     
-    classDef prep fill:#e8f5e8
-    classDef qr fill:#e3f2fd
-    classDef stego fill:#fff3e0
-    classDef verify fill:#ffebee
-    classDef output fill:#f3e5f5
+    %% Innovation Highlights
+    subgraph Innovation ["💡 Patent-Pending Innovations"]
+        ECC[🧮 Reed-Solomon<br/>Steganography]
+        DoubleCapacity[📈 ~2x Storage<br/>Capacity]
+        Invisible[👻 Completely<br/>Invisible]
+        Backward[↩️ Backward<br/>Compatible]
+    end
     
-    class Secret,Compress,Encrypt prep
-    class Visible,ErrorSpace,ReedSolomon qr
-    class ECC,BitManip,Embed stego
-    class Integrity,Hidden,CrossCheck verify
-    class Standard,Steganographic,Combined output
+    ECCManip -.-> ECC
+    HiddenEmbed -.-> DoubleCapacity
+    StandardFunc -.-> Backward
+    HiddenLayer -.-> Invisible
+    
+    %% Styling
+    classDef prepStyle fill:#e8f5e8,stroke:#4caf50,stroke-width:2px,color:#000
+    classDef qrStyle fill:#e3f2fd,stroke:#2196f3,stroke-width:2px,color:#000
+    classDef stegoStyle fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000
+    classDef verifyStyle fill:#ffebee,stroke:#f44336,stroke-width:2px,color:#000
+    classDef outputStyle fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px,color:#000
+    classDef innovStyle fill:#fce4ec,stroke:#e91e63,stroke-width:2px,color:#000
+    
+    class Secret,Compress,Encrypt,Format prepStyle
+    class Visible,ErrorCalc,ReedSolomon,Capacity qrStyle
+    class BitAnalysis,ECCManip,HiddenEmbed,IntegrityCheck stegoStyle
+    class QRIntegrity,HiddenIntegrity,CrossValidation,ErrorTolerance verifyStyle
+    class StandardFunc,HiddenLayer,CombinedQR,MetaData outputStyle
+    class ECC,DoubleCapacity,Invisible,Backward innovStyle
 ```
 
 ### Forward Secure Encryption Architecture
 
 ```mermaid
-graph TB
-    subgraph "Epoch Management"
-        CurrentEpoch[Current Epoch]
-        EpochRotation[Automatic Rotation]
-        TimeBasedKeys[Time-Based Keys]
+flowchart TD
+    subgraph EpochMgmt ["⏰ Epoch Management System"]
+        CurrentEpoch[📅 Current Epoch<br/>Time-Based ID]
+        AutoRotation[🔄 Automatic<br/>Key Rotation]
+        TimeBasedKeys[⏱️ Time-Based<br/>Key Generation]
+        EpochTrigger[⚡ Rotation<br/>Triggers]
     end
     
-    subgraph "Key Evolution"
-        MasterKey[Master Key]
-        KeyDerivation[One-Way Key Derivation]
-        EpochKeys[Epoch-Specific Keys]
-        KeyDeletion[Secure Key Deletion]
+    subgraph KeyEvolution ["🔑 Key Evolution Engine"]
+        MasterSeed[🌱 Master Seed<br/>Key (256-bit)]
+        OneWayKDF[🔐 One-Way Key<br/>Derivation Function]
+        EpochKeys[🗝️ Epoch-Specific<br/>Keys]
+        SecureDeletion[🗑️ Secure Key<br/>Deletion]
     end
     
-    subgraph "Data Processing"
-        PageData[Data Pages]
-        ReEncryption[Page Re-encryption]
-        BatchProcessing[Batch Operations]
+    subgraph DataProc ["📊 Data Processing Layer"]
+        PageData[📄 Data Pages<br/>Dynamic Sizing]
+        BatchReEncrypt[🔄 Batch<br/>Re-encryption]
+        IncrementalUpdate[📈 Incremental<br/>Updates]
+        ConcurrentOps[⚡ Concurrent<br/>Operations]
     end
     
-    subgraph "Forward Security"
-        PastKeys[Past Keys Destroyed]
-        FutureKeys[Future Keys Unknown]
-        CompromiseIsolation[Compromise Isolation]
+    subgraph ForwardSec ["🛡️ Forward Security Guarantees"]
+        PastKeysGone[❌ Past Keys<br/>Permanently Destroyed]
+        FutureUnknown[❓ Future Keys<br/>Computationally Unknown]
+        CompromiseLimit[🚧 Compromise<br/>Isolation Boundary]
+        TimelineProtection[⏰ Timeline<br/>Protection]
     end
     
-    subgraph "Performance Optimization"
-        IncrementalUpdate[Incremental Updates]
-        MemoryOptimization[Memory Management]
-        ConcurrentProcessing[Concurrent Operations]
+    subgraph PerfOptim ["⚡ Performance Optimization"]
+        MemoryMgmt[🧠 Smart Memory<br/>Management]
+        CacheStrategy[💾 Intelligent<br/>Caching]
+        LoadBalancing[⚖️ Load<br/>Balancing]
+        ProgressTracking[📊 Progress<br/>Tracking]
     end
     
-    CurrentEpoch --> EpochRotation
-    EpochRotation --> TimeBasedKeys
-    TimeBasedKeys --> MasterKey
+    %% Epoch Management Flow
+    CurrentEpoch --> AutoRotation
+    AutoRotation --> TimeBasedKeys
+    TimeBasedKeys --> EpochTrigger
+    EpochTrigger --> CurrentEpoch
     
-    MasterKey --> KeyDerivation
-    KeyDerivation --> EpochKeys
-    EpochKeys --> KeyDeletion
+    %% Key Evolution Flow
+    MasterSeed --> OneWayKDF
+    TimeBasedKeys --> OneWayKDF
+    OneWayKDF --> EpochKeys
+    EpochKeys --> SecureDeletion
     
+    %% Data Processing Flow
     EpochKeys --> PageData
-    PageData --> ReEncryption
-    ReEncryption --> BatchProcessing
+    PageData --> BatchReEncrypt
+    BatchReEncrypt --> IncrementalUpdate
+    IncrementalUpdate --> ConcurrentOps
     
-    KeyDeletion --> PastKeys
-    KeyDerivation --> FutureKeys
-    PastKeys --> CompromiseIsolation
-    FutureKeys --> CompromiseIsolation
+    %% Forward Security Implementation
+    SecureDeletion --> PastKeysGone
+    OneWayKDF --> FutureUnknown
+    PastKeysGone --> CompromiseLimit
+    FutureUnknown --> CompromiseLimit
+    AutoRotation --> TimelineProtection
     
-    BatchProcessing --> IncrementalUpdate
-    ReEncryption --> MemoryOptimization
-    BatchProcessing --> ConcurrentProcessing
+    %% Performance Integration
+    BatchReEncrypt --> MemoryMgmt
+    IncrementalUpdate --> CacheStrategy
+    ConcurrentOps --> LoadBalancing
+    PageData --> ProgressTracking
     
-    classDef epoch fill:#e8f5e8
-    classDef keys fill:#e3f2fd
-    classDef data fill:#fff3e0
-    classDef security fill:#ffebee
-    classDef performance fill:#f3e5f5
+    %% Cross-System Integration
+    subgraph Integration ["🔗 System Integration"]
+        VaultIntegration[🗄️ Vault<br/>Integration]
+        BackupSync[💾 Backup<br/>Synchronization]
+        AuditTrail[📜 Audit<br/>Trail]
+        MonitoringHooks[📊 Monitoring<br/>Hooks]
+    end
     
-    class CurrentEpoch,EpochRotation,TimeBasedKeys epoch
-    class MasterKey,KeyDerivation,EpochKeys,KeyDeletion keys
-    class PageData,ReEncryption,BatchProcessing data
-    class PastKeys,FutureKeys,CompromiseIsolation security
-    class IncrementalUpdate,MemoryOptimization,ConcurrentProcessing performance
+    PageData --> VaultIntegration
+    BatchReEncrypt --> BackupSync
+    EpochKeys --> AuditTrail
+    ProgressTracking --> MonitoringHooks
+    
+    %% Security Properties
+    subgraph Properties ["🔒 Security Properties"]
+        PerfectFS[✨ Perfect Forward<br/>Secrecy]
+        NonRepudiation[📝 Non-Repudiation<br/>of Past Data]
+        QuantumResistant[⚛️ Quantum<br/>Resistant]
+        ScalableDesign[📈 Scalable<br/>Design]
+    end
+    
+    CompromiseLimit -.-> PerfectFS
+    TimelineProtection -.-> NonRepudiation
+    OneWayKDF -.-> QuantumResistant
+    ConcurrentOps -.-> ScalableDesign
+    
+    %% Styling
+    classDef epochStyle fill:#e8f5e8,stroke:#4caf50,stroke-width:3px,color:#000
+    classDef keyStyle fill:#e3f2fd,stroke:#2196f3,stroke-width:3px,color:#000
+    classDef dataStyle fill:#fff3e0,stroke:#ff9800,stroke-width:3px,color:#000
+    classDef secStyle fill:#ffebee,stroke:#f44336,stroke-width:3px,color:#000
+    classDef perfStyle fill:#f3e5f5,stroke:#9c27b0,stroke-width:3px,color:#000
+    classDef integStyle fill:#fce4ec,stroke:#e91e63,stroke-width:2px,color:#000
+    classDef propStyle fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    
+    class CurrentEpoch,AutoRotation,TimeBasedKeys,EpochTrigger epochStyle
+    class MasterSeed,OneWayKDF,EpochKeys,SecureDeletion keyStyle
+    class PageData,BatchReEncrypt,IncrementalUpdate,ConcurrentOps dataStyle
+    class PastKeysGone,FutureUnknown,CompromiseLimit,TimelineProtection secStyle
+    class MemoryMgmt,CacheStrategy,LoadBalancing,ProgressTracking perfStyle
+    class VaultIntegration,BackupSync,AuditTrail,MonitoringHooks integStyle
+    class PerfectFS,NonRepudiation,QuantumResistant,ScalableDesign propStyle
 ```
 
 ### Dynamic Page Sizing Architecture
 
 ```mermaid
-graph LR
-    subgraph "Data Analysis"
-        DataSize[Data Size Analysis]
-        AccessPattern[Access Pattern Analysis]
-        MemoryProfile[Memory Profiling]
+flowchart TD
+    subgraph DataIntel ["📊 Data Intelligence Engine"]
+        DataProfiler[🔍 Data Profiler<br/>Content Analysis]
+        PatternRecog[🧠 Pattern<br/>Recognition]
+        CompressionAnalysis[📦 Compression<br/>Analysis]
+        EntropyScan[🌀 Entropy<br/>Scanner]
     end
     
-    subgraph "Optimization Engine"
-        Algorithm[Optimization Algorithm]
-        MathModel[Mathematical Modeling]
-        Prediction[Performance Prediction]
+    subgraph SizeOptim ["📏 Size Optimization Engine"]
+        OptimalSize[🎯 Optimal Size<br/>Calculator]
+        ThresholdMgmt[⚖️ Threshold<br/>Management]
+        SizePredictor[🔮 Size<br/>Predictor]
+        EfficiencyMetrics[📈 Efficiency<br/>Metrics]
     end
     
-    subgraph "Page Management"
-        PageSizing[Dynamic Page Sizing]
-        MemoryAllocation[Memory Allocation]
-        CacheOptimization[Cache Optimization]
+    subgraph AdaptiveLogic ["🤖 Adaptive Logic Controller"]
+        RealTimeAdjust[⚡ Real-Time<br/>Adjustments]
+        LoadBalancer[⚖️ Load<br/>Balancer]
+        ResourceMonitor[📊 Resource<br/>Monitor]
+        PerformanceOracle[🔮 Performance<br/>Oracle]
     end
     
-    subgraph "Performance Monitoring"
-        Metrics[Performance Metrics]
-        Feedback[Feedback Loop]
-        Adaptation[Adaptive Optimization]
+    subgraph PageMgmt ["📄 Page Management System"]
+        PageAllocator[🏗️ Page<br/>Allocator]
+        FragmentationCtrl[🧩 Fragmentation<br/>Controller]
+        MemoryPool[🏊 Memory<br/>Pool]
+        GarbageCollector[🗑️ Garbage<br/>Collector]
     end
     
-    subgraph "Resource Management"
-        MemoryPool[Memory Pool Management]
-        GarbageCollection[Garbage Collection]
-        ResourceCleanup[Resource Cleanup]
+    subgraph PerfMonitor ["⚡ Performance Monitoring"]
+        ThroughputMeter[📊 Throughput<br/>Meter]
+        LatencyTracker[⏱️ Latency<br/>Tracker]
+        MemoryProfiler[🧠 Memory<br/>Profiler]
+        IOOptimizer[💾 I/O<br/>Optimizer]
     end
     
-    DataSize --> Algorithm
-    AccessPattern --> Algorithm
-    MemoryProfile --> Algorithm
+    subgraph MachineLearning ["🤖 Machine Learning Core"]
+        UsagePredictor[🔮 Usage<br/>Predictor]
+        PatternLearner[📚 Pattern<br/>Learner]
+        OptimizationAI[🧠 Optimization<br/>AI]
+        FeedbackLoop[🔄 Feedback<br/>Loop]
+    end
     
-    Algorithm --> MathModel
-    MathModel --> Prediction
-    Prediction --> PageSizing
+    %% Data Intelligence Flow
+    DataProfiler --> PatternRecog
+    PatternRecog --> CompressionAnalysis
+    CompressionAnalysis --> EntropyScan
+    EntropyScan --> DataProfiler
     
-    PageSizing --> MemoryAllocation
-    MemoryAllocation --> CacheOptimization
-    CacheOptimization --> Metrics
+    %% Size Optimization Flow
+    PatternRecog --> OptimalSize
+    OptimalSize --> ThresholdMgmt
+    ThresholdMgmt --> SizePredictor
+    SizePredictor --> EfficiencyMetrics
     
-    Metrics --> Feedback
-    Feedback --> Adaptation
-    Adaptation --> Algorithm
+    %% Adaptive Logic Flow
+    OptimalSize --> RealTimeAdjust
+    RealTimeAdjust --> LoadBalancer
+    LoadBalancer --> ResourceMonitor
+    ResourceMonitor --> PerformanceOracle
     
-    MemoryAllocation --> MemoryPool
-    CacheOptimization --> GarbageCollection
-    Metrics --> ResourceCleanup
+    %% Page Management Flow
+    RealTimeAdjust --> PageAllocator
+    PageAllocator --> FragmentationCtrl
+    FragmentationCtrl --> MemoryPool
+    MemoryPool --> GarbageCollector
     
-    classDef analysis fill:#e8f5e8
-    classDef engine fill:#e3f2fd
-    classDef management fill:#fff3e0
-    classDef monitoring fill:#ffebee
-    classDef resources fill:#f3e5f5
+    %% Performance Monitoring Flow
+    PageAllocator --> ThroughputMeter
+    FragmentationCtrl --> LatencyTracker
+    MemoryPool --> MemoryProfiler
+    GarbageCollector --> IOOptimizer
     
-    class DataSize,AccessPattern,MemoryProfile analysis
-    class Algorithm,MathModel,Prediction engine
-    class PageSizing,MemoryAllocation,CacheOptimization management
-    class Metrics,Feedback,Adaptation monitoring
-    class MemoryPool,GarbageCollection,ResourceCleanup resources
+    %% Machine Learning Integration
+    ThroughputMeter --> UsagePredictor
+    LatencyTracker --> PatternLearner
+    MemoryProfiler --> OptimizationAI
+    IOOptimizer --> FeedbackLoop
+    FeedbackLoop --> DataProfiler
+    
+    %% Cross-System Feedback
+    subgraph FeedbackSys ["🔄 Feedback System"]
+        PerformanceFeedback[📊 Performance<br/>Feedback]
+        UserBehavior[👤 User Behavior<br/>Analysis]
+        SystemHealth[🏥 System Health<br/>Monitoring]
+        PredictiveAdjust[🔮 Predictive<br/>Adjustments]
+    end
+    
+    PerformanceOracle --> PerformanceFeedback
+    UsagePredictor --> UserBehavior
+    MemoryProfiler --> SystemHealth
+    OptimizationAI --> PredictiveAdjust
+    
+    %% Optimization Outputs
+    subgraph Outputs ["🎯 Optimization Outputs"]
+        OptimalPageSize[📏 Optimal Page<br/>Size (Dynamic)]
+        MemoryEfficiency[🧠 Memory<br/>Efficiency 95%+]
+        IOThroughput[💾 I/O Throughput<br/>Maximized]
+        LatencyMinimized[⚡ Latency<br/>Minimized]
+    end
+    
+    ThresholdMgmt --> OptimalPageSize
+    MemoryPool --> MemoryEfficiency
+    IOOptimizer --> IOThroughput
+    LatencyTracker --> LatencyMinimized
+    
+    %% Advanced Features
+    subgraph AdvancedFeatures ["🚀 Advanced Features"]
+        PredictivePaging[🔮 Predictive<br/>Paging]
+        AdaptiveCompression[📦 Adaptive<br/>Compression]
+        IntelligentCaching[🧠 Intelligent<br/>Caching]
+        QuantumOptimization[⚛️ Quantum-Ready<br/>Optimization]
+    end
+    
+    PatternLearner -.-> PredictivePaging
+    CompressionAnalysis -.-> AdaptiveCompression
+    UsagePredictor -.-> IntelligentCaching
+    OptimizationAI -.-> QuantumOptimization
+    
+    %% Styling
+    classDef dataStyle fill:#e8f5e8,stroke:#4caf50,stroke-width:3px,color:#000
+    classDef sizeStyle fill:#e3f2fd,stroke:#2196f3,stroke-width:3px,color:#000
+    classDef adaptiveStyle fill:#fff3e0,stroke:#ff9800,stroke-width:3px,color:#000
+    classDef pageStyle fill:#ffebee,stroke:#f44336,stroke-width:3px,color:#000
+    classDef perfStyle fill:#f3e5f5,stroke:#9c27b0,stroke-width:3px,color:#000
+    classDef mlStyle fill:#fce4ec,stroke:#e91e63,stroke-width:3px,color:#000
+    classDef feedbackStyle fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef outputStyle fill:#fff8e1,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef advStyle fill:#f1f8e9,stroke:#558b2f,stroke-width:2px,color:#000
+    
+    class DataProfiler,PatternRecog,CompressionAnalysis,EntropyScan dataStyle
+    class OptimalSize,ThresholdMgmt,SizePredictor,EfficiencyMetrics sizeStyle
+    class RealTimeAdjust,LoadBalancer,ResourceMonitor,PerformanceOracle adaptiveStyle
+    class PageAllocator,FragmentationCtrl,MemoryPool,GarbageCollector pageStyle
+    class ThroughputMeter,LatencyTracker,MemoryProfiler,IOOptimizer perfStyle
+    class UsagePredictor,PatternLearner,OptimizationAI,FeedbackLoop mlStyle
+    class PerformanceFeedback,UserBehavior,SystemHealth,PredictiveAdjust feedbackStyle
+    class OptimalPageSize,MemoryEfficiency,IOThroughput,LatencyMinimized outputStyle
+    class PredictivePaging,AdaptiveCompression,IntelligentCaching,QuantumOptimization advStyle
 ```
 
 ## 🚀 Features
