@@ -103,6 +103,52 @@ try:
 except ImportError:
     QR_AVAILABLE = False
 
+# Import innovative cryptographic libraries
+try:
+    # Dual QR Recovery System
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'dual_qr_recovery'))
+    from dual_qr_recovery import DualQRRecoverySystem, DeviceFingerprintGenerator
+    DUAL_QR_AVAILABLE = True
+except ImportError:
+    DUAL_QR_AVAILABLE = False
+    print("Warning: Dual QR Recovery library not available")
+
+try:
+    # Steganographic QR System
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'steganographic_qr'))
+    from steganographic_qr import SteganographicQRSystem
+    STEGANOGRAPHIC_QR_AVAILABLE = True
+except ImportError:
+    STEGANOGRAPHIC_QR_AVAILABLE = False
+    print("Warning: Steganographic QR library not available")
+
+try:
+    # Quantum-Resistant Cryptography (PM-PQC)
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'quantum_resistant_crypto'))
+    from quantum_resistant_crypto import QuantumResistantCrypto as PMPQC_Crypto
+    PM_PQC_AVAILABLE = True
+except ImportError:
+    PM_PQC_AVAILABLE = False
+    print("Warning: PM-PQC library not available")
+
+try:
+    # Forward Secure Encryption
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'forward_secure_encryption'))
+    from forward_secure_encryption import ForwardSecurePageManager as ForwardSecureLib
+    FORWARD_SECURE_AVAILABLE = True
+except ImportError:
+    FORWARD_SECURE_AVAILABLE = False
+    print("Warning: Forward Secure Encryption library not available")
+
+try:
+    # Dynamic Page Sizing Optimizer
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'dynamic_page_sizing'))
+    from dynamic_page_sizing import DynamicPageSizer
+    DYNAMIC_OPTIMIZER_AVAILABLE = True
+except ImportError:
+    DYNAMIC_OPTIMIZER_AVAILABLE = False
+    print("Warning: Dynamic Page Sizing library not available")
+
 # Configuration-based constants (secure)
 if CONFIG_AVAILABLE:
     # File names from secure configuration
@@ -551,21 +597,43 @@ class SecurityValidator:
 
 class QuantumResistantCrypto:
     """
-    Cryptographic operations using strong hashing and encryption.
+    Enhanced Cryptographic operations using innovative libraries.
     
-    Uses SHA3-512 hashing and PBKDF2 key derivation for security.
-    Includes timing attack protection and secure random generation.
+    Integrates all five innovative cryptographic libraries:
+    - PM-PQC for quantum-resistant hashing
+    - Forward Secure Encryption for epoch-based protection
+    - Dynamic Page Sizing for optimized performance
+    - Dual QR Recovery for secure backup systems
+    - Steganographic QR for hidden data storage
     """
     
     def __init__(self):
         self.logger = shared_logger
         self.memory_manager = SecureMemoryManager()
         self.validator = SecurityValidator()
+        
+        # Initialize innovative cryptographic libraries
+        self.pm_pqc = PMPQC_Crypto() if PM_PQC_AVAILABLE else None
+        self.forward_secure = ForwardSecureLib() if FORWARD_SECURE_AVAILABLE else None
+        self.page_optimizer = DynamicPageSizer() if DYNAMIC_OPTIMIZER_AVAILABLE else None
+        self.dual_qr = DualQRRecoverySystem() if DUAL_QR_AVAILABLE else None
+        self.steganographic_qr = SteganographicQRSystem() if STEGANOGRAPHIC_QR_AVAILABLE else None
+        
+        # Enhanced security features
+        self.quantum_safe_mode = PM_PQC_AVAILABLE
+        self.forward_secure_mode = FORWARD_SECURE_AVAILABLE
+        self.dynamic_optimization = DYNAMIC_OPTIMIZER_AVAILABLE
+        
+        if self.quantum_safe_mode:
+            self.logger.log_security_event(
+                SecurityEvent.ENCRYPTION_OPERATION,
+                "PM-PQC quantum-resistant cryptography initialized"
+            )
     
-    @security_monitor("security_answer_hashing")
+    @security_monitor("enhanced_security_answer_hashing")
     def hash_security_answer(self, answer: str, salt: Optional[bytes] = None) -> HashResult:
-        """Create hash for security question answer using SHA3-512."""
-        # Validate security answer (different rules than master password)
+        """Enhanced security answer hashing using PM-PQC if available."""
+        # Validate security answer
         is_valid, message = self.validator.validate_security_answer(answer)
         if not is_valid:
             self.logger.log_security_event(
@@ -581,32 +649,44 @@ class QuantumResistantCrypto:
                 if salt is None:
                     salt = self.generate_salt()
                 
-                combined = salt + secure_answer.encode('utf-8')
-                hash_result = hashlib.sha3_512(combined).digest()
-                
-                # Apply extra hashing rounds
-                for _ in range(100000):
-                    hash_result = hashlib.sha3_512(hash_result + salt).digest()
-                
-                return HashResult(
-                    hash=base64.b64encode(hash_result).decode('ascii'),
-                    salt=base64.b64encode(salt).decode('ascii'),
-                    algorithm='SHA3-512-Enhanced-Security',
-                    iterations=100000,
-                    created_at=time.strftime('%Y-%m-%d %H:%M:%S')
-                )
+                # Use PM-PQC for quantum-resistant hashing if available
+                if self.pm_pqc:
+                    hash_result = self.pm_pqc.hash_password(secure_answer, salt)
+                    
+                    return HashResult(
+                        hash=hash_result.hash,
+                        salt=hash_result.salt,
+                        algorithm='PM-PQC-SHA3-512-Enhanced',
+                        iterations=hash_result.iterations,
+                        created_at=hash_result.created_at
+                    )
+                else:
+                    # Fallback to standard implementation
+                    combined = salt + secure_answer.encode('utf-8')
+                    hash_result = hashlib.sha3_512(combined).digest()
+                    
+                    for _ in range(100000):
+                        hash_result = hashlib.sha3_512(hash_result + salt).digest()
+                    
+                    return HashResult(
+                        hash=base64.b64encode(hash_result).decode('ascii'),
+                        salt=base64.b64encode(salt).decode('ascii'),
+                        algorithm='SHA3-512-Enhanced-Security',
+                        iterations=100000,
+                        created_at=time.strftime('%Y-%m-%d %H:%M:%S')
+                    )
                 
         except Exception as e:
             self.logger.log_security_event(
                 SecurityEvent.SUSPICIOUS_ACTIVITY,
-                f"Security answer hashing operation failed: {type(e).__name__}",
+                f"Enhanced security answer hashing failed: {type(e).__name__}",
                 "ERROR"
             )
             raise
 
-    @security_monitor("password_hashing")
+    @security_monitor("enhanced_password_hashing")
     def hash_password(self, password: str, salt: Optional[bytes] = None) -> HashResult:
-        """Create secure password hash using SHA3-512 with additional rounds."""
+        """Enhanced password hashing using PM-PQC quantum-resistant algorithms."""
         is_valid, message = self.validator.validate_password_strength(password)
         if not is_valid:
             self.logger.log_security_event(
@@ -621,28 +701,231 @@ class QuantumResistantCrypto:
                 if salt is None:
                     salt = self.generate_salt()
                 
-                combined = salt + secure_password.encode('utf-8')
-                hash_result = hashlib.sha3_512(combined).digest()
-                
-                # Apply extra rounds for security
-                for _ in range(100000):
-                    hash_result = hashlib.sha3_512(hash_result + salt).digest()
-                
-                return HashResult(
-                    hash=base64.b64encode(hash_result).decode('ascii'),
-                    salt=base64.b64encode(salt).decode('ascii'),
-                    algorithm='SHA3-512-Enhanced',
-                    iterations=100000,
-                    created_at=time.strftime('%Y-%m-%d %H:%M:%S')
-                )
+                # Use PM-PQC for quantum-resistant hashing
+                if self.pm_pqc:
+                    hash_result = self.pm_pqc.hash_password(secure_password, salt)
+                    
+                    return HashResult(
+                        hash=hash_result.hash,
+                        salt=hash_result.salt,
+                        algorithm='PM-PQC-Quantum-Resistant',
+                        iterations=hash_result.iterations,
+                        created_at=hash_result.created_at
+                    )
+                else:
+                    # Fallback to standard SHA3-512
+                    combined = salt + secure_password.encode('utf-8')
+                    hash_result = hashlib.sha3_512(combined).digest()
+                    
+                    for _ in range(100000):
+                        hash_result = hashlib.sha3_512(hash_result + salt).digest()
+                    
+                    return HashResult(
+                        hash=base64.b64encode(hash_result).decode('ascii'),
+                        salt=base64.b64encode(salt).decode('ascii'),
+                        algorithm='SHA3-512-Enhanced',
+                        iterations=100000,
+                        created_at=time.strftime('%Y-%m-%d %H:%M:%S')
+                    )
                 
         except Exception as e:
             self.logger.log_security_event(
                 SecurityEvent.SUSPICIOUS_ACTIVITY,
-                f"Hashing operation failed: {type(e).__name__}",
+                f"Enhanced password hashing failed: {type(e).__name__}",
                 "ERROR"
             )
             raise
+    
+    @security_monitor("enhanced_password_verification")
+    def verify_password(self, password: str, stored_hash_data: Union[HashResult, Dict]) -> bool:
+        """Enhanced password verification with PM-PQC support."""
+        try:
+            # Handle both HashResult dataclass and dictionary input
+            if isinstance(stored_hash_data, HashResult):
+                stored_hash = base64.b64decode(stored_hash_data.hash)
+                salt = base64.b64decode(stored_hash_data.salt)
+                algorithm = stored_hash_data.algorithm
+                iterations = stored_hash_data.iterations
+            else:
+                stored_hash = base64.b64decode(stored_hash_data['hash'])
+                salt = base64.b64decode(stored_hash_data['salt'])
+                algorithm = stored_hash_data.get('algorithm', 'SHA3-512-Enhanced')
+                iterations = stored_hash_data.get('iterations', 100000)
+            
+            with self.memory_manager.secure_string(password) as secure_password:
+                # Use PM-PQC for quantum-resistant verification if the hash was created with it
+                if algorithm.startswith('PM-PQC') and self.pm_pqc:
+                    # Create a HashResult object for the PM-PQC verification
+                    stored_hash_obj = HashResult(
+                        hash=base64.b64encode(stored_hash).decode('ascii'),
+                        salt=base64.b64encode(salt).decode('ascii'),
+                        algorithm=algorithm,
+                        iterations=iterations,
+                        created_at=""
+                    )
+                    return self.pm_pqc.verify_password(secure_password, stored_hash_obj)
+                else:
+                    # Standard verification
+                    combined = salt + secure_password.encode('utf-8')
+                    computed_hash = hashlib.sha3_512(combined).digest()
+                    
+                    for _ in range(iterations):
+                        computed_hash = hashlib.sha3_512(computed_hash + salt).digest()
+                
+                return secrets.compare_digest(stored_hash, computed_hash)
+                
+        except Exception as e:
+            self.logger.log_security_event(
+                SecurityEvent.AUTHENTICATION_FAILURE,
+                f"Enhanced password verification error: {type(e).__name__}",
+                "WARNING"
+            )
+            return False
+    
+    @performance_monitor
+    def derive_key(self, password: Union[str, bytes], salt: Optional[bytes] = None, purpose: str = "encryption") -> Tuple[bytes, bytes]:
+        """Enhanced key derivation with forward-secure and optimization features."""
+        try:
+            if salt is None:
+                salt = self.generate_salt()
+            
+            # Handle both string and bytes password inputs
+            if isinstance(password, bytes):
+                password_bytes = password
+            else:
+                password_bytes = password.encode('utf-8')
+            
+            # Use PM-PQC enhanced key derivation if available
+            if self.pm_pqc:
+                # Use PM-PQC's derive_key method directly
+                derived_key, salt = self.pm_pqc.derive_key(password_bytes, salt, purpose)
+                
+                self.logger.log_security_event(
+                    SecurityEvent.ENCRYPTION_OPERATION,
+                    f"PM-PQC enhanced key derived for purpose: {purpose}"
+                )
+                
+                return derived_key, salt
+            
+            else:
+                # Standard implementation
+                purpose_bytes = purpose.encode('utf-8')
+                base_hash = hashlib.sha3_512(password_bytes + purpose_bytes).digest()
+                
+                kdf = PBKDF2HMAC(
+                    algorithm=hashes.SHA512(),
+                    length=32,
+                    salt=salt,
+                    iterations=PBKDF2_ITERATIONS,
+                    backend=default_backend()
+                )
+                
+                derived_key = kdf.derive(base_hash)
+                
+                self.logger.log_security_event(
+                    SecurityEvent.ENCRYPTION_OPERATION,
+                    f"Standard key derived for purpose: {purpose}"
+                )
+                
+                return derived_key, salt
+            
+        except Exception as e:
+            self.logger.log_security_event(
+                SecurityEvent.SUSPICIOUS_ACTIVITY,
+                f"Enhanced key derivation failed: {type(e).__name__}",
+                "ERROR"
+            )
+            raise
+    
+    def create_dual_qr_recovery(self, recovery_data: str, device_fingerprint: str) -> Optional[Dict]:
+        """Create dual QR code recovery system for secure backup."""
+        if not self.dual_qr:
+            return None
+        
+        try:
+            recovery_result = self.dual_qr.create_dual_qr_system(
+                recovery_data, device_fingerprint
+            )
+            
+            self.logger.log_security_event(
+                SecurityEvent.BACKUP_CREATED,
+                "Dual QR recovery system created"
+            )
+            
+            return recovery_result
+        except Exception as e:
+            self.logger.log_security_event(
+                SecurityEvent.SUSPICIOUS_ACTIVITY,
+                f"Dual QR recovery creation failed: {type(e).__name__}",
+                "ERROR"
+            )
+            return None
+    
+    def create_steganographic_backup(self, secret_data: str, cover_message: str) -> Optional[str]:
+        """Create steganographic QR code with hidden data."""
+        if not self.steganographic_qr:
+            return None
+        
+        try:
+            stego_qr = self.steganographic_qr.embed_steganographic_data(
+                secret_data, cover_message
+            )
+            
+            self.logger.log_security_event(
+                SecurityEvent.BACKUP_CREATED,
+                "Steganographic QR backup created"
+            )
+            
+            return stego_qr
+        except Exception as e:
+            self.logger.log_security_event(
+                SecurityEvent.SUSPICIOUS_ACTIVITY,
+                f"Steganographic backup creation failed: {type(e).__name__}",
+                "ERROR"
+            )
+            return None
+    
+    def optimize_page_size(self, vault_size: int, performance_requirements: Dict) -> float:
+        """Calculate optimal page size using dynamic optimization."""
+        if not self.page_optimizer:
+            return calculate_optimal_page_size(vault_size)  # Fallback
+        
+        try:
+            # Extract data size from performance requirements if available
+            data_size_bytes = performance_requirements.get('data_size_bytes', 0)
+            
+            optimization_result = self.page_optimizer.calculate_optimal_page_size(
+                vault_size, data_size_bytes
+            )
+            
+            optimal_size = optimization_result.optimal_page_size_kb
+            
+            self.logger.log_security_event(
+                SecurityEvent.ENCRYPTION_OPERATION,
+                f"Dynamic page size optimized: {optimal_size}KB for {vault_size} entries"
+            )
+            
+            return optimal_size
+        except Exception as e:
+            self.logger.log_security_event(
+                SecurityEvent.SUSPICIOUS_ACTIVITY,
+                f"Page size optimization failed: {type(e).__name__}",
+                "WARNING"
+            )
+            return calculate_optimal_page_size(vault_size)  # Fallback
+    
+    def get_security_features_status(self) -> Dict[str, bool]:
+        """Get status of all enhanced security features."""
+        return {
+            'pm_pqc_available': PM_PQC_AVAILABLE,
+            'forward_secure_available': FORWARD_SECURE_AVAILABLE,
+            'dynamic_optimizer_available': DYNAMIC_OPTIMIZER_AVAILABLE,
+            'dual_qr_available': DUAL_QR_AVAILABLE,
+            'steganographic_qr_available': STEGANOGRAPHIC_QR_AVAILABLE,
+            'quantum_safe_mode': self.quantum_safe_mode,
+            'forward_secure_mode': self.forward_secure_mode,
+            'dynamic_optimization': self.dynamic_optimization
+        }
     
     @staticmethod
     def generate_salt(length: int = SALT_LENGTH) -> bytes:
@@ -1237,31 +1520,52 @@ def calculate_optimal_page_size(vault_size: int) -> float:
 # Forward-secure page encryption system
 class ForwardSecurePageManager:
     """
-    Page-based encryption manager with epoch counters.
+    Enhanced page-based encryption manager with innovative libraries integration.
     
-    Handles key rotation by re-encrypting only pages that need updating
-    based on their epoch counters. Provides forward security where old
-    keys can't decrypt new data after rotation.
+    Now integrates all five innovative cryptographic libraries:
+    - Forward Secure Encryption for epoch-based protection
+    - Dynamic Page Sizing for optimal performance
+    - PM-PQC for quantum-resistant operations
+    - Dual QR Recovery for secure backup systems
+    - Steganographic QR for hidden recovery data
     
     SECURITY PROPERTIES:
     - Forward Security: Old keys cannot decrypt new data after rotation
-    - Post-Quantum Resistance: Uses quantum-resistant cryptographic primitives
+    - Post-Quantum Resistance: Uses PM-PQC quantum-resistant primitives
+    - Dynamic Optimization: Page size adapts using mathematical optimization
+    - Secure Recovery: Dual QR and steganographic backup systems
     - Minimal Exposure: Only stale pages exposed during key rotation
-    - Integrity Preservation: SHA3-512 checksums maintain data integrity
-    - Dynamic Granularity: Page size adapts to vault size for optimal security/performance
-    
-    CLAIM: "Method for performing forward-secure key rotation on an encrypted 
-    password database by re-encrypting only those pages whose epoch counter 
-    is below the current epoch, thereby avoiding full plaintext exposure."
     """
     
     def __init__(self, vault_size: int = 0):
         self.logger = shared_logger
-        self.crypto = QuantumResistantCrypto()
+        self.crypto = QuantumResistantCrypto()  # Enhanced crypto with all libraries
         self.vault_size = vault_size
-        self.current_page_size_kb = calculate_optimal_page_size(vault_size)
+        
+        # Use dynamic page sizing optimization if available
+        if self.crypto.page_optimizer:
+            performance_reqs = {
+                'memory_usage': 'medium',
+                'cpu_overhead': 'low',
+                'security_level': 'high'
+            }
+            self.current_page_size_kb = self.crypto.optimize_page_size(vault_size, performance_reqs)
+        else:
+            self.current_page_size_kb = calculate_optimal_page_size(vault_size)
+        
         self.current_epoch = self.load_current_epoch()
         self.page_metadata = self.load_page_metadata()
+        
+        # Initialize forward-secure encryption if available
+        if self.crypto.forward_secure:
+            self.epoch_manager = self.crypto.forward_secure
+        else:
+            self.epoch_manager = None
+        
+        self.logger.log_security_event(
+            SecurityEvent.ENCRYPTION_OPERATION,
+            f"Enhanced ForwardSecurePageManager initialized: {vault_size} entries, {self.current_page_size_kb}KB pages"
+        )
     
     def load_current_epoch(self) -> int:
         """Load the current global epoch counter"""
@@ -1378,11 +1682,11 @@ class ForwardSecurePageManager:
     
     def update_vault_size(self, new_vault_size: int) -> bool:
         """
-        Update Vault Size and Recalculate Optimal Page Size
+        Enhanced Vault Size Update with Dynamic Optimization
         
-        This method updates the vault size and recalculates the optimal page size
-        for the Forward-Secure Page Epoch Re-Encryption system. This enables
-        dynamic optimization as the vault grows or shrinks.
+        Uses the Dynamic Page Sizing Optimizer library to calculate optimal
+        page sizes based on vault size, performance requirements, and system
+        resources for maximum security and performance.
         
         Args:
             new_vault_size: New number of password entries in the vault
@@ -1393,17 +1697,31 @@ class ForwardSecurePageManager:
         old_page_size = self.current_page_size_kb
         old_vault_size = self.vault_size
         
-        # Update vault size and recalculate optimal page size
+        # Update vault size
         self.vault_size = new_vault_size
-        self.current_page_size_kb = calculate_optimal_page_size(new_vault_size)
+        
+        # Use enhanced optimization if available
+        if self.crypto.page_optimizer:
+            performance_reqs = {
+                'memory_usage': 'medium',
+                'cpu_overhead': 'low', 
+                'security_level': 'high',
+                'io_pattern': 'mixed',
+                'vault_growth_rate': 'moderate'
+            }
+            self.current_page_size_kb = self.crypto.optimize_page_size(new_vault_size, performance_reqs)
+        else:
+            # Fallback to standard calculation
+            self.current_page_size_kb = calculate_optimal_page_size(new_vault_size)
         
         # Check if page size actually changed
         page_size_changed = old_page_size != self.current_page_size_kb
         
         if page_size_changed:
+            optimization_method = "Dynamic Optimizer" if self.crypto.page_optimizer else "Standard"
             self.logger.log_security_event(
                 SecurityEvent.ENCRYPTION_OPERATION,
-                f"Dynamic page size updated: {old_vault_size} -> {new_vault_size} passwords, "
+                f"{optimization_method} page size updated: {old_vault_size} -> {new_vault_size} passwords, "
                 f"{old_page_size}KB -> {self.current_page_size_kb}KB pages"
             )
             
@@ -1834,6 +2152,177 @@ def list_removable_drives():
                 continue
     
     return drives  # Return all USB drives we found
+
+def create_enhanced_secure_backups():
+    """
+    🚀 Enhanced Secure Backup System using Innovative Libraries
+    
+    Creates advanced backups using all five innovative cryptographic libraries:
+    - Dual QR Recovery: Split recovery data across two QR codes
+    - Steganographic QR: Hide recovery data in innocent-looking QR codes
+    - Forward Secure Encryption: Epoch-protected backup encryption
+    - Dynamic Page Sizing: Optimized backup storage
+    - PM-PQC: Quantum-resistant backup protection
+    
+    Returns:
+        Dictionary with detailed backup results
+    """
+    backup_results = {
+        'dual_qr_backups': 0,
+        'steganographic_backups': 0,
+        'forward_secure_backups': 0,
+        'standard_backups': 0,
+        'total_enhanced_backups': 0,
+        'errors': []
+    }
+    
+    try:
+        crypto = QuantumResistantCrypto()
+        
+        # Prepare critical recovery data
+        recovery_data = {
+            'vault_location': VAULT_FILE,
+            'config_location': CONFIG_FILE,
+            'salt_location': SALT_FILE,
+            'created_timestamp': datetime.now().isoformat(),
+            'security_level': 'quantum_resistant'
+        }
+        
+        # Get device fingerprint for binding
+        device_fingerprint = platform.node() + platform.system() + platform.machine()
+        
+        # 1. Create Dual QR Recovery System
+        if crypto.dual_qr:
+            try:
+                dual_qr_result = crypto.create_dual_qr_recovery(
+                    json.dumps(recovery_data), 
+                    device_fingerprint
+                )
+                if dual_qr_result:
+                    # Save dual QR codes
+                    if secure_file_write('recovery_qr_primary.json', json.dumps(dual_qr_result['primary'])):
+                        backup_results['dual_qr_backups'] += 1
+                    if secure_file_write('recovery_qr_secondary.json', json.dumps(dual_qr_result['secondary'])):
+                        backup_results['dual_qr_backups'] += 1
+                    
+                    shared_logger.log_security_event(
+                        SecurityEvent.BACKUP_CREATED,
+                        "Dual QR recovery system backup created"
+                    )
+            except Exception as e:
+                backup_results['errors'].append(f"Dual QR backup failed: {str(e)}")
+        
+        # 2. Create Steganographic QR Backups
+        if crypto.steganographic_qr:
+            try:
+                # Create innocent cover messages
+                cover_messages = [
+                    "Visit our company website for more information",
+                    "Scan for product documentation and support",
+                    "Contact us for customer service assistance"
+                ]
+                
+                for i, cover_msg in enumerate(cover_messages):
+                    stego_qr = crypto.create_steganographic_backup(
+                        json.dumps(recovery_data),
+                        cover_msg
+                    )
+                    if stego_qr:
+                        if secure_file_write(f'stego_backup_{i+1}.qr', stego_qr):
+                            backup_results['steganographic_backups'] += 1
+                
+                shared_logger.log_security_event(
+                    SecurityEvent.BACKUP_CREATED,
+                    f"Steganographic QR backups created: {backup_results['steganographic_backups']}"
+                )
+            except Exception as e:
+                backup_results['errors'].append(f"Steganographic backup failed: {str(e)}")
+        
+        # 3. Create Forward-Secure Encrypted Backups
+        if crypto.forward_secure:
+            try:
+                # Encrypt backup data with forward-secure encryption
+                backup_password = crypto.secure_random_password(32)
+                backup_data_bytes = json.dumps(recovery_data).encode()
+                
+                # Derive encryption key from password
+                key = hashlib.sha256(backup_password.encode()).digest()
+                
+                # Use forward-secure page encryption
+                encrypted_backup, key_fingerprint = crypto.forward_secure.encrypt_page_with_epoch(
+                    backup_data_bytes, key, 1  # Use epoch 1 for backup
+                )
+                
+                if secure_file_write('forward_secure_backup.enc', encrypted_backup, is_binary=True):
+                    backup_results['forward_secure_backups'] += 1
+                    # Store backup password separately
+                    if secure_file_write('backup_key.txt', backup_password):
+                        backup_results['forward_secure_backups'] += 1
+                
+                shared_logger.log_security_event(
+                    SecurityEvent.BACKUP_CREATED,
+                    "Forward-secure encrypted backup created"
+                )
+            except Exception as e:
+                backup_results['errors'].append(f"Forward-secure backup failed: {str(e)}")
+        
+        # 4. Enhanced Standard Backups with PM-PQC
+        try:
+            if os.path.exists(VAULT_FILE):
+                with open(VAULT_FILE, 'rb') as f:
+                    vault_data = f.read()
+                
+                # Create quantum-resistant hash of backup for integrity
+                if crypto.pm_pqc:
+                    # Create a simple password to hash the backup data
+                    backup_data_str = base64.b64encode(vault_data).decode()
+                    hash_result = crypto.pm_pqc.hash_password(backup_data_str)
+                    
+                    backup_metadata = {
+                        'backup_hash': hash_result.hash,
+                        'backup_salt': hash_result.salt,
+                        'backup_algorithm': 'PM-PQC-SHA3-512',
+                        'created': hash_result.created_at,
+                        'vault_size': len(vault_data)
+                    }
+                    
+                    if secure_file_write('enhanced_vault_backup.enc', vault_data, is_binary=True):
+                        backup_results['standard_backups'] += 1
+                    if secure_file_write('backup_metadata.json', json.dumps(backup_metadata)):
+                        backup_results['standard_backups'] += 1
+                
+                shared_logger.log_security_event(
+                    SecurityEvent.BACKUP_CREATED,
+                    "PM-PQC enhanced standard backup created"
+                )
+        except Exception as e:
+            backup_results['errors'].append(f"Enhanced standard backup failed: {str(e)}")
+        
+        # Calculate totals
+        backup_results['total_enhanced_backups'] = (
+            backup_results['dual_qr_backups'] + 
+            backup_results['steganographic_backups'] + 
+            backup_results['forward_secure_backups'] + 
+            backup_results['standard_backups']
+        )
+        
+        # Log summary
+        if backup_results['total_enhanced_backups'] > 0:
+            shared_logger.log_security_event(
+                SecurityEvent.BACKUP_CREATED,
+                f"Enhanced backup system completed: {backup_results['total_enhanced_backups']} backups created"
+            )
+        
+        return backup_results
+        
+    except Exception as e:
+        backup_results['errors'].append(f"Enhanced backup system failed: {str(e)}")
+        shared_logger.log_security_event(
+            SecurityEvent.SUSPICIOUS_ACTIVITY,
+            f"Enhanced backup system error: {type(e).__name__}",
+            "ERROR"
+        )
+        return backup_results
 
 def create_comprehensive_file_backups():
     """
@@ -9614,20 +10103,119 @@ def recover_from_qr_system():
     print(" Recovery data available for vault restoration")
     return True
 
+def display_enhanced_security_features():
+    """
+    🚀 Display Enhanced Security Features Status
+    
+    Shows the status of all five innovative cryptographic libraries
+    and their enhanced security capabilities.
+    """
+    print("\n" + "="*80)
+    print("🚀 ENHANCED SECURITY FEATURES STATUS")
+    print("="*80)
+    
+    crypto = QuantumResistantCrypto()
+    features = crypto.get_security_features_status()
+    
+    # PM-PQC (Post-Modern Post-Quantum Cryptography)
+    status = "✅ ACTIVE" if features['pm_pqc_available'] else "❌ UNAVAILABLE"
+    print(f"🔐 PM-PQC Quantum-Resistant Crypto:     {status}")
+    if features['pm_pqc_available']:
+        print("    • SHA3-512 quantum-safe hashing")
+        print("    • PBKDF2 with 100K+ iterations")
+        print("    • Timing attack protection")
+    
+    # Forward Secure Encryption
+    status = "✅ ACTIVE" if features['forward_secure_available'] else "❌ UNAVAILABLE"
+    print(f"⏳ Forward Secure Encryption:          {status}")
+    if features['forward_secure_available']:
+        print("    • Epoch-based key rotation")
+        print("    • Forward security guarantees")
+        print("    • Selective page re-encryption")
+    
+    # Dynamic Page Sizing Optimizer
+    status = "✅ ACTIVE" if features['dynamic_optimizer_available'] else "❌ UNAVAILABLE"
+    print(f"📊 Dynamic Page Sizing Optimizer:      {status}")
+    if features['dynamic_optimizer_available']:
+        print("    • Mathematical optimization algorithms")
+        print("    • Performance-security balance")
+        print("    • Adaptive vault sizing")
+    
+    # Dual QR Recovery System
+    status = "✅ ACTIVE" if features['dual_qr_available'] else "❌ UNAVAILABLE"
+    print(f"🔄 Dual QR Recovery System:            {status}")
+    if features['dual_qr_available']:
+        print("    • Split recovery across two QR codes")
+        print("    • Device fingerprint binding")
+        print("    • Cryptographic isolation")
+    
+    # Steganographic QR System
+    status = "✅ ACTIVE" if features['steganographic_qr_available'] else "❌ UNAVAILABLE"
+    print(f"🎯 Steganographic QR System:           {status}")
+    if features['steganographic_qr_available']:
+        print("    • Hidden data in error correction space")
+        print("    • Reed-Solomon steganography")
+        print("    • Patent-pending technology")
+    
+    print("="*80)
+    
+    # Overall security level assessment
+    active_features = sum(1 for feature in features.values() if feature and isinstance(feature, bool))
+    total_features = 5  # Five main libraries
+    
+    if active_features >= 4:
+        security_level = "🛡️  MAXIMUM SECURITY"
+        color_code = "\033[92m"  # Green
+    elif active_features >= 3:
+        security_level = "🔒 HIGH SECURITY"
+        color_code = "\033[93m"  # Yellow
+    elif active_features >= 2:
+        security_level = "⚠️  MODERATE SECURITY"
+        color_code = "\033[93m"  # Yellow
+    else:
+        security_level = "⚠️  BASIC SECURITY"
+        color_code = "\033[91m"  # Red
+    
+    reset_code = "\033[0m"  # Reset color
+    
+    print(f"{color_code}SECURITY LEVEL: {security_level} ({active_features}/{total_features} features active){reset_code}")
+    print("="*80)
+    
+    # Show recommendations if features are missing
+    if active_features < total_features:
+        print("\n💡 RECOMMENDATIONS:")
+        if not features['pm_pqc_available']:
+            print("   • Install PM-PQC library for quantum-resistant protection")
+        if not features['forward_secure_available']:
+            print("   • Install Forward Secure Encryption for epoch-based security")
+        if not features['dynamic_optimizer_available']:
+            print("   • Install Dynamic Page Optimizer for performance optimization")
+        if not features['dual_qr_available']:
+            print("   • Install Dual QR Recovery for advanced backup systems")
+        if not features['steganographic_qr_available']:
+            print("   • Install Steganographic QR for hidden data capabilities")
+        print()
+
 def main():
     """
-     Main Application Entry Point
+     Main Application Entry Point with Enhanced Security Features
     
-    This is the main function that runs when the program starts. It handles:
-    1. Initial setup for new users
-    2. Authentication for existing users  
-    3. The main menu loop where users can manage their passwords
+    Enhanced main function that integrates all five innovative cryptographic
+    libraries for maximum security and functionality:
+    - PM-PQC for quantum-resistant operations
+    - Forward Secure Encryption for epoch-based protection
+    - Dynamic Page Sizing for optimized performance
+    - Dual QR Recovery for secure backup systems
+    - Steganographic QR for hidden data storage
     
     The function implements multiple layers of security including quantum tokens,
     lockout protection, and quantum-resistant password verification.
     """
     # Reset session flags at program start for clean state
     reset_session_flags()
+    
+    # Display enhanced security features status
+    display_enhanced_security_features()
     
     # Display the welcome banner with security information
     banner_width = get_terminal_width()
@@ -9848,7 +10436,7 @@ def main():
             print("10.  QR Recovery System - Create QR code emergency recovery")
         else:
             print("10.  QR Recovery System (Disabled - QR libraries not installed)")
-        print("11.  Forward-Secure Demo - Demonstrate patent-pending key rotation technology")
+        print("11.  Enhanced Security Test - Run comprehensive security validation")
         print("12.  Exit Securely - Close application and clear memory")
         print("="*menu_width)
         
@@ -10024,40 +10612,42 @@ def main():
                 break  # Exit if user chooses to quit
         elif choice == '11':
             clear_screen()  # Clear menu before showing option
-            # Forward-Secure Page Epoch Re-Encryption Demonstration
-            print("\n Forward-Secure Page Epoch Re-Encryption Technology")
+            # Enhanced Security Validation
+            print("\n Enhanced Security Validation System")
             print("=" * 60)
-            print(" Demonstrating patent-pending innovation for Global Talent Visa")
-            print(" Revolutionary key rotation without full plaintext exposure")
+            print(" Comprehensive security testing of all cryptographic libraries")
+            print(" Validates quantum-resistant implementations and security features")
             print()
             
-            # Run the forward-secure rotation demonstration
+            # Run comprehensive security tests
             try:
-                from forward_secure_encryption.forward_secure_encryption import ForwardSecurePageManager
+                crypto = QuantumResistantCrypto()
+                test_suite = QuantumVaultTestSuite()
                 
-                print("  Creating sample vault data...")
-                sample_data = [
-                    {"service": "Gmail", "username": "user@gmail.com", "password": "SecurePassword123!"},
-                    {"service": "GitHub", "username": "developer", "password": "GitHubToken456@"},
-                    {"service": "Bank", "username": "customer123", "password": "BankingSecure789#"}
-                ]
+                print("  Running enhanced security validation...")
+                test_results = test_suite.run_all_tests()
                 
-                # Create manager and demonstrate rotation
-                manager = ForwardSecurePageManager(page_size_kb=1.0)
-                old_key = os.urandom(32)
-                new_key = os.urandom(32)
+                passed_tests = sum(1 for result in test_results.values() if result)
+                total_tests = len(test_results)
                 
-                print("  Performing forward-secure key rotation...")
-                result = manager.perform_forward_secure_rotation(sample_data, old_key, new_key)
+                print(f"  ✓ Security validation completed!")
+                print(f"    Tests passed: {passed_tests}/{total_tests}")
                 
-                print(f"  ✓ Rotation completed successfully!")
-                print(f"    Pages processed: {result.pages_rotated}")
-                print(f"    Forward security maintained: {result.forward_security_maintained}")
-                print(f"    Performance optimized: {result.performance_optimized}")
+                # Show feature status
+                features = crypto.get_security_features_status()
+                active_features = sum(1 for f in features.values() if f and isinstance(f, bool))
+                print(f"    Enhanced libraries active: {active_features}/5")
+                
+                if passed_tests == total_tests and active_features >= 3:
+                    print("    Security Level: ✅ MAXIMUM PROTECTION")
+                elif passed_tests >= total_tests * 0.8:
+                    print("    Security Level: 🔒 HIGH PROTECTION")
+                else:
+                    print("    Security Level: ⚠️  STANDARD PROTECTION")
                 
             except Exception as e:
-                print(f"  Demo error: {e}")
-                print("  Forward-secure encryption library available in separate repository")
+                print(f"  Validation error: {e}")
+                print("  Enhanced security libraries may need configuration")
             
             if not prompt_continue_or_exit():       # Ask user what to do next
                 break  # Exit if user chooses to quit
@@ -10151,96 +10741,6 @@ def initialize_enhanced_quantum_vault():
         'test_results': test_results
     }
 
-def demonstrate_enhanced_features():
-    """Demonstrate the enhanced features of QuantumVault"""
-    print("\n QuantumVault Enhanced Features Demonstration")
-    print("=" * 50)
-    
-    # Initialize enhanced system
-    enhanced_system = initialize_enhanced_quantum_vault()
-    crypto = enhanced_system['crypto']
-    logger = enhanced_system['logger']
-    
-    print("\n1.  Enhanced Password Hashing with Type Safety:")
-    try:
-        # This will work - strong password
-        test_password = "MySecurePassword123!@#WithSufficientLength"
-        hash_result = crypto.hash_password(test_password)
-        print(f"    Strong password hashed successfully")
-        print(f"    Algorithm: {hash_result.algorithm}")
-        print(f"    Iterations: {hash_result.iterations:,}")
-        print(f"    Created: {hash_result.created_at}")
-        
-        # Verify the password
-        is_valid = crypto.verify_password(test_password, hash_result)
-        print(f"    Password verification: {'PASSED' if is_valid else 'FAILED'}")
-        
-    except ValueError as e:
-        print(f"    Password validation failed: {e}")
-    
-    print("\n2.  Enhanced Input Validation:")
-    try:
-        # This will fail - weak password
-        weak_password = "password123"
-        crypto.hash_password(weak_password)
-    except ValueError as e:
-        print(f"    Weak password correctly rejected: {str(e)[:50]}...")
-    
-    print("\n3.  Performance Monitoring:")
-    start_time = time.perf_counter()
-    key, salt = crypto.derive_key("test_password_for_demo", purpose="demonstration")
-    end_time = time.perf_counter()
-    print(f"    Key derivation completed in {end_time - start_time:.4f} seconds")
-    print(f"    Key length: {len(key)} bytes")
-    print(f"    Salt length: {len(salt)} bytes")
-    
-    print("\n4. ️ Secure File Operations:")
-    file_ops = enhanced_system['file_ops']
-    test_data = "Test data for secure file operations demonstration"
-    test_file = "demo_secure_file.tmp"
-    
-    write_success = file_ops.secure_file_write(test_file, test_data)
-    if write_success:
-        print("    Secure file write successful")
-        
-        read_data = file_ops.secure_file_read(test_file)
-        if read_data == test_data:
-            print("    Secure file read successful")
-        else:
-            print("    Secure file read failed")
-        
-        # Cleanup
-        try:
-            os.remove(test_file)
-            print("    Cleanup completed")
-        except:
-            pass
-    else:
-        print("    Secure file write failed")
-    
-    print("\n5.  Enhanced Logging System:")
-    logger.log_security_event(
-        SecurityEvent.LOGIN_ATTEMPT,
-        "Demonstration of enhanced logging system with sensitive data protection"
-    )
-    print("    Security event logged (check logs/vault_security.log)")
-    
-    print("\n6. ️ Type-Safe Configuration:")
-    config_manager = enhanced_system['config_manager']
-    demo_config = config_manager.Config(
-        token_choice="3",
-        quantum_resistant=True,
-        device_bound=True,
-        created=time.strftime('%Y-%m-%d %H:%M:%S'),
-        crypto_version="SHA3-512-Enhanced",
-        security_level=SecurityLevel.QUANTUM_RESISTANT,
-        backup_enabled=True,
-        auto_lock_timeout=600,
-        max_login_attempts=3
-    )
-    
-    # Removed verbose demo messages - configuration is ready for production use
-
 def enhanced_main():
     """Enhanced main function with all improvements"""
     try:
@@ -10260,7 +10760,7 @@ def enhanced_main():
         raise
 
 if __name__ == "__main__":
-    # Run enhanced version with demonstrations
+    # Run enhanced version with security validation
     enhanced_main()
 
 
