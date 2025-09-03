@@ -72,11 +72,11 @@ graph TB
     App --> MemProtect
     Auditor --> Logs
     
-    classDef uiLayer fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef coreLayer fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    classDef cryptoLayer fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
-    classDef storageLayer fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef securityLayer fill:#ffebee,stroke:#d32f2f,stroke-width:2px
+    classDef uiLayer fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000000
+    classDef coreLayer fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000000
+    classDef cryptoLayer fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000000
+    classDef storageLayer fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000000
+    classDef securityLayer fill:#ffebee,stroke:#d32f2f,stroke-width:2px,color:#000000
     
     class UI,Menu,Input uiLayer
     class App,Auth,Session,Router coreLayer
@@ -156,10 +156,10 @@ graph LR
     Validate --> Reconstruct
     Reconstruct --> Decrypt
     
-    classDef dataPrep fill:#e8f5e8,stroke:#4caf50,stroke-width:2px
-    classDef cryptoSplit fill:#e3f2fd,stroke:#2196f3,stroke-width:2px
-    classDef qrGen fill:#fff3e0,stroke:#ff9800,stroke-width:2px
-    classDef recovery fill:#ffebee,stroke:#f44336,stroke-width:2px
+    classDef dataPrep fill:#e8f5e8,stroke:#4caf50,stroke-width:2px,color:#000000
+    classDef cryptoSplit fill:#e3f2fd,stroke:#2196f3,stroke-width:2px,color:#000000
+    classDef qrGen fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000000
+    classDef recovery fill:#ffebee,stroke:#f44336,stroke-width:2px,color:#000000
     
     class MasterData,Entropy dataPrep
     class Combine,Split,Encrypt cryptoSplit
@@ -217,10 +217,10 @@ flowchart TD
     StandardTest --> FinalQR
     HiddenTest --> FinalQR
     
-    classDef processing fill:#e8f5e8,stroke:#4caf50,stroke-width:2px
-    classDef analysis fill:#e3f2fd,stroke:#2196f3,stroke-width:2px
-    classDef embedding fill:#fff3e0,stroke:#ff9800,stroke-width:2px
-    classDef verification fill:#ffebee,stroke:#f44336,stroke-width:2px
+    classDef processing fill:#e8f5e8,stroke:#4caf50,stroke-width:2px,color:#000000
+    classDef analysis fill:#e3f2fd,stroke:#2196f3,stroke-width:2px,color:#000000
+    classDef embedding fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000000
+    classDef verification fill:#ffebee,stroke:#f44336,stroke-width:2px,color:#000000
     
     class Secret,Compress,Encrypt,Format processing
     class Public,Generate,Analyze,Calculate analysis
@@ -274,10 +274,10 @@ graph TB
     Delete --> Isolate
     Isolate --> Forward
     
-    classDef epoch fill:#e8f5e8,stroke:#4caf50,stroke-width:2px
-    classDef keychain fill:#e3f2fd,stroke:#2196f3,stroke-width:2px
-    classDef operations fill:#fff3e0,stroke:#ff9800,stroke-width:2px
-    classDef security fill:#ffebee,stroke:#f44336,stroke-width:2px
+    classDef epoch fill:#e8f5e8,stroke:#4caf50,stroke-width:2px,color:#000000
+    classDef keychain fill:#e3f2fd,stroke:#2196f3,stroke-width:2px,color:#000000
+    classDef operations fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000000
+    classDef security fill:#ffebee,stroke:#f44336,stroke-width:2px,color:#000000
     
     class Timer,Current,Trigger epoch
     class MasterSeed,KDF,EpochKey,NextKey keychain
@@ -329,10 +329,10 @@ graph TD
     Feedback --> Adapt
     Adapt --> Profile
     
-    classDef intelligence fill:#e8f5e8,stroke:#4caf50,stroke-width:2px
-    classDef optimization fill:#e3f2fd,stroke:#2196f3,stroke-width:2px
-    classDef memory fill:#fff3e0,stroke:#ff9800,stroke-width:2px
-    classDef monitoring fill:#ffebee,stroke:#f44336,stroke-width:2px
+    classDef intelligence fill:#e8f5e8,stroke:#4caf50,stroke-width:2px,color:#000000
+    classDef optimization fill:#e3f2fd,stroke:#2196f3,stroke-width:2px,color:#000000
+    classDef memory fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000000
+    classDef monitoring fill:#ffebee,stroke:#f44336,stroke-width:2px,color:#000000
     
     class Profile,Entropy,Access intelligence
     class Calculate,Predict,Threshold optimization
