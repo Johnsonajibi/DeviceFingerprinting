@@ -9,76 +9,36 @@ Post Quantum Offline Manager (QuantumVault) is a comprehensive password manageme
 ## 🏗️ System Architecture
 
 ```mermaid
-flowchart TD
-    subgraph UI ["🖥️ User Interface Layer"]
-        CLI[📟 Command Line Interface]
-        Menu[📋 Interactive Menu System]
-        Input[⌨️ User Input Handler]
-    end
+graph TD
+    User[� User] --> CLI[� Command Line Interface]
+    CLI --> Core[🧠 Core Application]
     
-    subgraph Core ["⚙️ Core Application Layer"]
-        App[🏢 CorrectPQC.py<br/>Main Application]
-        Auth[🔐 Authentication<br/>Manager]
-        Session[⏱️ Session<br/>Manager]
-        Router[🔀 Menu Router]
-    end
+    Core --> Auth[🔐 Authentication]
+    Core --> PWM[🔑 Password Manager]
+    Core --> Crypto[�️ Cryptography Engine]
     
-    subgraph Crypto ["🔒 Cryptographic Libraries"]
-        QRC[🛡️ Quantum Resistant<br/>Crypto Engine]
-        DQR[📱 Dual QR<br/>Recovery System]
-        SQR[🎯 Steganographic<br/>QR System]
-        FSE[⏳ Forward Secure<br/>Encryption]
-        DPS[📊 Dynamic Page<br/>Sizing Optimizer]
-    end
+    Crypto --> QRC[Quantum-Resistant Crypto]
+    Crypto --> DQR[Dual QR Recovery]
+    Crypto --> SQR[Steganographic QR]
+    Crypto --> FSE[Forward Secure Encryption]
     
-    subgraph Storage ["💾 Storage Layer"]
-        Vault[🗄️ Encrypted<br/>Vault Files]
-        Token[🎫 Quantum<br/>Tokens]
-        Backup[💾 Backup<br/>Systems]
-        Config[⚙️ Configuration<br/>Files]
-        Logs[📜 Security<br/>Logs]
-    end
+    PWM --> Storage[💾 Encrypted Storage]
+    Storage --> Vault[🗄️ Password Vault]
+    Storage --> Backup[💾 Secure Backups]
+    Storage --> Logs[📜 Audit Logs]
     
-    subgraph Security ["🛡️ Security Layer"]
-        Audit[🔍 Security<br/>Auditing]
-        Logger[📝 Secure<br/>Logging]
-        Validator[✅ Input<br/>Validation]
-        Monitor[📊 Performance<br/>Monitoring]
-    end
+    Core --> Security[🛡️ Security Layer]
+    Security --> Monitor[📊 Monitoring]
+    Security --> Validate[✅ Validation]
+    Security --> Audit[🔍 Auditing]
     
-    %% User Interface Flow
-    CLI --> Input
-    Input --> Menu
-    Menu --> Router
-    Router --> App
-    
-    %% Core Application Flow
-    App --> Auth
-    App --> Session
-    Auth --> QRC
-    Session --> FSE
-    
-    %% Cryptographic Integration
-    App --> DQR
-    App --> SQR
-    App --> DPS
-    QRC --> Vault
-    DQR --> Token
-    FSE --> Backup
-    SQR --> Config
-    
-    %% Security Integration
-    App --> Audit
-    App --> Logger
-    App --> Validator
-    App --> Monitor
-    Logger --> Logs
-    
-    %% Styling
-    classDef uiStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
-    classDef coreStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
-    classDef cryptoStyle fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
-    classDef storageStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    style User fill:#e1f5fe
+    style CLI fill:#f3e5f5
+    style Core fill:#e8f5e8
+    style Crypto fill:#fff3e0
+    style Storage fill:#fce4ec
+    style Security fill:#ffebee
+```
     classDef securityStyle fill:#ffebee,stroke:#d32f2f,stroke-width:2px,color:#000
     
     class CLI,Menu,Input uiStyle
@@ -93,44 +53,27 @@ flowchart TD
 ### Quantum-Resistant Cryptography Module
 
 ```mermaid
-flowchart LR
-    subgraph Input ["🔤 Input Processing"]
-        PWD[🔑 Password<br/>Input]
-        Salt[🧂 Salt<br/>Generation]
-        Data[📄 Data<br/>Input]
-    end
+graph LR
+    Input[ Password Input] --> Salt[🧂 Salt Generation]
+    Salt --> PBKDF2[🔄 PBKDF2 Key Derivation]
+    PBKDF2 --> SHA3[🛡️ SHA3-512 Hashing]
+    SHA3 --> Key[🗝️ 256-bit Key]
     
-    subgraph KDF ["🔄 Key Derivation"]
-        PBKDF2[🔐 PBKDF2<br/>100K+ Iterations]
-        SHA3[🛡️ SHA3-512<br/>Quantum-Safe Hashing]
-        KeyMat[🗝️ Key Material<br/>256-bit]
-    end
+    Data[� Data] --> AES[� AES-256-GCM]
+    Key --> AES
+    AES --> Encrypted[� Encrypted Data]
+    AES --> MAC[🔏 Authentication Tag]
     
-    subgraph Encrypt ["🔒 Encryption Layer"]
-        AES[🔐 AES-256-GCM<br/>Symmetric Encryption]
-        AEAD[✅ AEAD<br/>Authenticated Encryption]
-        IV[🎲 IV Generation<br/>Random 96-bit]
-    end
-    
-    subgraph Output ["📤 Secure Output"]
-        Cipher[🔒 Encrypted<br/>Ciphertext]
-        MAC[🔏 Authentication<br/>Tag (128-bit)]
-        Metadata[📋 Encryption<br/>Metadata]
-    end
-    
-    %% Data Flow
-    PWD --> PBKDF2
-    Salt --> PBKDF2
-    PBKDF2 --> SHA3
-    SHA3 --> KeyMat
-    
-    Data --> AES
-    KeyMat --> AES
-    IV --> AES
-    AES --> AEAD
-    
-    AEAD --> Cipher
-    AEAD --> MAC
+    style Input fill:#e3f2fd
+    style Salt fill:#f3e5f5
+    style PBKDF2 fill:#e8f5e8
+    style SHA3 fill:#fff3e0
+    style Key fill:#fce4ec
+    style Data fill:#ffebee
+    style AES fill:#e0f2f1
+    style Encrypted fill:#f1f8e9
+    style MAC fill:#fff8e1
+```
     AES --> Metadata
     
     %% Security Properties
@@ -161,141 +104,61 @@ flowchart LR
 ### Dual QR Recovery System Architecture
 
 ```mermaid
-flowchart TD
-    subgraph MasterData ["🔐 Master Recovery Data"]
-        Master[🔑 Master Password<br/>Hash + Salt]
-        DeviceID[📱 Device<br/>Fingerprint]
-        RecoveryKey[🗝️ Recovery Key<br/>Material (256-bit)]
-        Timestamp[⏰ Creation<br/>Timestamp]
-    end
+graph TD
+    Master[� Master Password] --> Split[🔀 Split Recovery Data]
+    Device[📱 Device ID] --> Split
     
-    subgraph Generation ["⚡ QR Generation Process"]
-        Combine[🔗 Combine<br/>Recovery Data]
-        Split[✂️ Cryptographic<br/>Splitting Algorithm]
-        Primary[📱 Primary QR<br/>50% + Checksum]
-        Secondary[📱 Secondary QR<br/>50% + Verification]
-    end
+    Split --> QR1[� QR Code 1]
+    Split --> QR2[📱 QR Code 2]
     
-    subgraph Security ["🛡️ Security Layers"]
-        IndivEncrypt[🔒 Individual QR<br/>Encryption (AES-256)]
-        CrossVerify[🔍 Cross-QR<br/>Verification Codes]
-        DeviceBinding[📱 Device-Specific<br/>Binding Keys]
-        Integrity[✅ Integrity<br/>Checksums]
-    end
+    QR1 --> Storage1[� Secure Storage 1]
+    QR2 --> Storage2[💾 Secure Storage 2]
     
-    subgraph Storage ["💾 Storage Options"]
-        direction TB
-        PhysicalPrint[🖨️ Physical<br/>Printouts]
-        DigitalVault[💾 Digital<br/>Secure Storage]
-        USBBackup[💿 USB Drive<br/>Backup]
-        PaperWallet[📄 Paper<br/>Wallet Storage]
-    end
+    Storage1 --> Scan1[📷 Scan QR 1]
+    Storage2 --> Scan2[� Scan QR 2]
     
-    subgraph Recovery ["🔄 Recovery Process"]
-        ScanBoth[📷 Scan Both<br/>QR Codes]
-        CrossCheck[🔍 Cross-Reference<br/>Verification]
-        DeviceVerify[📱 Device<br/>Authentication]
-        Reconstruct[🔧 Data<br/>Reconstruction]
-        MasterReset[🔄 Master Password<br/>Reset]
-    end
+    Scan1 --> Combine[🔗 Combine Data]
+    Scan2 --> Combine
     
-    %% Data Flow - Generation
-    Master --> Combine
-    DeviceID --> Combine
-    RecoveryKey --> Combine
-    Timestamp --> Combine
+    Combine --> Verify[✅ Device Verification]
+    Verify --> Recover[🔓 Password Recovery]
     
-    Combine --> Split
-    Split --> Primary
-    Split --> Secondary
-    
-    Primary --> IndivEncrypt
-    Secondary --> IndivEncrypt
-    IndivEncrypt --> CrossVerify
-    CrossVerify --> DeviceBinding
-    DeviceBinding --> Integrity
-    
-    %% Storage Flow
-    Primary --> PhysicalPrint
-    Secondary --> PhysicalPrint
-    Primary --> DigitalVault
-    Secondary --> DigitalVault
-    Primary --> USBBackup
-    Secondary --> USBBackup
-    Primary --> PaperWallet
-    Secondary --> PaperWallet
-    
-    %% Recovery Flow
-    PhysicalPrint --> ScanBoth
-    DigitalVault --> ScanBoth
-    USBBackup --> ScanBoth
-    PaperWallet --> ScanBoth
-    
-    ScanBoth --> CrossCheck
-    CrossCheck --> DeviceVerify
-    DeviceVerify --> Reconstruct
-    Reconstruct --> MasterReset
-    
-    %% Security Indicators
-    subgraph SecurityFeatures ["🔒 Security Features"]
-        TwoFactor[👥 Two-Factor<br/>Recovery Required]
-        NoSinglePoint[🚫 No Single Point<br/>of Failure]
-        DeviceSpecific[📱 Device-Specific<br/>Binding]
-        CryptoSplit[🔐 Cryptographic<br/>Splitting]
-    end
-    
-    Split -.-> TwoFactor
-    DeviceBinding -.-> DeviceSpecific
-    CrossVerify -.-> NoSinglePoint
-    IndivEncrypt -.-> CryptoSplit
-    
-    %% Styling
-    classDef dataStyle fill:#e8f5e8,stroke:#4caf50,stroke-width:3px,color:#000
-    classDef genStyle fill:#e3f2fd,stroke:#2196f3,stroke-width:3px,color:#000
-    classDef secStyle fill:#fff3e0,stroke:#ff9800,stroke-width:3px,color:#000
-    classDef storageStyle fill:#f3e5f5,stroke:#9c27b0,stroke-width:3px,color:#000
-    classDef recoveryStyle fill:#ffebee,stroke:#f44336,stroke-width:3px,color:#000
-    classDef featureStyle fill:#fce4ec,stroke:#e91e63,stroke-width:2px,color:#000
-    
-    class Master,DeviceID,RecoveryKey,Timestamp dataStyle
-    class Combine,Split,Primary,Secondary genStyle
-    class IndivEncrypt,CrossVerify,DeviceBinding,Integrity secStyle
-    class PhysicalPrint,DigitalVault,USBBackup,PaperWallet storageStyle
-    class ScanBoth,CrossCheck,DeviceVerify,Reconstruct,MasterReset recoveryStyle
-    class TwoFactor,NoSinglePoint,DeviceSpecific,CryptoSplit featureStyle
+    style Master fill:#e3f2fd
+    style Device fill:#f3e5f5
+    style Split fill:#e8f5e8
+    style QR1 fill:#fff3e0
+    style QR2 fill:#fce4ec
+    style Combine fill:#ffebee
+    style Verify fill:#e0f2f1
+    style Recover fill:#f1f8e9
 ```
 
 ### Steganographic QR System Architecture
 
 ```mermaid
-flowchart LR
-    subgraph DataPrep ["📝 Data Preparation"]
-        Secret[🔐 Secret Data<br/>Input]
-        Compress[🗜️ ZLIB<br/>Compression]
-        Encrypt[🔒 AES-256<br/>Encryption]
-        Format[📋 Data<br/>Formatting]
-    end
+graph LR
+    Secret[🔐 Secret Data] --> Compress[🗜️ Compress]
+    Compress --> Encrypt[🔒 Encrypt]
     
-    subgraph QRGen ["📱 QR Code Generation"]
-        Visible[👁️ Visible QR<br/>Data Payload]
-        ErrorCalc[📊 Error Correction<br/>Space Analysis]
-        ReedSolomon[🧮 Reed-Solomon<br/>ECC Analysis]
-        Capacity[📏 Available<br/>Steganographic Space]
-    end
+    Public[�️ Public QR Data] --> Generate[📱 Generate QR]
+    Generate --> Analysis[📊 Error Correction Analysis]
     
-    subgraph StegoEmbed ["🎯 Steganographic Embedding"]
-        BitAnalysis[🔍 Bit-Level<br/>Analysis]
-        ECCManip[⚙️ Error Correction<br/>Manipulation]
-        HiddenEmbed[🫥 Hidden Data<br/>Embedding]
-        IntegrityCheck[✅ Dual Integrity<br/>Verification]
-    end
+    Encrypt --> Embed[🎯 Embed in ECC Space]
+    Analysis --> Embed
     
-    subgraph Verification ["🔍 Verification Layer"]
-        QRIntegrity[📱 Standard QR<br/>Functionality Test]
-        HiddenIntegrity[🔐 Hidden Data<br/>Integrity Check]
-        CrossValidation[🔗 Cross-Reference<br/>Validation]
-        ErrorTolerance[🛡️ Error Tolerance<br/>Testing]
-    end
+    Embed --> Final[📱 Final QR Code]
+    Final --> Verify[✅ Dual Verification]
+    
+    style Secret fill:#e3f2fd
+    style Compress fill:#f3e5f5
+    style Encrypt fill:#e8f5e8
+    style Public fill:#fff3e0
+    style Generate fill:#fce4ec
+    style Analysis fill:#ffebee
+    style Embed fill:#e0f2f1
+    style Final fill:#f1f8e9
+    style Verify fill:#fff8e1
+```
     
     subgraph Output ["📤 Final Output"]
         StandardFunc[📱 Standard QR<br/>Functionality]
@@ -366,34 +229,27 @@ flowchart LR
 ### Forward Secure Encryption Architecture
 
 ```mermaid
-flowchart TD
-    subgraph EpochMgmt ["⏰ Epoch Management System"]
-        CurrentEpoch[📅 Current Epoch<br/>Time-Based ID]
-        AutoRotation[🔄 Automatic<br/>Key Rotation]
-        TimeBasedKeys[⏱️ Time-Based<br/>Key Generation]
-        EpochTrigger[⚡ Rotation<br/>Triggers]
-    end
+graph TD
+    Time[⏰ Time Epochs] --> Generate[🔑 Generate Keys]
+    Generate --> Encrypt[� Encrypt Data]
+    Encrypt --> Store[� Store Encrypted]
     
-    subgraph KeyEvolution ["🔑 Key Evolution Engine"]
-        MasterSeed[🌱 Master Seed<br/>Key (256-bit)]
-        OneWayKDF[🔐 One-Way Key<br/>Derivation Function]
-        EpochKeys[🗝️ Epoch-Specific<br/>Keys]
-        SecureDeletion[🗑️ Secure Key<br/>Deletion]
-    end
+    Generate --> Delete[🗑️ Delete Old Keys]
+    Time --> Rotate[� Key Rotation]
+    Rotate --> Generate
     
-    subgraph DataProc ["📊 Data Processing Layer"]
-        PageData[📄 Data Pages<br/>Dynamic Sizing]
-        BatchReEncrypt[🔄 Batch<br/>Re-encryption]
-        IncrementalUpdate[📈 Incremental<br/>Updates]
-        ConcurrentOps[⚡ Concurrent<br/>Operations]
-    end
+    Delete --> Forward[⏭️ Forward Security]
+    Store --> Backup[� Secure Backup]
     
-    subgraph ForwardSec ["🛡️ Forward Security Guarantees"]
-        PastKeysGone[❌ Past Keys<br/>Permanently Destroyed]
-        FutureUnknown[❓ Future Keys<br/>Computationally Unknown]
-        CompromiseLimit[🚧 Compromise<br/>Isolation Boundary]
-        TimelineProtection[⏰ Timeline<br/>Protection]
-    end
+    style Time fill:#e3f2fd
+    style Generate fill:#f3e5f5
+    style Encrypt fill:#e8f5e8
+    style Store fill:#fff3e0
+    style Delete fill:#fce4ec
+    style Rotate fill:#ffebee
+    style Forward fill:#e0f2f1
+    style Backup fill:#f1f8e9
+```
     
     subgraph PerfOptim ["⚡ Performance Optimization"]
         MemoryMgmt[🧠 Smart Memory<br/>Management]
@@ -480,34 +336,25 @@ flowchart TD
 ### Dynamic Page Sizing Architecture
 
 ```mermaid
-flowchart TD
-    subgraph DataIntel ["📊 Data Intelligence Engine"]
-        DataProfiler[🔍 Data Profiler<br/>Content Analysis]
-        PatternRecog[🧠 Pattern<br/>Recognition]
-        CompressionAnalysis[📦 Compression<br/>Analysis]
-        EntropyScan[🌀 Entropy<br/>Scanner]
-    end
+graph TD
+    Data[� Data Analysis] --> Calculate[� Calculate Optimal Size]
+    Calculate --> Allocate[🏗️ Allocate Memory Pages]
+    Allocate --> Monitor[� Monitor Performance]
     
-    subgraph SizeOptim ["📏 Size Optimization Engine"]
-        OptimalSize[🎯 Optimal Size<br/>Calculator]
-        ThresholdMgmt[⚖️ Threshold<br/>Management]
-        SizePredictor[🔮 Size<br/>Predictor]
-        EfficiencyMetrics[📈 Efficiency<br/>Metrics]
-    end
+    Monitor --> Adjust[⚡ Adjust Size]
+    Adjust --> Calculate
     
-    subgraph AdaptiveLogic ["🤖 Adaptive Logic Controller"]
-        RealTimeAdjust[⚡ Real-Time<br/>Adjustments]
-        LoadBalancer[⚖️ Load<br/>Balancer]
-        ResourceMonitor[📊 Resource<br/>Monitor]
-        PerformanceOracle[🔮 Performance<br/>Oracle]
-    end
+    Allocate --> Store[� Store Data]
+    Store --> Optimize[� Optimize Storage]
     
-    subgraph PageMgmt ["📄 Page Management System"]
-        PageAllocator[🏗️ Page<br/>Allocator]
-        FragmentationCtrl[🧩 Fragmentation<br/>Controller]
-        MemoryPool[🏊 Memory<br/>Pool]
-        GarbageCollector[🗑️ Garbage<br/>Collector]
-    end
+    style Data fill:#e3f2fd
+    style Calculate fill:#f3e5f5
+    style Allocate fill:#e8f5e8
+    style Monitor fill:#fff3e0
+    style Adjust fill:#fce4ec
+    style Store fill:#ffebee
+    style Optimize fill:#e0f2f1
+```
     
     subgraph PerfMonitor ["⚡ Performance Monitoring"]
         ThroughputMeter[📊 Throughput<br/>Meter]
