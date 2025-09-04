@@ -1,0 +1,16 @@
+{
+  "created": "2025-09-03T09:50:09.195170",
+  "version": "quantum-integrity-v1",
+  "file_hashes": {
+    "C:\\Users\\ajibi\\Music\\CorrectOne\\vault_token.hash": {
+      "hash": "e0d489eb5367f45b1867be504d7df56d8bde8b5d68437265562814eec9323f059b7ac4ca8508a5877d3022290657250c2ab59f9b54dfef159197f017b5347e77",
+      "size": 128,
+      "modified": "2025-09-03T09:50:09.134378"
+    },
+    "C:\\Users\\ajibi\\Music\\CorrectOne\\vault_config.json": {
+      "hash": "abf194082760648e5a0bf83f9714a0a914094381266d53ed2396424a9c40b1696667bcba83290678396f10a9e57b478f8659cc663327bd5ad234f2f2f9457ad7",
+      "size": 168,
+      "modified": "2025-09-03T09:50:09.190529"
+    }
+  }
+}
