@@ -1,0 +1,20 @@
+{
+  "package_name": "device-fingerprinting-pro",
+  "npm_package_name": "device-fingerprinting-pro-js",
+  "docker_username": "yourusername",
+  "github_username": "Johnsonajibi",
+  "github_token": "",
+  "tracking_interval_hours": 24,
+  "output_file": "download_stats.csv",
+  "notifications": {
+    "email": "",
+    "webhook_url": "",
+    "enable_alerts": false
+  },
+  "thresholds": {
+    "daily_milestone": 100,
+    "weekly_milestone": 500,
+    "monthly_milestone": 2000,
+    "total_milestone": 10000
+  }
+}

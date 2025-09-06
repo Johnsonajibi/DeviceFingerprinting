@@ -1,0 +1,19 @@
+timestamp,platform,status,total_downloads,monthly_downloads,weekly_downloads,daily_downloads,error
+2025-09-06T06:01:47.501053,PyPI,error,0,0,0,0,'int' object has no attribute 'get'
+2025-09-06T06:01:48.210452,Conda-Forge,success,0,0,0,0,
+2025-09-06T06:01:48.876758,Docker Hub,success,0,0,0,0,
+2025-09-06T06:01:48.876758,GitHub Packages,error,0,0,0,0,No GitHub token provided
+2025-09-06T06:01:51.637893,NPM,success,0,0,0,0,
+2025-09-06T06:01:51.637893,Enterprise (Azure/AWS),manual_tracking_required,0,0,0,0,
+2025-09-06T06:03:03.624537,PyPI,success,0,0,0,0,
+2025-09-06T06:03:04.486845,Conda-Forge,success,0,0,0,0,
+2025-09-06T06:03:05.192109,Docker Hub,success,0,0,0,0,
+2025-09-06T06:03:05.192109,GitHub Packages,error,0,0,0,0,No GitHub token provided
+2025-09-06T06:03:06.590738,NPM,success,0,0,0,0,
+2025-09-06T06:03:06.590738,Enterprise (Azure/AWS),manual_tracking_required,0,0,0,0,
+2025-09-06T07:23:25.894158,PyPI,success,0,0,0,0,
+2025-09-06T07:23:26.644386,Conda-Forge,success,0,0,0,0,
+2025-09-06T07:23:27.338521,Docker Hub,success,0,0,0,0,
+2025-09-06T07:23:27.338521,GitHub Packages,error,0,0,0,0,No GitHub token provided
+2025-09-06T07:23:30.487508,NPM,success,0,0,0,0,
+2025-09-06T07:23:30.487508,Enterprise (Azure/AWS),manual_tracking_required,0,0,0,0,

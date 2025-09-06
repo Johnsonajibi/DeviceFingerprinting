@@ -18,9 +18,13 @@ this_directory = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
-# Read requirements from requirements.txt
-with open(os.path.join(this_directory, 'requirements.txt'), encoding='utf-8') as f:
-    requirements = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+# Core requirements (managed by pyproject.toml)
+requirements = [
+    "cryptography>=41.0.0",
+    "click>=8.0.0",
+    "rich>=13.0.0",
+    "pydantic>=2.0.0",
+]
 
 setup(
     name="quantumvault-password-manager",

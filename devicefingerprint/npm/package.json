@@ -1,0 +1,40 @@
+{
+  "name": "device-fingerprinting-pro-js",
+  "version": "1.0.3",
+  "description": "JavaScript wrapper for device-fingerprinting-pro Python library",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js",
+    "install": "python -m pip install device-fingerprinting-pro"
+  },
+  "keywords": [
+    "device",
+    "fingerprinting",
+    "security",
+    "identification",
+    "python",
+    "wrapper"
+  ],
+  "author": "Johnson Ajiboye <johnson@devicefingerprint.dev>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Johnsonajibi/DeviceFingerprinting.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Johnsonajibi/DeviceFingerprinting/issues"
+  },
+  "homepage": "https://github.com/Johnsonajibi/DeviceFingerprinting#readme",
+  "engines": {
+    "node": ">=14.0.0",
+    "python": ">=3.8.0"
+  },
+  "dependencies": {
+    "child_process": "^1.0.2"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0"
+  },
+  "os": ["linux", "darwin", "win32"],
+  "cpu": ["x64", "arm64"]
+}

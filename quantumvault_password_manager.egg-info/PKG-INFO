@@ -1,3 +1,105 @@
+Metadata-Version: 2.4
+Name: quantumvault-password-manager
+Version: 1.0.0
+Summary: Post-quantum cryptography enhanced password manager with advanced security features
+Home-page: https://github.com/Johnsonajibi/Post_Quantum_Offline_Manager
+Author: QuantumVault Development Team
+Author-email: QuantumVault Development Team <support@quantumvault.dev>
+Maintainer-email: QuantumVault Development Team <support@quantumvault.dev>
+License: MIT License
+        
+        Copyright (c) 2025 QuantumVault Development Team
+        
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+        
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+        
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+        
+        SECURITY DISCLAIMER:
+        This software is provided for security purposes. Users are responsible for:
+        - Maintaining secure master passwords
+        - Protecting authentication tokens
+        - Regular security updates
+        - Proper backup procedures
+        - Compliance with applicable security regulations
+        
+        The authors make no warranties regarding the absolute security of data
+        encrypted by this software and recommend following industry best practices
+        for sensitive data protection.
+        
+Project-URL: Homepage, https://github.com/Johnsonajibi/Post_Quantum_Offline_Manager
+Project-URL: Repository, https://github.com/Johnsonajibi/Post_Quantum_Offline_Manager
+Project-URL: Documentation, https://github.com/Johnsonajibi/Post_Quantum_Offline_Manager/wiki
+Project-URL: Changelog, https://github.com/Johnsonajibi/Post_Quantum_Offline_Manager/blob/master/CHANGELOG.md
+Project-URL: Bug Reports, https://github.com/Johnsonajibi/Post_Quantum_Offline_Manager/issues
+Project-URL: Security, https://github.com/Johnsonajibi/Post_Quantum_Offline_Manager/security
+Keywords: password,manager,security,cryptography,quantum-resistant,post-quantum,encryption,AES,SHA3,PBKDF2,QR-codes,steganography,forward-secrecy,authentication,vault
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: System Administrators
+Classifier: Topic :: Security :: Cryptography
+Classifier: Topic :: Security
+Classifier: Topic :: Office/Business
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Operating System :: OS Independent
+Classifier: Environment :: Console
+Classifier: Natural Language :: English
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: cryptography>=41.0.0
+Requires-Dist: click>=8.0.0
+Requires-Dist: rich>=13.0.0
+Requires-Dist: pydantic>=2.0.0
+Provides-Extra: full
+Requires-Dist: pandas>=2.0.0; extra == "full"
+Requires-Dist: qrcode[pil]>=7.4.0; extra == "full"
+Requires-Dist: Pillow>=10.0.0; extra == "full"
+Requires-Dist: matplotlib>=3.7.0; extra == "full"
+Requires-Dist: numpy>=1.24.0; extra == "full"
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
+Requires-Dist: pytest-xdist>=3.0.0; extra == "dev"
+Requires-Dist: black>=23.0.0; extra == "dev"
+Requires-Dist: flake8>=6.0.0; extra == "dev"
+Requires-Dist: mypy>=1.5.0; extra == "dev"
+Requires-Dist: isort>=5.12.0; extra == "dev"
+Requires-Dist: pre-commit>=3.0.0; extra == "dev"
+Provides-Extra: docs
+Requires-Dist: sphinx>=7.0.0; extra == "docs"
+Requires-Dist: sphinx-rtd-theme>=1.3.0; extra == "docs"
+Requires-Dist: myst-parser>=2.0.0; extra == "docs"
+Provides-Extra: security
+Requires-Dist: bandit>=1.7.0; extra == "security"
+Requires-Dist: safety>=3.0.0; extra == "security"
+Requires-Dist: semgrep>=1.45.0; extra == "security"
+Dynamic: author
+Dynamic: home-page
+Dynamic: license-file
+Dynamic: requires-python
+
 # Post Quantum Offline Manager
 
 [![PyPI version](https://badge.fury.io/py/quantumvault-password-manager.svg)](https://badge.fury.io/py/quantumvault-password-manager)
