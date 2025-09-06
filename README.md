@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![PyPI](https://img.shields.io/pypi/v/device-fingerprinting-pro.svg)](https://pypi.org/project/device-fingerprinting-pro/)
 [![GitHub Actions](https://img.shields.io/badge/CI-GitHub%20Actions-blue.svg)](https://github.com/Johnsonajibi/DeviceFingerprinting/actions)
 [![Cross Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)](https://github.com/Johnsonajibi/DeviceFingerprinting)
 
@@ -149,7 +150,7 @@ Input Hardware Data
 
 ### Standard Installation
 ```bash
-pip install devicefingerprint
+pip install device-fingerprinting-pro
 ```
 
 ### Development Installation
