@@ -11,13 +11,6 @@
 
 DeviceFingerprint is a comprehensive security library that creates unique, stable identifiers for computing devices by analyzing their hardware characteristics. Built for enterprise security applications, fraud prevention systems, and authentication workflows that demand reliable device recognition.
 
-## 📊 PyPI Statistics
-
-[![PyPI downloads](https://img.shields.io/pypi/dm/device-fingerprinting-pro.svg)](https://pypi.org/project/device-fingerprinting-pro/)
-[![GitHub stars](https://img.shields.io/github/stars/Johnsonajibi/DeviceFingerprinting.svg)](https://github.com/Johnsonajibi/DeviceFingerprinting/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/Johnsonajibi/DeviceFingerprinting.svg)](https://github.com/Johnsonajibi/DeviceFingerprinting/network)
-[![GitHub issues](https://img.shields.io/github/issues/Johnsonajibi/DeviceFingerprinting.svg)](https://github.com/Johnsonajibi/DeviceFingerprinting/issues)
-
 ## Table of Contents
 
 - [Architecture Overview](#architecture-overview)
