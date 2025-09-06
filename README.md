@@ -6,10 +6,6 @@
 [![PyPI](https://img.shields.io/pypi/v/device-fingerprinting-pro.svg)](https://pypi.org/project/device-fingerprinting-pro/)
 [![PyPI downloads](https://img.shields.io/pypi/dm/device-fingerprinting-pro.svg)](https://pypi.org/project/device-fingerprinting-pro/)
 [![PyPI downloads total](https://static.pepy.tech/badge/device-fingerprinting-pro)](https://pepy.tech/project/device-fingerprinting-pro)
-[![Python versions](https://img.shields.io/pypi/pyversions/device-fingerprinting-pro.svg)](https://pypi.org/project/device-fingerprinting-pro/)
-[![PyPI status](https://img.shields.io/pypi/status/device-fingerprinting-pro.svg)](https://pypi.org/project/device-fingerprinting-pro/)
-[![GitHub Actions](https://img.shields.io/badge/CI-GitHub%20Actions-blue.svg)](https://github.com/Johnsonajibi/DeviceFingerprinting/actions)
-[![Cross Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)](https://github.com/Johnsonajibi/DeviceFingerprinting)
 
 **Professional-grade hardware-based device identification for Python applications**
 
