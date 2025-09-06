@@ -14,7 +14,7 @@ def read_readme():
 
 setup(
     name="device-fingerprinting-pro",
-    version="1.0.0",
+    version="1.0.1",
     author="Johnson Ajiboye",
     author_email="johnson@devicefingerprint.dev",
     description="Professional-grade hardware-based device identification for Python applications",

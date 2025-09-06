@@ -2,13 +2,25 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![PyPI version](https://badge.fury.io/py/device-fingerprinting-pro.svg)](https://badge.fury.io/py/device-fingerprinting-pro)
 [![PyPI](https://img.shields.io/pypi/v/device-fingerprinting-pro.svg)](https://pypi.org/project/device-fingerprinting-pro/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/device-fingerprinting-pro.svg)](https://pypi.org/project/device-fingerprinting-pro/)
+[![PyPI downloads total](https://static.pepy.tech/badge/device-fingerprinting-pro)](https://pepy.tech/project/device-fingerprinting-pro)
+[![Python versions](https://img.shields.io/pypi/pyversions/device-fingerprinting-pro.svg)](https://pypi.org/project/device-fingerprinting-pro/)
+[![PyPI status](https://img.shields.io/pypi/status/device-fingerprinting-pro.svg)](https://pypi.org/project/device-fingerprinting-pro/)
 [![GitHub Actions](https://img.shields.io/badge/CI-GitHub%20Actions-blue.svg)](https://github.com/Johnsonajibi/DeviceFingerprinting/actions)
 [![Cross Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)](https://github.com/Johnsonajibi/DeviceFingerprinting)
 
 **Professional-grade hardware-based device identification for Python applications**
 
 DeviceFingerprint is a comprehensive security library that creates unique, stable identifiers for computing devices by analyzing their hardware characteristics. Built for enterprise security applications, fraud prevention systems, and authentication workflows that demand reliable device recognition.
+
+## 📊 PyPI Statistics
+
+[![PyPI downloads](https://img.shields.io/pypi/dm/device-fingerprinting-pro.svg)](https://pypi.org/project/device-fingerprinting-pro/)
+[![GitHub stars](https://img.shields.io/github/stars/Johnsonajibi/DeviceFingerprinting.svg)](https://github.com/Johnsonajibi/DeviceFingerprinting/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/Johnsonajibi/DeviceFingerprinting.svg)](https://github.com/Johnsonajibi/DeviceFingerprinting/network)
+[![GitHub issues](https://img.shields.io/github/issues/Johnsonajibi/DeviceFingerprinting.svg)](https://github.com/Johnsonajibi/DeviceFingerprinting/issues)
 
 ## Table of Contents
 
@@ -148,12 +160,21 @@ Input Hardware Data
 
 ## Installation
 
-### Standard Installation
+### Install from PyPI (Recommended)
+
 ```bash
+# Install the latest stable version
 pip install device-fingerprinting-pro
+
+# Install with development tools
+pip install device-fingerprinting-pro[dev]
+
+# Upgrade to latest version
+pip install --upgrade device-fingerprinting-pro
 ```
 
 ### Development Installation
+
 ```bash
 git clone https://github.com/Johnsonajibi/DeviceFingerprinting.git
 cd DeviceFingerprinting
@@ -564,7 +585,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Installation
 
 ```bash
-pip install device-fingerprinting
+pip install device-fingerprinting-pro
 ```
 
 ## Quick Start
