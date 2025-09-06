@@ -13,7 +13,7 @@ def read_readme():
         return "Professional-grade hardware-based device identification for Python applications"
 
 setup(
-    name="devicefingerprint",
+    name="device-fingerprinting-pro",
     version="1.0.0",
     author="Johnson Ajiboye",
     author_email="johnson@devicefingerprint.dev",
