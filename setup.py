@@ -1,33 +1,27 @@
 """
-Setup configuration for Device Fingerprinting Library
+Setup configuration for DeviceFingerprint Library
 """
 
-from setuptools import setup, find_packages
-import os
+from setuptools import setup
 
 # Read README for long description
 def read_readme():
-    with open("README.md", "r", encoding="utf-8") as fh:
-        return fh.read()
-
-# Read version from __init__.py
-def get_version():
-    with open("device_fingerprinting/__init__.py", "r") as f:
-        for line in f:
-            if line.startswith("__version__"):
-                return line.split('"')[1]
-    return "1.0.0"
+    try:
+        with open("README.md", "r", encoding="utf-8") as fh:
+            return fh.read()
+    except:
+        return "Professional-grade hardware-based device identification for Python applications"
 
 setup(
-    name="device-fingerprinting",
-    version=get_version(),
-    author="QuantumVault Development Team",
-    author_email="dev@quantumvault.com",
-    description="Advanced hardware-based device identification for security applications",
+    name="devicefingerprint",
+    version="1.0.0",
+    author="Johnson Ajiboye",
+    author_email="johnson@devicefingerprint.dev",
+    description="Professional-grade hardware-based device identification for Python applications",
     long_description=read_readme(),
     long_description_content_type="text/markdown",
-    url="https://github.com/Johnsonajibi/device-fingerprinting",
-    packages=find_packages(),
+    url="https://github.com/Johnsonajibi/DeviceFingerprinting",
+    py_modules=["devicefingerprint"],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
@@ -48,9 +42,7 @@ setup(
         "Operating System :: MacOS",
     ],
     python_requires=">=3.8",
-    install_requires=[
-        # No external dependencies - uses only standard library
-    ],
+    install_requires=[],
     extras_require={
         "dev": [
             "pytest>=6.0",
@@ -58,10 +50,6 @@ setup(
             "black>=21.0",
             "flake8>=3.8",
             "mypy>=0.812",
-        ],
-        "docs": [
-            "sphinx>=3.0",
-            "sphinx-rtd-theme>=0.5",
         ],
     },
     keywords=[
@@ -77,9 +65,9 @@ setup(
         "anti-fraud"
     ],
     project_urls={
-        "Bug Reports": "https://github.com/Johnsonajibi/device-fingerprinting/issues",
-        "Source": "https://github.com/Johnsonajibi/device-fingerprinting",
-        "Documentation": "https://device-fingerprinting.readthedocs.io/",
-        "Funding": "https://github.com/sponsors/Johnsonajibi",
+        "Bug Reports": "https://github.com/Johnsonajibi/DeviceFingerprinting/issues",
+        "Source": "https://github.com/Johnsonajibi/DeviceFingerprinting",
+        "Documentation": "https://github.com/Johnsonajibi/DeviceFingerprinting#readme",
+        "Release Notes": "https://github.com/Johnsonajibi/DeviceFingerprinting/blob/main/RELEASE_NOTES.md",
     },
 )
