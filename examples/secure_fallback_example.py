@@ -27,7 +27,7 @@ def main():
     
     try:
         result = fingerprinter.generate_fingerprint(FingerprintMethod.ADVANCED)
-        print(f"   ✅ Success: {result.fingerprint[:16]}...")
+        print(f"   SUCCESS: {result.fingerprint[:16]}...")
         print(f"   Confidence: {result.confidence}")
         print(f"   Method: {result.method.value}")
     except FingerprintGenerationError as e:
@@ -47,7 +47,7 @@ def main():
             FingerprintMethod.QUANTUM_RESISTANT,
             allow_fallback=False
         )
-        print(f"   ✅ High security maintained: {result.fingerprint[:16]}...")
+        print(f"   SUCCESS: High security maintained: {result.fingerprint[:16]}...")
         print(f"   Confidence: {result.confidence}")
     except FingerprintGenerationError as e:
         print(f"   🔒 Failed securely - no degradation")
@@ -62,19 +62,19 @@ def main():
             FingerprintMethod.ADVANCED,
             allow_fallback=True
         )
-        print(f"   ✅ Result: {result.fingerprint[:16]}...")
+        print(f"   SUCCESS: Result: {result.fingerprint[:16]}...")
         print(f"   Confidence: {result.confidence}")
         
         # Check if fallback was used
         fallback_used = any("Fallback" in warning for warning in result.warnings)
         if fallback_used:
-            print(f"   ⚠️  FALLBACK WAS USED - Security degraded")
+            print(f"   WARNING: FALLBACK WAS USED - Security degraded")
             print(f"   → Consider requiring additional authentication")
         else:
-            print(f"   ✅ No fallback needed - Full security maintained")
+            print(f"   SUCCESS: No fallback needed - Full security maintained")
             
     except FingerprintGenerationError as e:
-        print(f"   ❌ Complete failure: {e}")
+        print(f"   ERROR: Complete failure: {e}")
     
     print()
     
@@ -137,16 +137,16 @@ def main():
         print(f"     - Recommendation: {policy['recommendation']}")
         
     except FingerprintGenerationError as e:
-        print(f"   ❌ Fingerprinting failed: {e}")
+        print(f"   ERROR: Fingerprinting failed: {e}")
         print(f"   → Deny access or use alternative authentication")
     
     print()
     print("=== SECURITY BENEFITS ===")
-    print("✅ No silent security degradation")
-    print("✅ Explicit fallback control")
-    print("✅ Clear indication when fallback is used")
-    print("✅ Applications can make informed security decisions")
-    print("✅ Confidence scores reflect actual security level")
+    print("SUCCESS: No silent security degradation")
+    print("SUCCESS: Explicit fallback control")
+    print("SUCCESS: Clear indication when fallback is used")
+    print("SUCCESS: Applications can make informed security decisions")
+    print("SUCCESS: Confidence scores reflect actual security level")
 
 if __name__ == '__main__':
     main()

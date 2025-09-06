@@ -66,9 +66,9 @@ def main():
     
     # Security demonstration
     print("\n=== Security Demonstration ===")
-    print("✅ Same device verification: PASS")
-    print("❌ Different device verification: FAIL") 
-    print("✅ Legacy token compatibility: PASS")
+    print("PASS: Same device verification")
+    print("FAIL: Different device verification") 
+    print("PASS: Legacy token compatibility")
     print("\nThis prevents token theft and unauthorized device access!")
 
 if __name__ == '__main__':

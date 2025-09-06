@@ -40,14 +40,14 @@ jobs:
         
         # Test basic functionality
         fp = generate_device_fingerprint()
-        print(f'✅ Basic fingerprint: {fp[:20]}...')
+        print(f'SUCCESS: Basic fingerprint: {fp[:20]}...')
         
         # Test advanced functionality
         fingerprinter = AdvancedDeviceFingerprinter()
         result = fingerprinter.generate_fingerprint(FingerprintMethod.QUANTUM_RESISTANT)
-        print(f'✅ Advanced fingerprint: {result.fingerprint[:20]}... (confidence: {result.confidence})')
+        print(f'SUCCESS: Advanced fingerprint: {result.fingerprint[:20]}... (confidence: {result.confidence})')
         
-        print('🎉 All functionality tests passed!')
+        print('SUCCESS: All functionality tests passed!')
         "
     
     - name: Upload coverage to Codecov
