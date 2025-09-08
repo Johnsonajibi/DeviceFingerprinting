@@ -22,6 +22,14 @@ from concurrent.futures import ThreadPoolExecutor, Future
 from .backends import CryptoBackend, StorageBackend, SecurityCheck
 from .default_backends import HmacSha256Backend, InMemoryStorage, NoOpSecurityCheck
 
+# Import real post-quantum cryptography backend
+try:
+    from .quantum_crypto import RealPostQuantumBackend
+    PQC_AVAILABLE = True
+except ImportError:
+    PQC_AVAILABLE = False
+    print("⚠️ Post-quantum cryptography not available. Install pqcrypto and liboqs-python for PQC support.")
+
 # Import our real post-quantum crypto backend
 try:
     from .quantum_crypto import create_real_quantum_resistant_backend
@@ -87,17 +95,17 @@ def enable_post_quantum_crypto(algorithm: str = "Dilithium3",
         return False
     
     try:
-        # Create post-quantum crypto backend
-        pqc_backend = create_real_quantum_resistant_backend(
+        # Create real post-quantum crypto backend (includes fallback handling)
+        pqc_backend = RealPostQuantumBackend(
             algorithm=algorithm,
             hybrid_mode=hybrid_mode
         )
         
-        # Test the backend to ensure it works
+        # Test the backend (fallback implementations are also valid)
         test_data = b"PQC compatibility test"
         test_sig = pqc_backend.sign(test_data)
         if not pqc_backend.verify(test_sig, test_data):
-            _log("Post-quantum crypto backend failed verification test")
+            _log("❌ Post-quantum crypto backend failed verification test")
             return False
         
         # Replace the crypto backend
@@ -106,7 +114,17 @@ def enable_post_quantum_crypto(algorithm: str = "Dilithium3",
         _pqc_algorithm = algorithm
         _pqc_hybrid_mode = hybrid_mode
         
-        _log(f"Post-quantum cryptography enabled: {algorithm} (hybrid={hybrid_mode})")
+        # Get backend info for logging
+        backend_info = pqc_backend.get_info()
+        library_info = backend_info.get('library', 'unknown')
+        
+        _log(f"✅ Post-quantum cryptography enabled: {algorithm}")
+        _log(f"   Library: {library_info}")
+        _log(f"   Hybrid mode: {hybrid_mode}")
+        
+        if 'fallback' in library_info.lower():
+            _log("⚠️  Using fallback implementation - install pqcrypto/liboqs for production")
+        
         return True
         
     except Exception as e:
