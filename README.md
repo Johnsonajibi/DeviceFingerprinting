@@ -21,28 +21,28 @@ Here's how the device fingerprinting system works at a high level:
 ```mermaid
 graph TB
     subgraph "Input Layer - Hardware Detection"
-        CPU[CPU Information<br/>Model, Cores, Architecture]
-        Memory[Memory Details<br/>Total RAM, Configuration]
-        Storage[Storage Devices<br/>Disk Serial Numbers, Types]
-        Network[Network Interfaces<br/>MAC Addresses, Adapters]
-        System[System Properties<br/>OS Version, Hostname]
+        CPU["CPU Information: Model, Cores, Architecture"]
+        Memory["Memory Details: Total RAM, Configuration"]
+        Storage["Storage Devices: Disk Serial Numbers, Types"]
+        Network["Network Interfaces: MAC Addresses, Adapters"]
+        System["System Properties: OS Version, Hostname"]
     end
     
     subgraph "Processing Layer - Data Collection"
-        Collector[Hardware Data Collector<br/>Cross-Platform Detection]
-        Validator[Data Validation<br/>Consistency Checks]
-        Normalizer[Data Normalization<br/>Format Standardization]
+        Collector["Hardware Data Collector: Cross-Platform Detection"]
+        Validator["Data Validation: Consistency Checks"]
+        Normalizer["Data Normalization: Format Standardization"]
     end
     
     subgraph "Security Layer - Fingerprint Generation"
-        Hasher[Cryptographic Hashing<br/>SHA-256 Processing]
-        Combiner[Data Combination<br/>Weighted Fingerprint Creation]
-        Encoder[Final Encoding<br/>Human-Readable Format]
+        Hasher["Cryptographic Hashing: SHA-256 Processing"]
+        Combiner["Data Combination: Weighted Fingerprint Creation"]
+        Encoder["Final Encoding: Human-Readable Format"]
     end
     
     subgraph "Output Layer - Results"
-        Fingerprint[Unique Device ID<br/>Consistent Identifier]
-        Metadata[Additional Info<br/>Confidence Scores, Components]
+        Fingerprint["Unique Device ID: Consistent Identifier"]
+        Metadata["Additional Info: Confidence Scores, Components"]
     end
     
     CPU --> Collector
@@ -88,22 +88,22 @@ flowchart TD
     end
     
     subgraph "Windows Hardware Detection"
-        WMI[Windows Management<br/>Instrumentation (WMI)]
-        Registry[Windows Registry<br/>Hardware Keys]
-        PowerShell[PowerShell Commands<br/>System Information]
+        WMI["Windows Management Instrumentation"]
+        Registry["Windows Registry Hardware Keys"]
+        PowerShell["PowerShell System Information"]
     end
     
     subgraph "macOS Hardware Detection"
-        SystemProfiler[System Profiler<br/>Hardware Overview]
-        IOKit[IOKit Framework<br/>Device Information]
-        Sysctl[Sysctl Commands<br/>Kernel Parameters]
+        SystemProfiler["System Profiler Hardware Overview"]
+        IOKit["IOKit Framework Device Information"]
+        Sysctl["Sysctl Commands Kernel Parameters"]
     end
     
     subgraph "Linux Hardware Detection"
-        ProcFS[/proc filesystem<br/>Hardware Information]
-        SysFS[/sys filesystem<br/>Device Properties]
-        DMIDecode[dmidecode Tool<br/>DMI/SMBIOS Data]
-        LSCommands[lscpu, lsmem, lsblk<br/>Hardware Listing]
+        ProcFS["/proc filesystem Hardware Information"]
+        SysFS["/sys filesystem Device Properties"]
+        DMIDecode["dmidecode Tool DMI/SMBIOS Data"]
+        LSCommands["lscpu, lsmem, lsblk Hardware Listing"]
     end
     
     subgraph "Unified Data Collection"
@@ -182,12 +182,12 @@ sequenceDiagram
     
     OS-->>CPUCol: Consolidated CPU Data
     CPUCol->>CPUCol: Normalize CPU Strings
-    CPUCol->>CPUCol: Remove Variable Data<br/>(temperatures, frequencies)
+    CPUCol->>CPUCol: Remove Variable Data (temperatures, frequencies)
     CPUCol->>Hash: Generate CPU Hash
     Hash-->>CPUCol: CPU Fingerprint Component
     CPUCol-->>App: Return CPU Fingerprint
     
-    Note over CPUCol,Hash: CPU fingerprint includes:<br/>• Processor model and vendor<br/>• Core count and architecture<br/>• Cache configuration<br/>• Supported instruction sets
+    Note over CPUCol,Hash: CPU fingerprint includes: Processor model and vendor, Core count and architecture, Cache configuration, Supported instruction sets
 ```
 
 ### 3. Memory Fingerprinting System
@@ -198,16 +198,16 @@ Memory fingerprinting focuses on the physical memory configuration rather than c
 graph LR
     subgraph "Memory Detection Process"
         MemStart[Memory Analysis Start]
-        TotalRAM[Detect Total RAM<br/>Physical Memory Size]
-        MemSlots[Memory Slot Configuration<br/>Number of DIMMs]
-        MemSpeed[Memory Speed<br/>DDR Type and Frequency]
-        MemSerial[Memory Serial Numbers<br/>Module Identifiers]
+        TotalRAM["Detect Total RAM: Physical Memory Size"]
+        MemSlots["Memory Slot Configuration: Number of DIMMs"]
+        MemSpeed["Memory Speed: DDR Type and Frequency"]
+        MemSerial["Memory Serial Numbers: Module Identifiers"]
     end
     
     subgraph "Memory Data Processing"
-        MemFilter[Filter Dynamic Data<br/>Remove Usage Statistics]
-        MemStabilize[Stabilize Configuration<br/>Focus on Hardware Layout]
-        MemNormalize[Normalize Memory Info<br/>Standard Format]
+        MemFilter["Filter Dynamic Data: Remove Usage Statistics"]
+        MemStabilize["Stabilize Configuration: Focus on Hardware Layout"]
+        MemNormalize["Normalize Memory Info: Standard Format"]
     end
     
     subgraph "Memory Fingerprint Generation"
@@ -250,26 +250,26 @@ flowchart TB
     subgraph "Storage Discovery"
         StorageStart[Storage Analysis]
         ListDrives[List All Storage Devices]
-        FilterPhysical[Filter Physical Drives<br/>Exclude Virtual/Network]
+        FilterPhysical["Filter Physical Drives: Exclude Virtual/Network"]
     end
     
     subgraph "Drive Information Collection"
-        DriveSerial[Drive Serial Numbers<br/>Unique Hardware IDs]
-        DriveModel[Drive Models<br/>Manufacturer and Model]
-        DriveSize[Drive Capacity<br/>Physical Size in Bytes]
-        DriveType[Drive Technology<br/>SSD, HDD, NVMe]
-        DriveInterface[Drive Interface<br/>SATA, PCIe, USB]
+        DriveSerial["Drive Serial Numbers: Unique Hardware IDs"]
+        DriveModel["Drive Models: Manufacturer and Model"]
+        DriveSize["Drive Capacity: Physical Size in Bytes"]
+        DriveType["Drive Technology: SSD, HDD, NVMe"]
+        DriveInterface["Drive Interface: SATA, PCIe, USB"]
     end
     
     subgraph "Storage Data Processing"
-        ExcludeRemovable[Exclude Removable Media<br/>USB drives, SD cards]
-        PriorityRanking[Priority Ranking<br/>System drives first]
-        SerialValidation[Serial Number Validation<br/>Check authenticity]
+        ExcludeRemovable["Exclude Removable Media: USB drives, SD cards"]
+        PriorityRanking["Priority Ranking: System drives first"]
+        SerialValidation["Serial Number Validation: Check authenticity"]
     end
     
     subgraph "Storage Fingerprint Creation"
-        StorageCombine[Combine Storage Data<br/>Weighted by priority]
-        StorageHash[Generate Storage Hash<br/>SHA-256 processing]
+        StorageCombine["Combine Storage Data: Weighted by priority"]
+        StorageHash["Generate Storage Hash: SHA-256 processing"]
         StorageComponent[Storage Fingerprint Component]
     end
     
@@ -313,24 +313,24 @@ graph TB
     subgraph "Network Interface Discovery"
         NetStart[Network Analysis Start]
         ListInterfaces[List All Network Interfaces]
-        FilterPhysical[Filter Physical Adapters<br/>Exclude Virtual/Loopback]
+        FilterPhysical["Filter Physical Adapters: Exclude Virtual/Loopback"]
     end
     
     subgraph "MAC Address Collection"
-        GetMACs[Extract MAC Addresses<br/>Hardware Identifiers]
-        ValidateMACs[Validate MAC Format<br/>Check authenticity]
-        FilterValid[Filter Valid MACs<br/>Exclude randomized/virtual]
+        GetMACs["Extract MAC Addresses: Hardware Identifiers"]
+        ValidateMACs["Validate MAC Format: Check authenticity"]
+        FilterValid["Filter Valid MACs: Exclude randomized/virtual"]
     end
     
     subgraph "Adapter Information"
-        AdapterName[Adapter Names<br/>Hardware descriptions]
-        AdapterVendor[Vendor Information<br/>Manufacturer IDs]
-        AdapterType[Interface Types<br/>Ethernet, WiFi, Bluetooth]
+        AdapterName["Adapter Names: Hardware descriptions"]
+        AdapterVendor["Vendor Information: Manufacturer IDs"]
+        AdapterType["Interface Types: Ethernet, WiFi, Bluetooth"]
     end
     
     subgraph "Network Fingerprint Generation"
-        SortMACs[Sort MAC Addresses<br/>Consistent ordering]
-        CombineNetData[Combine Network Data<br/>MACs + Adapter info]
+        SortMACs["Sort MAC Addresses: Consistent ordering"]
+        CombineNetData["Combine Network Data: MACs + Adapter info"]
         NetHash[Generate Network Hash]
         NetComponent[Network Fingerprint Component]
     end
@@ -397,7 +397,7 @@ sequenceDiagram
     Sys-->>Gen: System component hash
     
     Gen->>Gen: Validate all components
-    Gen->>Gen: Apply component weights<br/>CPU: 30%, Storage: 25%<br/>Network: 20%, Memory: 15%<br/>System: 10%
+    Gen->>Gen: Apply component weights (CPU 30%, Storage 25%, Network 20%, Memory 15%, System 10%)
     
     Gen->>Hash: Combine weighted components
     Hash->>Hash: SHA-256 final hash
@@ -406,7 +406,7 @@ sequenceDiagram
     
     Gen-->>App: Unique device ID
     
-    Note over Gen,Hash: Final fingerprint is deterministic<br/>Same hardware = Same fingerprint<br/>Different hardware = Different fingerprint
+    Note over Gen,Hash: Final fingerprint is deterministic - Same hardware equals Same fingerprint, Different hardware equals Different fingerprint
 ```
 
 ## Installation and Quick Start
@@ -508,220 +508,6 @@ All collected hardware information is:
 3. **Stored as hash only** - original data is discarded
 4. **Non-reversible** - cannot reconstruct original hardware info
 
-## Use Cases and Examples
-
-### 1. Software License Management
-
-```python
-import json
-from device_fingerprinting import DeviceFingerprint
-
-class LicenseManager:
-    def __init__(self, license_file="license.json"):
-        self.license_file = license_file
-        self.fingerprint = DeviceFingerprint()
-    
-    def activate_license(self, license_key):
-        """Activate software license for this device"""
-        device_id = self.fingerprint.generate()
-        
-        license_data = {
-            "license_key": license_key,
-            "device_id": device_id,
-            "activation_date": "2025-09-09",
-            "status": "active"
-        }
-        
-        with open(self.license_file, 'w') as f:
-            json.dump(license_data, f)
-        
-        return f"License activated for device: {device_id[:16]}..."
-    
-    def verify_license(self):
-        """Verify license is valid for current device"""
-        try:
-            with open(self.license_file, 'r') as f:
-                license_data = json.load(f)
-            
-            current_device = self.fingerprint.generate()
-            licensed_device = license_data["device_id"]
-            
-            if current_device == licensed_device:
-                return True, "License valid for this device"
-            else:
-                return False, "License not valid for this device"
-                
-        except FileNotFoundError:
-            return False, "No license file found"
-
-# Usage
-license_mgr = LicenseManager()
-license_mgr.activate_license("ABCD-EFGH-IJKL-MNOP")
-is_valid, message = license_mgr.verify_license()
-print(message)
-```
-
-### 2. Security Access Control
-
-```python
-from device_fingerprinting import DeviceFingerprint
-import json
-from datetime import datetime
-
-class DeviceSecurityManager:
-    def __init__(self):
-        self.fingerprint = DeviceFingerprint()
-        self.known_devices_file = "known_devices.json"
-    
-    def register_device(self, device_name):
-        """Register current device as trusted"""
-        device_id = self.fingerprint.generate()
-        device_info = self.fingerprint.generate_detailed()
-        
-        device_record = {
-            "device_id": device_id,
-            "device_name": device_name,
-            "registration_date": datetime.now().isoformat(),
-            "last_seen": datetime.now().isoformat(),
-            "trust_level": "high",
-            "components": device_info["components"]
-        }
-        
-        try:
-            with open(self.known_devices_file, 'r') as f:
-                known_devices = json.load(f)
-        except FileNotFoundError:
-            known_devices = {}
-        
-        known_devices[device_id] = device_record
-        
-        with open(self.known_devices_file, 'w') as f:
-            json.dump(known_devices, f, indent=2)
-        
-        return device_id
-    
-    def check_device_authorization(self):
-        """Check if current device is authorized"""
-        current_device = self.fingerprint.generate()
-        
-        try:
-            with open(self.known_devices_file, 'r') as f:
-                known_devices = json.load(f)
-            
-            if current_device in known_devices:
-                # Update last seen
-                known_devices[current_device]["last_seen"] = datetime.now().isoformat()
-                
-                with open(self.known_devices_file, 'w') as f:
-                    json.dump(known_devices, f, indent=2)
-                
-                device_name = known_devices[current_device]["device_name"]
-                return True, f"Authorized device: {device_name}"
-            else:
-                return False, "Unknown device detected - access denied"
-                
-        except FileNotFoundError:
-            return False, "No device registry found"
-
-# Usage
-security_mgr = DeviceSecurityManager()
-
-# Register current device
-device_id = security_mgr.register_device("John's Laptop")
-print(f"Device registered: {device_id[:16]}...")
-
-# Check authorization
-is_authorized, message = security_mgr.check_device_authorization()
-print(message)
-```
-
-### 3. Analytics and Tracking (Privacy-Preserving)
-
-```python
-from device_fingerprinting import DeviceFingerprint
-from collections import defaultdict
-import json
-from datetime import datetime
-
-class PrivacyPreservingAnalytics:
-    def __init__(self):
-        self.fingerprint = DeviceFingerprint()
-        self.analytics_file = "usage_analytics.json"
-    
-    def track_usage_session(self, feature_used):
-        """Track feature usage without collecting personal data"""
-        device_id = self.fingerprint.generate()
-        session_data = {
-            "timestamp": datetime.now().isoformat(),
-            "feature": feature_used,
-            "device_hash": device_id,  # Anonymous device identifier
-            "session_id": f"session_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        }
-        
-        try:
-            with open(self.analytics_file, 'r') as f:
-                analytics_data = json.load(f)
-        except FileNotFoundError:
-            analytics_data = {"sessions": []}
-        
-        analytics_data["sessions"].append(session_data)
-        
-        with open(self.analytics_file, 'w') as f:
-            json.dump(analytics_data, f, indent=2)
-    
-    def get_unique_devices_count(self):
-        """Get count of unique devices (privacy-preserving)"""
-        try:
-            with open(self.analytics_file, 'r') as f:
-                analytics_data = json.load(f)
-            
-            unique_devices = set()
-            for session in analytics_data["sessions"]:
-                unique_devices.add(session["device_hash"])
-            
-            return len(unique_devices)
-        except FileNotFoundError:
-            return 0
-    
-    def get_feature_usage_by_device(self):
-        """Get feature usage statistics by unique devices"""
-        try:
-            with open(self.analytics_file, 'r') as f:
-                analytics_data = json.load(f)
-            
-            device_features = defaultdict(set)
-            for session in analytics_data["sessions"]:
-                device_hash = session["device_hash"]
-                feature = session["feature"]
-                device_features[device_hash].add(feature)
-            
-            # Return anonymous statistics
-            stats = {
-                "total_unique_devices": len(device_features),
-                "features_per_device": [len(features) for features in device_features.values()],
-                "average_features_per_device": sum(len(f) for f in device_features.values()) / len(device_features) if device_features else 0
-            }
-            
-            return stats
-        except FileNotFoundError:
-            return {"total_unique_devices": 0}
-
-# Usage
-analytics = PrivacyPreservingAnalytics()
-
-# Track some usage
-analytics.track_usage_session("file_upload")
-analytics.track_usage_session("data_export")
-analytics.track_usage_session("report_generation")
-
-# Get privacy-preserving statistics
-unique_count = analytics.get_unique_devices_count()
-print(f"Total unique devices: {unique_count}")
-
-usage_stats = analytics.get_feature_usage_by_device()
-print(f"Average features per device: {usage_stats['average_features_per_device']:.1f}")
-```
-
 ## Technical Specifications
 
 ### Hardware Detection Methods by Platform
@@ -779,27 +565,6 @@ We welcome contributions! Here's how you can help:
 4. **Commit your changes** (`git commit -m 'Add new feature'`)
 5. **Push to the branch** (`git push origin feature/new-feature`)
 6. **Open a Pull Request**
-
-### Development Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/Johnsonajibi/DeviceFingerprinting.git
-cd DeviceFingerprinting
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install development dependencies
-pip install -r requirements-dev.txt
-
-# Run tests
-python -m pytest tests/
-
-# Run with coverage
-python -m pytest --cov=device_fingerprinting tests/
-```
 
 ## Support and Documentation
 
