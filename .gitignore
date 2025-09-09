@@ -1,0 +1,135 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Rust build artifacts
+target/
+Cargo.lock
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+logs/
+
+# Sensitive configuration files
+*.hash
+vault_token.hash
+vault_epoch.json
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Unrelated library files (keep locally but not in repo)
+CorrectPQC.py
+dual_qr_recovery.py
+dynamic_page_sizing.py
+forward_secure_encryption.py
+quantum_resistant_crypto.py
+steganographic_qr.py
+secure_config.py
+security_audit.py
+security_testing.py
+
+# Other unrelated files
+authentic_qr_steg.py
+check_real_pqc.py
+confirm_pqc_status.py
+debug_quantum.py
+demo_*.py
+detect_stubs.py
+final_*.py
+hybrid_pqc_*.json
+pqc_*.py
+production_*.py
+quantum_*.py
+real_pqc_*.py
+security_*.py
+setup_real_pqc.py
+simple_pqc_test.py
+test_*.py
+validate_*.py
+verify_*.py
+*.dat
+*.md.bak
+README_*.md
