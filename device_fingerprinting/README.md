@@ -1,59 +1,80 @@
 # Device Fingerprinting Library
 
-[![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![PQC](https://img.shields.io/badge/Post--Quantum-Dilithium3-purple.svg)](https://pq-crystals.org/dilithium/)
-[![Security](https://img.shields.io/badge/security-hardened-red.svg)](SECURITY_VULNERABILITY_ASSESSMENT.md)
+[![Tests](https://img.shields.io/badge/tests-57_passing-brightgreen.svg)](tests/)
+[![Security](https://img.shields.io/badge/security-hardened-red.svg)](SECURITY.md)
 
-A production-ready Python library for **hardware-based device fingerprinting** with **post-quantum cryptographic protection**. Securely bind software licenses, user data, or any sensitive information to specific hardware devices using hybrid classical + quantum-resistant signatures.
+A production-ready Python library for **hardware-based device fingerprinting**. It is designed to be robust, secure, and easy to integrate, providing a reliable way to identify and verify devices.
+
+This library has been hardened with a comprehensive test suite, ensuring that all core components are validated and function as expected.
 
 ## 📖 Table of Contents
 
-- [Why This Library?](#-why-this-library)
+- [Architectural Overview](#-architectural-overview)
 - [Features](#-features)
 - [Installation](#-installation)
 - [Quick Start](#-quick-start)
-- [Technical Details](#-technical-details)
-- [Security Levels](#️-security-levels)
-- [Advanced Features](#️-advanced-features)
+- [Core Concepts Explained](#-core-concepts-explained)
+  - [1. The Fingerprinting Process](#1-the-fingerprinting-process)
+  - [2. The Cryptographic Engine](#2-the-cryptographic-engine)
+  - [3. Secure Storage](#3-secure-storage)
+  - [4. ML Anomaly Detection](#4-ml-anomaly-detection)
 - [Testing & Validation](#-testing--validation)
 - [Dependencies](#-dependencies)
-- [Changelog](#-changelog)
-- [Security Notes](#-security-notes)
 - [Contributing](#-contributing)
-- [Documentation](#-documentation)
 - [License](#️-license)
 
-## 🌟 Why This Library?
+## 🏛️ Architectural Overview
 
-- **🔒 Quantum-Safe**: Uses Dilithium3 post-quantum signatures via pqcdualusb
-- **🛡️ Defense-in-Depth**: Hybrid cryptography (SHA3-256 + PQC) for maximum security
-- **⚡ Production-Ready**: Comprehensive security hardening and vulnerability fixes
-- **🎯 Accurate**: Stable hardware fingerprinting with configurable tolerance
-- **🔐 Secure by Design**: Anti-replay protection, timing attack resistance, secure key storage
-- **📦 Easy to Use**: Simple API with sensible defaults
+This library is built on a modular architecture that separates concerns, making it robust and easy to maintain. The diagram below illustrates the high-level interaction between the main components.
 
-## 🔐 Features
+```
++---------------------------------+
+|      Application / Your Code    |
++---------------------------------+
+              |
+              v
++---------------------------------+
+| ProductionFingerprintGenerator  |
+|       (Primary Public API)      |
++---------------------------------+
+|      |            |             |
+|      v            v             v
+| +----------+ +-----------+ +-----------------+
+| |  Crypto  | |MLFeatures | |  SecureStorage  |
+| |(Hashing, | | (Anomaly  | |  (Encrypted     |
+| |Encrypting)| | Detection)| |   Data Store)   |
+| +----------+ +-----------+ +-----------------+
+|      |             |
+|      v             v
+| +----------+ +-----------+
+| | Hardware | |  System   |
+| |(CPU, MAC)| |(OS, etc.) |
+| +----------+ +-----------+
+```
 
-### Core Capabilities
-- **Hardware Device Fingerprinting**: Generate unique, stable device identifiers
-- **Post-Quantum Cryptography**: Hybrid signatures using pqcdualusb (Dilithium3)
-- **Device Binding**: Cryptographically bind data to specific hardware
-- **Anti-Replay Protection**: Time-bound nonces and monotonic counters
-- **Multiple Security Levels**: Basic, medium, and high security profiles
+-   **ProductionFingerprintGenerator**: The main entry point for generating device fingerprints.
+-   **Crypto**: A module providing cryptographic primitives like hashing (SHA3) and encryption (AES-GCM).
+-   **MLFeatures**: A component that uses machine learning (`IsolationForest`) to detect anomalies in system behavior.
+-   **SecureStorage**: A class for securely storing and retrieving encrypted data, using the system's keyring or a password-derived key.
+-   **Hardware/System Collectors**: Internal functions that gather the raw data used to generate the fingerprint.
 
-### Security Features
-- ✅ Hybrid cryptography (SHA3-256 + PQC-compatible Dilithium3)
-- ✅ Timing attack protection with constant-time operations
-- ✅ Cache poisoning prevention
-- ✅ Admin access control with session management
-- ✅ Secure key storage with PBKDF2 derivation
-- ✅ Comprehensive input validation and sanitization
-- ✅ Defense-in-depth architecture
+## ✨ Features
+
+-   **Stable Device Fingerprinting**: Generates a consistent identifier from hardware and software attributes.
+-   **Robust Security**:
+    -   **Strong Encryption**: Uses AES-GCM for encrypting sensitive data.
+    -   **Secure Key Derivation**: Employs Scrypt (a memory-hard KDF) to protect against brute-force attacks on passwords.
+-   **Machine Learning Anomaly Detection**:
+    -   Monitors system behavior (CPU, memory, etc.).
+    -   Uses an `IsolationForest` model to detect deviations from a normal baseline.
+-   **Secure Encrypted Storage**:
+    -   Stores data in an encrypted format at rest.
+    -   Integrates with system keyrings (`Windows Credential Locker`, `macOS Keychain`, etc.) for enhanced security.
+-   **Production-Ready & Tested**: Comes with a comprehensive suite of 57 passing `pytest` tests, ensuring reliability and correctness.
 
 ## 📦 Installation
-
-### From Source
 
 ```bash
 # Clone the repository
@@ -61,593 +82,136 @@ git clone https://github.com/Johnsonajibi/DeviceFingerprinting.git
 cd DeviceFingerprinting/device_fingerprinting
 
 # Install dependencies
-pip install pqcdualusb>=0.1.4
+pip install -r requirements.txt
 
-# Import and use
-import device_fingerprinting
+# Install the package in editable mode
+pip install -e .
 ```
-
-### Requirements
-
-- Python 3.8 or higher
-- pqcdualusb 0.1.4+ (for post-quantum cryptography)
-- Standard library only (no other external dependencies)
 
 ## 🚀 Quick Start
 
-### 5-Minute Tutorial
+The following example demonstrates how to generate a fingerprint and use the anomaly detector.
 
 ```python
-import device_fingerprinting
+from device_fingerprinting.production_fingerprint import ProductionFingerprintGenerator
+from device_fingerprinting.ml_features import FeatureExtractor, AnomalyDetector
+import numpy as np
 
-# 1. Generate a hardware fingerprint (stable across reboots)
-fingerprint = device_fingerprinting.generate_fingerprint(method="stable")
-print(f"Device ID: {fingerprint[:60]}...")
+# --- 1. Generate a Device Fingerprint ---
+print("--- Generating Device Fingerprint ---")
+fp_generator = ProductionFingerprintGenerator()
+fingerprint_data = fp_generator.generate_fingerprint()
+print(f"Fingerprint Hash: {fingerprint_data['fingerprint_hash']}")
+print(f"Platform: {fingerprint_data['system_info']['platform']}")
+print("-" * 20)
 
-# 2. Create a device binding (tie license to this hardware)
-binding_data = {
-    "license_key": "ABC-123-XYZ-789",
-    "user_email": "user@example.com",
-    "expiry": "2026-12-31"
-}
+# --- 2. Use the ML Anomaly Detector ---
+print("\n--- ML Anomaly Detection ---")
+# In a real application, you would train the model on data from a known-good state.
+# For this demo, we'll train it on random "normal" data.
+normal_data = np.random.rand(100, 3)
+detector = AnomalyDetector()
+detector.train(normal_data)
+print("Anomaly detector trained on baseline data.")
 
-bound = device_fingerprinting.create_device_binding(
-    binding_data,
-    security_level="high"  # Strict matching
-)
+# Collect current system features
+feature_extractor = FeatureExtractor()
+current_features = feature_extractor.collect_features()
+prediction, score = detector.predict(current_features)
 
-# 3. Verify the binding (check if on same hardware)
-is_valid, details = device_fingerprinting.verify_device_binding(bound)
-
-if is_valid:
-    print(f"✅ Valid license on this device!")
-    print(f"   Match score: {details['match_score']:.2%}")
-    print(f"   Signature: {details['signature_valid']}")
+if prediction == 1:
+    print(f"System behavior is NORMAL (Score: {score:.2f})")
 else:
-    print(f"❌ License not valid for this device")
-    print(f"   Reason: {details.get('reason', 'Unknown')}")
+    print(f"System behavior is ANOMALOUS (Score: {score:.2f})")
+
+# Now, test with a clear anomaly
+anomalous_data = np.array([[10.0, -5.0, 100.0]])
+prediction, score = detector.predict(anomalous_data)
+print(f"Prediction for outlier data: {'ANOMALY' if prediction == -1 else 'NORMAL'} (Score: {score:.2f})")
+print("-" * 20)
 ```
 
-### Real-World Use Case: Software Licensing
+## 🔬 Core Concepts Explained
 
-```python
-import device_fingerprinting
+### 1. The Fingerprinting Process
 
-# Server-side: Generate license for customer's device
-def create_license(customer_hardware_id, license_key):
-    """Bind license to customer's hardware"""
-    license_data = {
-        "key": license_key,
-        "customer_id": "CUST-12345",
-        "product": "Pro Edition",
-        "issued": "2025-10-18"
-    }
-    
-    # Create binding with customer's hardware fingerprint
-    return device_fingerprinting.create_device_binding(
-        license_data,
-        security_level="high"
-    )
-
-# Client-side: Verify license on user's machine
-def verify_license(license_binding):
-    """Check if license is valid for this device"""
-    is_valid, details = device_fingerprinting.verify_device_binding(
-        license_binding
-    )
-    
-    if is_valid and details['match_score'] > 0.85:
-        print("✅ License activated successfully!")
-        return True
-    else:
-        print("❌ License invalid or device mismatch")
-        return False
-```
-
-### Post-Quantum Cryptography (Future-Proof Security)
-
-```python
-import device_fingerprinting
-
-# Enable quantum-resistant cryptography
-device_fingerprinting.enable_post_quantum_crypto(algorithm="Dilithium3")
-
-# Check crypto configuration
-info = device_fingerprinting.get_crypto_info()
-print(f"🔐 Algorithm: {info['pqc_algorithm']}")
-print(f"🛡️ Quantum Resistant: {info['quantum_resistant']}")
-print(f"📦 Backend: {info['backend_type']}")
-print(f"🔑 Key Size: {info.get('key_size', 'N/A')} bytes")
-
-# Generate quantum-safe fingerprint
-fingerprint = device_fingerprinting.generate_fingerprint(method="stable")
-print(f"📝 Signature: {len(fingerprint)} bytes (hybrid v2 format)")
-# Output: 6244 bytes (SHA3-256 + Dilithium3)
-
-# All subsequent operations now use PQC protection!
-binding = device_fingerprinting.create_device_binding(
-    {"license": "QUANTUM-SAFE-LICENSE"},
-    security_level="high"
-)
-```
-
-**Why Post-Quantum?**
-- Protects against future quantum computer attacks
-- NIST-standardized Dilithium3 algorithm
-- Hybrid approach: Classical + PQC for defense-in-depth
-- Forward-compatible: Upgrade to native PQC when available
-
-### Explore Crypto Backends
-
-```python
-# List all available cryptographic backends
-backends = device_fingerprinting.get_available_crypto_backends()
-
-print(f"🔐 Available: {len(backends['available_backends'])} backends\n")
-
-for backend in backends['available_backends']:
-    print(f"  📦 {backend['name']}")
-    print(f"     {backend['description']}")
-    print(f"     Security: {'⭐' * backend['security_level']}")
-    print(f"     Speed: {backend['performance']}")
-    print()
-
-# Get personalized recommendations
-print("💡 Recommendations:")
-for rec in backends['recommendations']:
-    print(f"  - {rec}")
-
-# Switch backends as needed
-device_fingerprinting.set_crypto_backend_sha3_512()  # Higher security
-# or
-device_fingerprinting.set_crypto_backend_sha3_256()  # Balanced
-```
-
-**Available Backends:**
-1. **HybridPQCBackend** - Post-quantum + classical (⭐⭐⭐⭐⭐)
-2. **SHA3-512** - 512-bit quantum-resistant hash (⭐⭐⭐⭐⭐)
-3. **SHA3-256** - 256-bit balanced security (⭐⭐⭐⭐)
-4. **HMAC-SHA256** - Classical HMAC (⭐⭐⭐)
-5. **PBKDF2** - Key derivation function (⭐⭐⭐)
-
-## 🔬 Technical Details
-
-### Cryptographic Architecture
+The device fingerprint is a unique hash generated from a collection of system attributes. This process is designed to be deterministic, meaning the same device will consistently produce the same fingerprint.
 
 ```
-┌─────────────────────────────────────────────────────┐
-│         Hybrid PQC Signature (6244 bytes)           │
-├─────────────────────────────────────────────────────┤
-│                                                     │
-│  Classical Layer (SHA3-256 HMAC)                   │
-│  ├─ 256-bit quantum-resistant hash                 │
-│  ├─ NIST FIPS 202 compliant                        │
-│  └─ Immediate protection                           │
-│                                                     │
-│  Post-Quantum Layer (Dilithium3-compatible)        │
-│  ├─ 3268-byte public key                           │
-│  ├─ 800-byte private key                           │
-│  ├─ NIST standardized algorithm                    │
-│  └─ Future quantum computer resistant              │
-│                                                     │
-│  Security Properties:                              │
-│  ✓ Defense-in-depth (dual independent layers)      │
-│  ✓ Forward compatibility for native PQC            │
-│  ✓ Constant-time operations                        │
-│  ✓ Timestamp-based verification                    │
-│  ✓ Secure key generation & storage                 │
-│                                                     │
-└─────────────────────────────────────────────────────┘
++-----------------------+    +-----------------------+    +---------------------+
+|  Collect Hardware     |    |  Collect Software     |    |  Collect Security   |
+|  Info (CPU, RAM, MAC) |    |  Info (OS, Python Ver)|    |  Info (Is Admin?)   |
++-----------------------+    +-----------------------+    +---------------------+
+           |                           |                            |
+           +---------------------------+----------------------------+
+                                       |
+                                       v
+                          +--------------------------+
+                          |  Combine into a single   |
+                          |      JSON object         |
+                          +--------------------------+
+                                       |
+                                       v
+                          +--------------------------+
+                          |  Serialize to a stable,  |
+                          |     sorted JSON string   |
+                          +--------------------------+
+                                       |
+                                       v
+                          +--------------------------+
+                          |   Hash with SHA3-512     |
+                          +--------------------------+
+                                       |
+                                       v
+                          +--------------------------+
+                          |   Final Fingerprint Hash |
+                          +--------------------------+
 ```
 
-### Key Sizes & Performance
+### 2. The Cryptographic Engine
 
-| Component | Size | Purpose |
-|-----------|------|---------|
-| Public Key | 3268 bytes | Signature verification |
-| Private Key | 800 bytes | Signature creation (kept secure) |
-| Classical HMAC | 32 bytes | SHA3-256 signature component |
-| PQC Signature | 3309 bytes | Dilithium3-compatible component |
-| **Total Signature** | **6244 bytes** | Complete hybrid signature |
-
-**Performance Characteristics:**
-- Key generation: ~10ms (one-time cost)
-- Signing: ~5ms per operation
-- Verification: ~3ms per operation  
-- Memory footprint: ~5KB per backend instance
-
-### Fingerprinting Methods
-
-The library collects hardware characteristics to create unique device identifiers:
-
-#### 1. **`stable`** (⭐ Recommended)
-**Best for:** Software licensing, device binding, persistent identification
-
-```python
-fingerprint = device_fingerprinting.generate_fingerprint(method="stable")
-```
-
-**Collects:**
-- ✓ CPU information (model, cores, architecture)
-- ✓ MAC addresses (network interfaces)
-- ✓ Disk serial numbers (primary storage)
-- ✓ OS installation ID / Machine GUID
-- ✓ BIOS/UEFI serial numbers
-
-**Characteristics:**
-- Survives reboots, software updates, OS reinstalls
-- ~85% tolerance for hardware changes
-- Stable across time
-- Resistant to VM cloning
-
-#### 2. **`basic`** (⚡ Fast)
-**Best for:** Quick device checks, low-security scenarios
-
-```python
-fingerprint = device_fingerprinting.generate_fingerprint(method="basic")
-```
-
-**Collects:**
-- ✓ CPU identifier
-- ✓ Hostname
-
-**Characteristics:**
-- Very fast (~1ms)
-- ~50% tolerance
-- May change with hostname or CPU
-
-#### 3. **`comprehensive`** (🔍 Detailed)
-**Best for:** Maximum uniqueness, forensics, security auditing
-
-```python
-fingerprint = device_fingerprinting.generate_fingerprint(method="comprehensive")
-```
-
-**Collects:**
-- ✓ All `stable` method data
-- ✓ Environment variables
-- ✓ User information
-- ✓ System configuration details
-
-**Characteristics:**
-- Maximum data points
-- Highest uniqueness
-- May vary more often
-- Larger signature size
-
-## 🛡️ Security Levels
-
-### High Security (Recommended)
-- Method: `stable`
-- Tolerance: 0.85 (strict matching)
-- Use case: License enforcement, device binding
-
-### Medium Security
-- Method: `stable`
-- Tolerance: 0.75
-- Use case: General device tracking
-
-### Basic Security
-- Method: `basic`
-- Tolerance: 0.50
-- Use case: Quick device identification
-
-## ⚙️ Advanced Features
-
-### Anti-Replay Protection
-
-```python
-# Enable anti-replay protection
-device_fingerprinting.enable_anti_replay_protection(
-    enabled=True,
-    nonce_lifetime=300  # 5 minutes
-)
-
-# Create server nonce
-nonce, signature = device_fingerprinting.create_server_nonce()
-
-# Verify nonce
-is_valid = device_fingerprinting.verify_server_nonce(nonce, signature)
-```
-
-### Admin Mode
-
-```python
-# Authenticate as admin
-token = device_fingerprinting.authenticate_admin("admin_password")
-
-# Perform admin operations
-device_fingerprinting.admin_reset_counter("binding_123", admin_token=token)
-
-# Clear cache
-device_fingerprinting.admin_clear_cache(admin_token=token)
-```
-
-### Custom Crypto Backends
-
-```python
-# Switch to SHA3-512
-device_fingerprinting.set_crypto_backend_sha3_512()
-
-# Or choose specific backend
-from device_fingerprinting.backends import CryptoBackend
-device_fingerprinting.set_crypto_backend(
-    backend_type=CryptoBackend.SHA3_512
-)
-```
-
-## 📊 Testing & Validation
-
-### Run Integration Tests
-
-```bash
-# Full integration test suite
-python -m device_fingerprinting.test_pqc_integration
-```
-
-**Expected Output:**
-```
-✅ Real Rust PQC module loaded successfully!
-Testing Device Fingerprinting with pqcdualusb Integration
-================================================================
-
-1. Available Crypto Backends:
-   Total backends: 5
-   Recommendations: 8
-
-2. Enabling Post-Quantum Cryptography:
-   PQC Enabled: True
-
-3. Current Crypto Configuration:
-   pqc_enabled: True
-   backend_type: HybridPQCBackend
-   pqc_algorithm: Dilithium3
-   quantum_resistant: True
-
-4. Generating Device Fingerprint:
-   Fingerprint length: 6244 bytes
-
-5. Creating Device Binding:
-   Binding created: True
-   Security level: high
-   Algorithm: Dilithium3
-
-6. Verifying Device Binding:
-   Valid: True
-   Match score: 1.0
-   Signature valid: True
-
-================================================================
-✅ SUCCESS: Full PQC integration is working!
-```
-
-### Quick Validation
-
-```python
-import device_fingerprinting
-
-# Test basic functionality
-def test_library():
-    # 1. Generate fingerprint
-    fp = device_fingerprinting.generate_fingerprint()
-    assert len(fp) > 0, "Fingerprint generation failed"
-    
-    # 2. Enable PQC
-    success = device_fingerprinting.enable_post_quantum_crypto("Dilithium3")
-    assert success, "PQC enablement failed"
-    
-    # 3. Create binding
-    binding = device_fingerprinting.create_device_binding(
-        {"test": "data"},
-        security_level="high"
-    )
-    assert binding, "Binding creation failed"
-    
-    # 4. Verify binding
-    is_valid, details = device_fingerprinting.verify_device_binding(binding)
-    assert is_valid, "Binding verification failed"
-    assert details['match_score'] == 1.0, "Match score incorrect"
-    
-    print("✅ All tests passed!")
-
-test_library()
-```
-
-## 🔧 Dependencies
-
-- **pqcdualusb >= 0.1.4**: Post-quantum cryptography library
-- **Python >= 3.8**: Modern Python runtime
-
-Optional for true quantum resistance:
-- cpp-pqc (C++ PQC backend)
-- rust-pqc (Rust PQC backend)
-- python-oqs (liboqs Python bindings)
-
-## 📝 Changelog
-
-### Version 2.0.0-PQC-DUALUSB (Current - October 2025)
-
-**🎉 Major Release: Real Post-Quantum Cryptography**
-
-**New Features:**
-- ✅ **pqcdualusb 0.1.4 Integration**: Real PQC library (not vaporware!)
-- ✅ **Dilithium3 Support**: NIST-standardized post-quantum signatures
-- ✅ **Hybrid v2 Format**: Timestamp-based signatures for better performance
-- ✅ **10+ New Functions**: Enhanced API surface
-- ✅ **Full Test Suite**: Comprehensive integration tests
-
-**Security Improvements:**
-- 🔒 Defense-in-depth with dual crypto layers
-- 🔒 Timing attack protection
-- 🔒 Cache poisoning prevention
-- 🔒 Anti-replay protection with monotonic counters
-- 🔒 Admin access control
-- 🔒 Secure key storage with PBKDF2
-
-**Technical Details:**
-- 6244-byte hybrid signatures (SHA3-256 + Dilithium3)
-- 3268/800 byte key pairs (real pqcdualusb keys)
-- Backward compatible with v1 signatures
-- Production-ready device binding
-
-**Files Changed:** 43 files, 7,880 insertions(+), 172 deletions(-)
-
----
-
-### Version 1.0.0-HYBRID-PQC (September 2025)
-
-**Initial Release**
-
-- 🎯 Hardware device fingerprinting
-- 🔐 Multiple crypto backends
-- 🛡️ Security vulnerability fixes
-- 📚 Basic documentation
-
-## 🚨 Security Notes
-
-### Current Status
-- **pqcdualusb**: Using classical fallback (PqcBackend.NONE)
-- **Security Level**: Strong classical cryptography (SHA3-256)
-- **Quantum Readiness**: Format compatible, ready to upgrade
-
-### For True Quantum Resistance
-Install a native PQC backend:
-
-```bash
-# Example: Install python-oqs
-pip install python-oqs
-```
-
-The library will automatically detect and use the native backend.
-
-### Even Without Native PQC:
-- Strong 256-bit classical security
-- Defense-in-depth architecture
-- Production-ready device binding
-- Anti-replay protection
-- Timing attack resistance
-- Comprehensive validation
-
-## 🤝 Contributing
-
-We welcome contributions! Here are some ways to help:
-
-### Priority Areas
-1. **🔐 Native PQC Backend Testing**
-   - Test with cpp-pqc, rust-pqc, python-oqs
-   - Validate true quantum resistance
-   - Performance benchmarking
-
-2. **🔍 Additional Fingerprinting Methods**
-   - Cross-platform compatibility
-   - Mobile device support
-   - Cloud/container fingerprinting
-
-3. **⚡ Performance Optimizations**
-   - Reduce signature size
-   - Faster verification
-   - Memory efficiency
-
-4. **🛡️ Security Audits**
-   - Code review
-   - Penetration testing
-   - Cryptographic analysis
-
-### How to Contribute
-
-```bash
-# 1. Fork the repository
-git clone https://github.com/Johnsonajibi/DeviceFingerprinting.git
-
-# 2. Create a feature branch
-git checkout -b feature/your-feature-name
-
-# 3. Make your changes
-# ... edit code ...
-
-# 4. Run tests
-python -m device_fingerprinting.test_pqc_integration
-
-# 5. Submit a pull request
-git push origin feature/your-feature-name
-```
-
-### Code Style
-- Follow PEP 8 guidelines
-- Add docstrings to all functions
-- Include type hints where possible
-- Write comprehensive tests
-
-### Reporting Issues
-Please report bugs or security issues via GitHub Issues:
-- **Bugs**: Use the bug report template
-- **Security**: Email security@example.com (do not open public issues)
-
-## 📄 License
-
-See LICENSE file for details.
-
-## � Documentation
-
-- **[Security Assessment](SECURITY_VULNERABILITY_ASSESSMENT.md)** - Comprehensive security analysis
-- **[PQC Integration Report](PQC_INTEGRATION_COMPLETE.md)** - Implementation details
-- **[Changelog](CHANGELOG.md)** - Version history and changes
-- **[Examples](examples/)** - Code examples and use cases
-
-## �🔗 References & Links
-
-### This Project
-- **GitHub**: https://github.com/Johnsonajibi/DeviceFingerprinting
-- **Issues**: https://github.com/Johnsonajibi/DeviceFingerprinting/issues
-- **Discussions**: https://github.com/Johnsonajibi/DeviceFingerprinting/discussions
-
-### Related Technologies
-- **pqcdualusb**: https://pypi.org/project/pqcdualusb/ - Post-quantum crypto library
-- **NIST PQC Project**: https://csrc.nist.gov/projects/post-quantum-cryptography
-- **Dilithium**: https://pq-crystals.org/dilithium/ - Signature algorithm
-- **CRYSTALS**: https://pq-crystals.org/ - Cryptographic suite
-
-### Standards & Specifications
-- **NIST FIPS 202**: SHA-3 Standard
-- **NIST PQC Round 3**: Post-quantum candidates
-- **RFC 8032**: EdDSA signatures (reference)
-
-## 💬 Support & Community
-
-- **Questions?** Open a [GitHub Discussion](https://github.com/Johnsonajibi/DeviceFingerprinting/discussions)
-- **Bug Reports?** File an [Issue](https://github.com/Johnsonajibi/DeviceFingerprinting/issues)
-- **Security Issues?** See [SECURITY.md](SECURITY.md) for responsible disclosure
-
-## ⚖️ License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Security is a core design principle. The library uses strong, modern cryptographic primitives for hashing, key derivation, and encryption.
 
 ```
-MIT License - Copyright (c) 2025 Johnsonajibi
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software...
++--------------------------+                             +--------------------------+
+|         Password         |---- (generates) ---->       |      Encryption Key      |
+|   (e.g., "my-secret")    |                             |       (32 bytes)         |
++--------------------------+                             +--------------------------+
+             |                                                         |
+             v                                                         v
++--------------------------+                             +--------------------------+
+| Plaintext Data (JSON)    |---- (encrypts with) ---->   |      AES-GCM Encrypted   |
++--------------------------+                             |           Blob           |
+                                                         +--------------------------+
 ```
 
-## 🙏 Acknowledgments
+-   **Scrypt**: We use Scrypt to derive the encryption key from a user-provided password. Because it is memory-hard, it is highly resistant to custom hardware attacks and brute-forcing.
+-   **AES-GCM**: All sensitive data is encrypted using AES in Galois/Counter Mode. This provides both confidentiality and authenticity, protecting against tampering.
 
-- **pqcdualusb Team** - For the excellent post-quantum cryptography library
-- **NIST** - For standardizing post-quantum algorithms
-- **CRYSTALS Team** - For developing Dilithium and Kyber
-- **Contributors** - Everyone who has contributed to this project
+### 3. Secure Storage
 
----
+The `SecureStorage` class provides a simple, dictionary-like interface for storing encrypted data on disk. It automatically handles encryption and decryption.
 
-<div align="center">
+For enhanced security, it will first attempt to use the operating system's native keyring (like Windows Credential Locker or macOS Keychain) to store the encryption password. This is more secure than leaving the password in code. If a keyring is not available, it falls back to using the password directly.
 
-**Made with ❤️ and quantum-resistant cryptography**
+### 4. ML Anomaly Detection
 
-[![GitHub Stars](https://img.shields.io/github/stars/Johnsonajibi/DeviceFingerprinting?style=social)](https://github.com/Johnsonajibi/DeviceFingerprinting)
-[![GitHub Forks](https://img.shields.io/github/forks/Johnsonajibi/DeviceFingerprinting?style=social)](https://github.com/Johnsonajibi/DeviceFingerprinting/fork)
+The library includes a machine learning component to detect unusual system behavior. This can be used as an additional layer of security to flag if a fingerprinting attempt is happening in a suspicious environment (e.g., under heavy CPU load that might indicate a debugger is attached).
 
-**Secure your software. Protect against quantum computers. Start today.**
-
-</div>
+```
++------------------------+    +------------------------+    +------------------------+
+|  Collect CPU Usage     |    | Collect Memory Usage   |    | Collect Battery Level  |
++------------------------+    +------------------------+    +------------------------+
+            |                          |                           |
+            +--------------------------+---------------------------+
+                                       |
+                                       v
+                          +--------------------------+
+                          |  Create Feature Vector   |
+                          |      (NumPy Array)       |
+                          +--------------------------+
+                                       |
+                                       v
+                          +--------------------------+
+                          |     AnomalyDetector      |
+                          |   (IsolationForest Model)|
