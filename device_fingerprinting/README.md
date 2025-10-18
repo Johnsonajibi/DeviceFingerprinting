@@ -215,3 +215,53 @@ The library includes a machine learning component to detect unusual system behav
                           +--------------------------+
                           |     AnomalyDetector      |
                           |   (IsolationForest Model)|
+                          +--------------------------+
+                                       |
+                                       v
+                          +--------------------------+
+                          | Prediction: 1 (Normal) or|
+                          |      -1 (Anomaly)        |
+                          +--------------------------+
+```
+
+## 📊 Testing & Validation
+
+The library is rigorously tested to ensure its reliability and correctness. We use `pytest` as our testing framework.
+
+-   **Test Suite**: A total of **57 tests** cover all critical components.
+-   **Coverage**: The tests validate the logic in `crypto.py`, `security.py`, `secure_storage.py`, `ml_features.py`, and `production_fingerprint.py`.
+-   **Continuous Integration**: All tests must pass before any new code is merged.
+
+To run the tests yourself:
+
+```bash
+# Ensure you have installed the dev dependencies
+pip install -r requirements.txt
+
+# Run the full test suite
+python -m pytest
+```
+
+You should see all 57 tests passing.
+
+## 🔧 Dependencies
+
+-   `numpy`: For numerical operations in the ML module.
+-   `scikit-learn`: For the `IsolationForest` anomaly detection model.
+-   `psutil`: For collecting system metrics (CPU, memory, etc.).
+-   `cryptography`: Provides the low-level cryptographic primitives.
+-   `keyring`: (Optional, but recommended) For securely storing secrets in the OS.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a pull request or open an issue.
+
+1.  **Fork the repository.**
+2.  **Create a new branch**: `git checkout -b feature/your-new-feature`
+3.  **Make your changes.**
+4.  **Ensure all tests pass**: `python -m pytest`
+5.  **Submit a pull request.**
+
+## ⚖️ License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
