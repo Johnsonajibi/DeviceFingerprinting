@@ -7,6 +7,7 @@ secure enclave storage for protecting sensitive data.
 """
 
 import os
+import json
 import logging
 from typing import Dict, Any, Optional
 

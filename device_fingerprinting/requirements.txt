@@ -1,42 +1,20 @@
-# Device Fingerprinting Library Requirements
+# Device Fingerprinting Library - Core Requirements
+# These are the MINIMUM dependencies needed for the library to function
 
-# Post-Quantum Cryptography (Required for PQC features)
-pqcdualusb>=0.1.4  # Hybrid post-quantum cryptography library
-
-# Core dependencies
+# Core dependencies (required)
 numpy>=1.21.0
 scikit-learn>=1.0.0
 psutil>=5.8.0
+cryptography>=41.0.0
+keyring>=23.0.0
 
-# Visualization and Dashboard
-plotly>=5.0.0
-flask>=2.0.0
+# Testing dependencies (for development and CI)
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-mock>=3.10.0
 
-# Cloud Features (optional)
-boto3>=1.20.0
-azure-storage-blob>=12.9.0
-requests>=2.25.0
+# Note: All other dependencies are optional and defined in pyproject.toml
+# To install with optional dependencies, use:
+#   pip install -e .[cloud]  # For cloud features
+#   pip install -e .[dev]    # For development tools
 
-# HSM and Secure Crypto (optional)
-pykcs11>=1.5.0
-pycryptodomex>=3.10.0
-dilithium-python==0.1.0
-
-
-# Note: Basic fingerprinting uses only Python standard library
-# PQC features require pqcdualusb
-
-# Development dependencies (optional)
-pytest>=6.0.0
-pytest-cov>=2.10.0
-black>=21.0.0
-flake8>=3.8.0
-mypy>=0.812
-
-# Documentation dependencies (optional)
-sphinx>=3.0.0
-sphinx-rtd-theme>=0.5.0
-
-# Build dependencies (optional)
-build>=0.7.0
-twine>=3.0.0

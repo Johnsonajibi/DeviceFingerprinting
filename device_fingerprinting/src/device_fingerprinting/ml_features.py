@@ -10,6 +10,7 @@ from typing import Dict, Any, List, Optional
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from sklearn.ensemble import IsolationForest
+from sklearn.preprocessing import StandardScaler
 import joblib
 
 @dataclass
