@@ -1,8 +1,10 @@
 # Device Fingerprinting Library
 
 [![Python](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![PyPI version](https://badge.fury.io/py/device-fingerprinting-pro.svg)](https://badge.fury.io/py/device-fingerprinting-pro)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-57_passing-brightgreen.svg)](tests/)
+[![Downloads](https://pepy.tech/badge/device-fingerprinting-pro)](https://pepy.tech/project/device-fingerprinting-pro)
 
 A Python library for hardware-based device fingerprinting with anomaly detection. Generates stable device identifiers from hardware characteristics, provides encrypted storage, and detects anomalous system behavior.
 
@@ -327,7 +329,14 @@ graph TD
 
 ## Installation
 
-### Basic Installation
+### Install from PyPI (Recommended)
+
+```bash
+# Install the latest version from PyPI
+pip install device-fingerprinting-pro
+```
+
+### Install from Source
 
 ```bash
 # Clone the repository
@@ -345,16 +354,16 @@ pip install -e .
 
 ```bash
 # Install with Post-Quantum Cryptography support
-pip install -e .[pqc]
+pip install device-fingerprinting-pro[pqc]
 
 # Install with Cloud storage support
-pip install -e .[cloud]
+pip install device-fingerprinting-pro[cloud]
 
 # Install with development tools (testing, linting, type checking)
-pip install -e .[dev]
+pip install device-fingerprinting-pro[dev]
 
 # Install all optional features
-pip install -e .[pqc,cloud,dev]
+pip install device-fingerprinting-pro[pqc,cloud,dev]
 ```
 
 To verify the installation, run the test suite:

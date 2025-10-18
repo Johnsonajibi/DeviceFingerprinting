@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "device-fingerprinting"
+name = "device-fingerprinting-pro"
 version = "2.0.0"
 description = "Production-ready hardware device fingerprinting with ML-based anomaly detection and secure storage"
 readme = "README.md"
