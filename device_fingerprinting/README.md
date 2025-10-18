@@ -62,30 +62,64 @@ This library is built on a modular architecture that separates concerns, making 
 
 ## ✨ Features
 
--   **Stable Device Fingerprinting**: Generates a consistent identifier from hardware and software attributes.
+### Core Features
+-   **Stable Device Fingerprinting**: Generates a consistent identifier from hardware and software attributes (CPU, MAC address, disk info, OS details).
 -   **Robust Security**:
-    -   **Strong Encryption**: Uses AES-GCM for encrypting sensitive data.
+    -   **Strong Encryption**: Uses AES-GCM (Authenticated Encryption) for encrypting sensitive data.
     -   **Secure Key Derivation**: Employs Scrypt (a memory-hard KDF) to protect against brute-force attacks on passwords.
+    -   **SHA3-512 Hashing**: Uses quantum-resistant SHA-3 for fingerprint generation.
 -   **Machine Learning Anomaly Detection**:
-    -   Monitors system behavior (CPU, memory, etc.).
+    -   Monitors system behavior (CPU usage, memory, battery level).
     -   Uses an `IsolationForest` model to detect deviations from a normal baseline.
+    -   Can detect suspicious environments (debuggers, VMs, tampering attempts).
 -   **Secure Encrypted Storage**:
     -   Stores data in an encrypted format at rest.
-    -   Integrates with system keyrings (`Windows Credential Locker`, `macOS Keychain`, etc.) for enhanced security.
--   **Production-Ready & Tested**: Comes with a comprehensive suite of 57 passing `pytest` tests, ensuring reliability and correctness.
+    -   Integrates with system keyrings (`Windows Credential Locker`, `macOS Keychain`, Linux Secret Service) for enhanced security.
+-   **Production-Ready & Tested**: Comes with a comprehensive suite of 57 passing `pytest` tests with automated CI/CD.
+
+### Optional Advanced Features
+-   **Post-Quantum Cryptography (Optional)**: Support for quantum-resistant signatures using `pqcdualusb` with Dilithium/Kyber algorithms.
+-   **Cloud Storage (Optional)**: Integration with AWS S3 and Azure Blob Storage.
 
 ## 📦 Installation
+
+### Basic Installation
 
 ```bash
 # Clone the repository
 git clone https://github.com/Johnsonajibi/DeviceFingerprinting.git
 cd DeviceFingerprinting/device_fingerprinting
 
-# Install dependencies
+# Install core dependencies
 pip install -r requirements.txt
 
 # Install the package in editable mode
 pip install -e .
+```
+
+### Installation with Optional Features
+
+```bash
+# Install with Post-Quantum Cryptography support
+pip install -e .[pqc]
+
+# Install with Cloud storage support
+pip install -e .[cloud]
+
+# Install with development tools (testing, linting, type checking)
+pip install -e .[dev]
+
+# Install all optional features
+pip install -e .[pqc,cloud,dev]
+```
+
+### Verify Installation
+
+```bash
+# Run the test suite to verify everything works
+python -m pytest
+
+# You should see: 57 passed
 ```
 
 ## 🚀 Quick Start
@@ -226,13 +260,22 @@ The library includes a machine learning component to detect unusual system behav
 
 ## 📊 Testing & Validation
 
-The library is rigorously tested to ensure its reliability and correctness. We use `pytest` as our testing framework.
+The library is rigorously tested to ensure its reliability and correctness. We use `pytest` as our testing framework with automated CI/CD.
 
+### Test Coverage
 -   **Test Suite**: A total of **57 tests** cover all critical components.
--   **Coverage**: The tests validate the logic in `crypto.py`, `security.py`, `secure_storage.py`, `ml_features.py`, and `production_fingerprint.py`.
--   **Continuous Integration**: All tests must pass before any new code is merged.
+-   **Coverage**: 31% code coverage across all modules, focusing on core functionality.
+-   **Validated Modules**: `crypto.py`, `security.py`, `secure_storage.py`, `ml_features.py`, and `production_fingerprint.py`.
 
-To run the tests yourself:
+### Continuous Integration
+We use GitHub Actions to automatically test every commit and pull request:
+-   **Multi-Platform Testing**: Ubuntu, Windows, and macOS
+-   **Multi-Python Testing**: Python 3.9, 3.10, 3.11, and 3.12
+-   **Code Quality Checks**: Linting with `flake8`, formatting with `black`, type checking with `mypy`
+-   **Security Scanning**: Automated vulnerability detection with `bandit` and `safety`
+-   **Coverage Reporting**: Integration with Codecov for tracking test coverage
+
+### Run Tests Locally
 
 ```bash
 # Ensure you have installed the dev dependencies
@@ -240,17 +283,26 @@ pip install -r requirements.txt
 
 # Run the full test suite
 python -m pytest
+
+# Run with coverage report
+python -m pytest --cov=device_fingerprinting --cov-report=term-missing
 ```
 
 You should see all 57 tests passing.
 
 ## 🔧 Dependencies
 
--   `numpy`: For numerical operations in the ML module.
--   `scikit-learn`: For the `IsolationForest` anomaly detection model.
--   `psutil`: For collecting system metrics (CPU, memory, etc.).
--   `cryptography`: Provides the low-level cryptographic primitives.
--   `keyring`: (Optional, but recommended) For securely storing secrets in the OS.
+### Core Dependencies (Required)
+-   `numpy >= 1.21.0`: For numerical operations in the ML module.
+-   `scikit-learn >= 1.0.0`: For the `IsolationForest` anomaly detection model.
+-   `psutil >= 5.8.0`: For collecting system metrics (CPU, memory, battery).
+-   `cryptography >= 41.0.0`: Provides AES-GCM encryption and Scrypt KDF.
+-   `keyring >= 23.0.0`: For securely storing secrets in the OS keyring.
+
+### Optional Dependencies
+-   **Post-Quantum Crypto**: `pqcdualusb >= 0.1.4` - For quantum-resistant signatures (install with `pip install -e .[pqc]`)
+-   **Cloud Storage**: `boto3`, `azure-storage-blob` - For AWS S3 and Azure integration (install with `pip install -e .[cloud]`)
+-   **Development Tools**: `pytest`, `black`, `flake8`, `mypy` - For testing and code quality (install with `pip install -e .[dev]`)
 
 ## 🤝 Contributing
 
