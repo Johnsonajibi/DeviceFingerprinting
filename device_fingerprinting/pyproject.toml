@@ -1,0 +1,87 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "device-fingerprinting"
+version = "2.0.0"
+description = "Production-ready hardware device fingerprinting with post-quantum cryptographic protection"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Johnsonajibi", email = "info@devicefingerprinting.dev"}
+]
+maintainers = [
+    {name = "Johnsonajibi", email = "info@devicefingerprinting.dev"}
+]
+keywords = [
+    "device-fingerprinting",
+    "hardware-fingerprinting", 
+    "post-quantum-cryptography",
+    "dilithium",
+    "device-binding",
+    "software-licensing",
+    "anti-piracy",
+    "pqc",
+    "quantum-resistant"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security :: Cryptography",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Hardware",
+    "Typing :: Typed",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "pqcdualusb>=0.1.4",
+]
+
+[project.optional-dependencies]
+cloud = [
+    "boto3>=1.28.0",
+    "azure-storage-blob>=12.17.0",
+    "cryptography>=41.0.0",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+    "isort>=5.12.0",
+    "pre-commit>=3.0.0",
+]
+docs = [
+    "sphinx>=6.0.0",
+    "sphinx-rtd-theme>=1.2.0",
+    "sphinx-autodoc-typehints>=1.22.0",
+]
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+    "tox>=4.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Johnsonajibi/DeviceFingerprinting"
+Documentation = "https://device-fingerprinting.readthedocs.io"
+Repository = "https://github.com/Johnsonajibi/DeviceFingerprinting"
+Issues = "https://github.com/Johnsonajibi/DeviceFingerprinting/issues"
+Changelog = "https://github.com/Johnsonajibi/DeviceFingerprinting/blob/main/CHANGELOG.md"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["device_fingerprinting"]
+include-package-data = true
