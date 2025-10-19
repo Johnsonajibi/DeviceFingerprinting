@@ -17,10 +17,20 @@ from .backends import CryptoBackend, StorageBackend, SecurityCheck
 
 
 class HmacSha256Backend(CryptoBackend):
-    """HMAC-SHA256 crypto backend with enhanced key generation"""
+    """HMAC-SHA256 crypto backend with enhanced key generation."""
+
+    _default_key: Optional[bytes] = None
 
     def __init__(self, key: Optional[bytes] = None):
-        self.key = key or self._generate_secure_key()
+        # Reuse the previously generated default key so that independent backend
+        # instances can verify signatures that other instances created.
+        if key is not None:
+            self.key = key
+        elif HmacSha256Backend._default_key is not None:
+            self.key = HmacSha256Backend._default_key
+        else:
+            self.key = self._generate_secure_key()
+            HmacSha256Backend._default_key = self.key
 
     def _generate_secure_key(self) -> bytes:
         """Generate cryptographically secure key with multiple entropy sources"""
