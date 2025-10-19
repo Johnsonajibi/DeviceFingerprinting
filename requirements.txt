@@ -1,0 +1,20 @@
+# Device Fingerprinting Library - Core Requirements
+# These are the MINIMUM dependencies needed for the library to function
+
+# Core dependencies (required)
+numpy>=1.21.0
+scikit-learn>=1.0.0
+psutil>=5.8.0
+cryptography>=41.0.0
+keyring>=23.0.0
+
+# Testing dependencies (for development and CI)
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-mock>=3.10.0
+
+# Note: All other dependencies are optional and defined in pyproject.toml
+# To install with optional dependencies, use:
+#   pip install -e .[cloud]  # For cloud features
+#   pip install -e .[dev]    # For development tools
+

@@ -1,0 +1,17 @@
+homepage: "https://github.com/Johnsonajibi/DeviceFingerprinting"
+language: python
+primary_contact: "info@devicefingerprinting.dev"
+auto_ccs:
+  - "info@devicefingerprinting.dev"
+main_repo: "https://github.com/Johnsonajibi/DeviceFingerprinting.git"
+file_github_issue: true
+sanitizers:
+  - address
+  - undefined
+  - memory
+fuzzing_engines:
+  - libfuzzer
+  - afl
+  - honggfuzz
+vendor_ccs:
+  - "security@python.org"

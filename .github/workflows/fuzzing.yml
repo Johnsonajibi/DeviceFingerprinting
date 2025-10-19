@@ -1,0 +1,128 @@
+name: Continuous Fuzzing
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run fuzzing daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  fuzz:
+    name: Fuzz Testing
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11']
+        fuzzer: ['fuzz_crypto', 'fuzz_fingerprint', 'fuzz_storage']
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install atheris
+        pip install -e .
+    
+    - name: Run ${{ matrix.fuzzer }}
+      run: |
+        echo "Running fuzzer: ${{ matrix.fuzzer }}"
+        timeout 300 python fuzz/${{ matrix.fuzzer }}.py -max_total_time=240 || true
+      continue-on-error: true
+    
+    - name: Check for crashes
+      run: |
+        if ls crash-* 1> /dev/null 2>&1; then
+          echo "⚠️ Crashes detected!"
+          echo "crash_found=true" >> $GITHUB_ENV
+          ls -la crash-*
+        else
+          echo "✅ No crashes found"
+          echo "crash_found=false" >> $GITHUB_ENV
+        fi
+    
+    - name: Upload crash artifacts
+      if: env.crash_found == 'true'
+      uses: actions/upload-artifact@v3
+      with:
+        name: fuzzing-crashes-${{ matrix.fuzzer }}
+        path: |
+          crash-*
+          timeout-*
+          leak-*
+    
+    - name: Create issue on crash
+      if: env.crash_found == 'true'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const title = `🐛 Fuzzing crash detected in ${{ matrix.fuzzer }}`;
+          const body = `
+          ### Fuzzing Crash Report
+          
+          **Fuzzer**: \`${{ matrix.fuzzer }}\`
+          **Python Version**: ${{ matrix.python-version }}
+          **Date**: ${new Date().toISOString()}
+          
+          A crash was detected during continuous fuzzing. Please investigate the crash artifacts uploaded to this workflow run.
+          
+          **Action Required**:
+          1. Download crash artifacts from workflow run
+          2. Reproduce crash locally: \`python fuzz/${{ matrix.fuzzer }}.py <crash_file>\`
+          3. Debug and fix the issue
+          4. Verify fix with: \`python fuzz/${{ matrix.fuzzer }}.py -max_total_time=60\`
+          
+          **Workflow Run**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          `;
+          
+          // Check if issue already exists
+          const issues = await github.rest.issues.listForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            state: 'open',
+            labels: ['fuzzing', 'bug']
+          });
+          
+          const existingIssue = issues.data.find(issue => 
+            issue.title.includes('${{ matrix.fuzzer }}')
+          );
+          
+          if (!existingIssue) {
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['fuzzing', 'bug', 'security']
+            });
+          }
+
+  fuzz-report:
+    name: Fuzzing Summary
+    runs-on: ubuntu-latest
+    needs: fuzz
+    if: always()
+    
+    steps:
+    - name: Generate Summary
+      run: |
+        echo "# 🔍 Fuzzing Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Status**: ${{ needs.fuzz.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Date**: $(date)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Fuzzers Executed" >> $GITHUB_STEP_SUMMARY
+        echo "- fuzz_crypto" >> $GITHUB_STEP_SUMMARY
+        echo "- fuzz_fingerprint" >> $GITHUB_STEP_SUMMARY
+        echo "- fuzz_storage" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Check individual job logs for detailed results." >> $GITHUB_STEP_SUMMARY
