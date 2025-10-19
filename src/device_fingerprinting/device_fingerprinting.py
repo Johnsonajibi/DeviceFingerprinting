@@ -106,7 +106,6 @@ import atexit
 
 def _cleanup_resources() -> None:
     """Cleanup resources on module shutdown"""
-    global _executor
     if _executor:
         _executor.shutdown(wait=False)
 
