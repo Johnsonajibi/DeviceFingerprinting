@@ -134,7 +134,9 @@ class AnomalyDetector:
         if not self._is_trained:
             raise RuntimeError("The model must be trained before making predictions.")
         if self._threshold is None:
-            raise RuntimeError("Anomaly detector threshold not initialised; train() must be called first.")
+            raise RuntimeError(
+                "Anomaly detector threshold not initialised; train() must be called first."
+            )
 
         raw_score = float(self.model.decision_function(features)[0])
         prediction = 1 if raw_score >= self._threshold else -1
