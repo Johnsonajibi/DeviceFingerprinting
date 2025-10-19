@@ -1,5 +1,7 @@
 """Custom exceptions for device_fingerprinting package."""
 
+from typing import Optional, Any
+
 
 class DeviceFingerprintingError(Exception):
     """Base exception for all device fingerprinting errors."""
@@ -76,7 +78,7 @@ class StorageError(DeviceFingerprintingError):
 class ValidationError(DeviceFingerprintingError):
     """Raised when input validation fails."""
 
-    def __init__(self, message: str, field: str = None, value: any = None):
+    def __init__(self, message: str, field: Optional[str] = None, value: Optional[Any] = None):
         """
         Initialize validation error.
 
@@ -111,7 +113,7 @@ class CachePoisoningDetected(DeviceFingerprintingError):
 class RateLimitExceeded(DeviceFingerprintingError):
     """Raised when rate limit is exceeded."""
 
-    def __init__(self, message: str, retry_after: int = None):
+    def __init__(self, message: str, retry_after: Optional[int] = None):
         """
         Initialize rate limit error.
 

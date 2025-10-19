@@ -171,8 +171,10 @@ class MLAnomalyDetector:
         self.model = IsolationForest(contamination=contamination, random_state=42)
         self.scaler = StandardScaler()
 
-        self.feature_stats = defaultdict(lambda: {"mean": 0.0, "std": 1.0, "count": 0})
-        self.recent_features = deque(maxlen=window_size)
+        self.feature_stats: Dict[str, Dict[str, float]] = defaultdict(
+            lambda: {"mean": 0.0, "std": 1.0, "count": 0}
+        )
+        self.recent_features: deque = deque(maxlen=window_size)
         self.is_fitted = False
 
     def extract_features(
@@ -272,7 +274,7 @@ class AdaptiveSecurityManager:
             "critical": {"checks": ["forensic", "vm_detection"]},
         }
         self.current_level = "medium"
-        self.threat_history = deque(maxlen=100)
+        self.threat_history: deque = deque(maxlen=100)
 
     def assess_and_adapt(
         self, fingerprint_data: Dict[str, Any], session_info: Optional[Dict[str, Any]] = None
