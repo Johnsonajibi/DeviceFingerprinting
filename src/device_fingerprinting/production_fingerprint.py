@@ -81,7 +81,9 @@ class ProductionFingerprintGenerator:
     It combines hardware, software, and system configuration identifiers.
     """
 
-    def __init__(self, security_level=SecurityLevel.HIGH, cache_ttl: int = 300, use_rust_bridge: bool = False):
+    def __init__(
+        self, security_level=SecurityLevel.HIGH, cache_ttl: int = 300, use_rust_bridge: bool = False
+    ):
         """
         Initializes the generator.
 
@@ -132,7 +134,9 @@ class ProductionFingerprintGenerator:
         }
         if info["platform"] == "Windows":
             try:
-                result = subprocess.run(["wmic", "csproduct", "get", "UUID"], capture_output=True, text=True, check=True)
+                result = subprocess.run(
+                    ["wmic", "csproduct", "get", "UUID"], capture_output=True, text=True, check=True
+                )
                 info["uuid"] = result.stdout.strip().split("\n")[-1]
             except (subprocess.CalledProcessError, FileNotFoundError) as e:
                 logging.warning(f"Could not get UUID on Windows: {e}")
@@ -142,7 +146,11 @@ class ProductionFingerprintGenerator:
                     info["machine_id"] = f.read().strip()
             except FileNotFoundError:
                 try:
-                    info["machine_id"] = subprocess.check_output(["cat", "/var/lib/dbus/machine-id"]).strip().decode()
+                    info["machine_id"] = (
+                        subprocess.check_output(["cat", "/var/lib/dbus/machine-id"])
+                        .strip()
+                        .decode()
+                    )
                 except (FileNotFoundError, subprocess.CalledProcessError) as e:
                     logging.warning(f"Could not get machine-id on Linux: {e}")
 
@@ -239,7 +247,9 @@ def create_device_binding(data: Dict[str, Any], security_level="high") -> Dict[s
 
     # Sign the binding
     payload = json.dumps(bound_data, sort_keys=True).encode("utf-8")
-    key = generate_device_fingerprint(security_level=security_level).encode("utf-8")  # Use fingerprint as key for simplicity
+    key = generate_device_fingerprint(security_level=security_level).encode(
+        "utf-8"
+    )  # Use fingerprint as key for simplicity
     signature = hmac.new(key, payload, hashlib.sha256).hexdigest()
     bound_data["signature"] = signature
 
@@ -262,7 +272,9 @@ def verify_device_binding(bound_data: Dict[str, Any], strict_mode=True) -> bool:
     # Restore signature for fingerprint check
     bound_data["signature"] = signature
 
-    current_fingerprint = generate_device_fingerprint(security_level=bound_data.get("binding_security_level", "high"))
+    current_fingerprint = generate_device_fingerprint(
+        security_level=bound_data.get("binding_security_level", "high")
+    )
 
     if strict_mode:
         return hmac.compare_digest(bound_data["device_fingerprint"], current_fingerprint)

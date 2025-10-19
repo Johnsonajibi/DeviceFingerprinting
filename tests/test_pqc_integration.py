@@ -42,10 +42,7 @@ print("\n5. Creating Device Binding:")
 binding_data = {"license_key": "TEST-1234-5678-ABCD"}
 # Disable anti-replay temporarily to test PQC integration
 device_fingerprinting.enable_anti_replay_protection(enabled=False)
-bound = device_fingerprinting.create_device_binding(
-    binding_data, 
-    security_level="high"
-)
+bound = device_fingerprinting.create_device_binding(binding_data, security_level="high")
 print(f"   Binding created: {bool(bound.get('device_binding'))}")
 print(f"   Security level: {bound['device_binding']['security_level']}")
 print(f"   Algorithm: {bound['device_binding']['fields']['crypto_metadata']['algorithm']}")

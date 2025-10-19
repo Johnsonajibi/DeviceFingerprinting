@@ -135,7 +135,9 @@ class SecurityAuditor:
 
     def log_security_event(self, event: str, level: str, details: dict):
         """Logs a structured security event."""
-        log_message = json.dumps({"event": event, "level": level, "details": details, "timestamp": psutil.time.time()})
+        log_message = json.dumps(
+            {"event": event, "level": level, "details": details, "timestamp": psutil.time.time()}
+        )
         self.logger.warning(log_message)
 
     def get_system_state(self) -> dict:

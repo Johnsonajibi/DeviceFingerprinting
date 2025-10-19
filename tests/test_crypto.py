@@ -3,6 +3,7 @@ import os
 
 from device_fingerprinting.crypto import AESGCMEncryptor, ScryptKDF
 
+
 class TestCrypto(unittest.TestCase):
 
     def setUp(self):
@@ -17,7 +18,7 @@ class TestCrypto(unittest.TestCase):
         salt = os.urandom(16)
         key = self.kdf.derive_key(self.password, salt)
         self.assertEqual(len(key), 32)
-        
+
         # Test that the same password and salt produce the same key
         key2 = self.kdf.derive_key(self.password, salt)
         self.assertEqual(key, key2)
@@ -31,10 +32,10 @@ class TestCrypto(unittest.TestCase):
         """Test a full encryption and decryption cycle."""
         key = os.urandom(32)
         encrypted_blob = self.encryptor.encrypt(self.data, key)
-        
+
         # The blob should contain nonce + ciphertext + tag
         self.assertGreater(len(encrypted_blob), len(self.data))
-        
+
         decrypted_data = self.encryptor.decrypt(encrypted_blob, key)
         self.assertEqual(self.data, decrypted_data)
 
@@ -42,9 +43,9 @@ class TestCrypto(unittest.TestCase):
         """Test that decryption fails with an incorrect key."""
         key1 = os.urandom(32)
         wrong_key = os.urandom(32)
-        
+
         encrypted_blob = self.encryptor.encrypt(self.data, key1)
-        
+
         with self.assertRaises(ValueError, msg="Decryption should fail with wrong key"):
             self.encryptor.decrypt(encrypted_blob, wrong_key)
 
@@ -52,11 +53,11 @@ class TestCrypto(unittest.TestCase):
         """Test that decryption fails if the ciphertext is tampered with."""
         key = os.urandom(32)
         encrypted_blob = self.encryptor.encrypt(self.data, key)
-        
+
         # Tamper with the ciphertext (flip a bit)
         tampered_blob = bytearray(encrypted_blob)
         tampered_blob[-5] ^= 1  # Tamper with the tag part
-        
+
         with self.assertRaises(ValueError, msg="Decryption should fail with tampered data"):
             self.encryptor.decrypt(bytes(tampered_blob), key)
 
@@ -64,17 +65,18 @@ class TestCrypto(unittest.TestCase):
         """Test the full cycle using a derived key."""
         salt = os.urandom(16)
         derived_key = self.kdf.derive_key(self.password, salt)
-        
+
         # We need a new encryptor instance if we want to use a different key size
         # but here we use the same size, so it's fine.
-        
+
         # The key for AES must be the correct size
         self.assertEqual(len(derived_key), self.encryptor.key_size)
-        
+
         encrypted_blob = self.encryptor.encrypt(self.data, derived_key)
         decrypted_data = self.encryptor.decrypt(encrypted_blob, derived_key)
-        
+
         self.assertEqual(self.data, decrypted_data)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

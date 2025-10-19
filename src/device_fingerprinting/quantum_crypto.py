@@ -296,7 +296,9 @@ class RealPostQuantumBackend(CryptoBackend):
                     # liboqs manages keys internally, just store the seed
                     if len(key_data) >= 32:
                         seed = key_data[:32]
-                        self.classical_key = key_data[32:64] if len(key_data) >= 64 else secrets.token_bytes(32)
+                        self.classical_key = (
+                            key_data[32:64] if len(key_data) >= 64 else secrets.token_bytes(32)
+                        )
 
                         # Regenerate keypair from seed for consistency
                         self.public_key, self.private_key = self._generate_keypair_from_seed(seed)
@@ -593,7 +595,9 @@ class RealPostQuantumBackend(CryptoBackend):
         try:
             # Recreate the signature using the same process as signing
             signature_seed = self.private_key[:32] + data
-            expected_signature = hashlib.shake_256(signature_seed).digest(self._get_signature_size())
+            expected_signature = hashlib.shake_256(signature_seed).digest(
+                self._get_signature_size()
+            )
             return secrets.compare_digest(signature, expected_signature)
         except:
             return False
@@ -606,7 +610,8 @@ class RealPostQuantumBackend(CryptoBackend):
             "library": self.library,
             "hybrid_mode": self.hybrid_mode,
             "quantum_resistant": True,
-            "nist_standardized": self.algorithm.startswith("Dilithium") or self.algorithm.startswith("Kyber"),
+            "nist_standardized": self.algorithm.startswith("Dilithium")
+            or self.algorithm.startswith("Kyber"),
             "real_pqc": self.library in ["rust_pqc", "dilithium_python", "pqcrypto", "liboqs"],
             "fallback_mode": self.library == "fallback_demo",
         }
@@ -618,11 +623,17 @@ class RealPostQuantumBackend(CryptoBackend):
                     "signature_scheme": "CRYSTALS-Dilithium (ML-DSA)",
                     "security_basis": "Module-lattices",
                     "nist_security_level": (
-                        2 if "Dilithium2" in self.algorithm else (3 if "Dilithium3" in self.algorithm else 5)
+                        2
+                        if "Dilithium2" in self.algorithm
+                        else (3 if "Dilithium3" in self.algorithm else 5)
                     ),
                     "signature_size": self._get_signature_size(),
-                    "public_key_size": len(self.public_key) if hasattr(self, "public_key") else "unknown",
-                    "private_key_size": len(self.private_key) if hasattr(self, "private_key") else "unknown",
+                    "public_key_size": (
+                        len(self.public_key) if hasattr(self, "public_key") else "unknown"
+                    ),
+                    "private_key_size": (
+                        len(self.private_key) if hasattr(self, "private_key") else "unknown"
+                    ),
                 }
             )
         elif "SPHINCS" in self.algorithm:
@@ -647,11 +658,23 @@ class RealPostQuantumBackend(CryptoBackend):
         # Add library capabilities
         if LIBOQS_AVAILABLE:
             try:
-                info["available_algorithms"] = ["Dilithium2", "Dilithium3", "Dilithium5", "Falcon-512", "SPHINCS+"]
+                info["available_algorithms"] = [
+                    "Dilithium2",
+                    "Dilithium3",
+                    "Dilithium5",
+                    "Falcon-512",
+                    "SPHINCS+",
+                ]
             except:
                 info["available_algorithms"] = "Library available but needs configuration"
         elif PQCRYPTO_AVAILABLE:
-            info["available_algorithms"] = ["Dilithium2", "Dilithium3", "Dilithium5", "Falcon-512", "SPHINCS+"]
+            info["available_algorithms"] = [
+                "Dilithium2",
+                "Dilithium3",
+                "Dilithium5",
+                "Falcon-512",
+                "SPHINCS+",
+            ]
         else:
             info["available_algorithms"] = "No PQC libraries available"
 
@@ -946,7 +969,9 @@ class QuantumSafetyAnalyzer:
         }
 
 
-def create_real_quantum_resistant_backend(algorithm: str = "Dilithium3", hybrid_mode: bool = True) -> RealPostQuantumBackend:
+def create_real_quantum_resistant_backend(
+    algorithm: str = "Dilithium3", hybrid_mode: bool = True
+) -> RealPostQuantumBackend:
     """
     Factory function to create real quantum-resistant cryptographic backend.
 
@@ -968,13 +993,17 @@ def get_available_pqc_algorithms() -> Dict[str, List[str]]:
         available["libraries"].append("liboqs")
         try:
             # Note: liboqs interface may vary by version
-            available["signatures"].extend(["Dilithium2", "Dilithium3", "Dilithium5", "Falcon-512", "SPHINCS+"])
+            available["signatures"].extend(
+                ["Dilithium2", "Dilithium3", "Dilithium5", "Falcon-512", "SPHINCS+"]
+            )
         except:
             pass
 
     if PQCRYPTO_AVAILABLE:
         available["libraries"].append("pqcrypto")
-        available["signatures"].extend(["Dilithium2", "Dilithium3", "Dilithium5", "Falcon-512", "SPHINCS+"])
+        available["signatures"].extend(
+            ["Dilithium2", "Dilithium3", "Dilithium5", "Falcon-512", "SPHINCS+"]
+        )
         # Note: KEM algorithms would be added here when implemented
 
     return available

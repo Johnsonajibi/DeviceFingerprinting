@@ -88,7 +88,9 @@ class AnalyticsDashboard:
 
         if go:
             data["charts"]["performance_timeseries"] = self._create_performance_timeseries(metrics)
-            data["charts"]["security_events_timeline"] = self._create_security_events_timeline(events)
+            data["charts"]["security_events_timeline"] = self._create_security_events_timeline(
+                events
+            )
 
         return data
 
@@ -106,7 +108,9 @@ class AnalyticsDashboard:
             summary["operations"][op] = {
                 "count": len(durations),
                 "avg_duration": statistics.mean(durations),
-                "p95_duration": statistics.quantiles(durations, n=20)[18] if len(durations) > 1 else 0,
+                "p95_duration": (
+                    statistics.quantiles(durations, n=20)[18] if len(durations) > 1 else 0
+                ),
             }
         return summary
 
@@ -118,7 +122,8 @@ class AnalyticsDashboard:
         return {
             "total_events": len(events),
             "by_severity": {
-                sev: len([e for e in events if e.severity == sev]) for sev in ["low", "medium", "high", "critical"]
+                sev: len([e for e in events if e.severity == sev])
+                for sev in ["low", "medium", "high", "critical"]
             },
             "recent_events": [
                 {"type": e.event_type, "severity": e.severity, "age_sec": time.time() - e.timestamp}

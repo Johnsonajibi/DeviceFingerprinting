@@ -86,7 +86,9 @@ class ForensicSecurity:
         time.sleep(0.01)
         elapsed = time.perf_counter() - start
         if elapsed > 0.05:
-            self.evidence.append(f"Suspiciously long sleep time ({elapsed:.2f}s), may indicate debugging.")
+            self.evidence.append(
+                f"Suspiciously long sleep time ({elapsed:.2f}s), may indicate debugging."
+            )
             score += 2
 
         return score
@@ -132,7 +134,9 @@ class ForensicSecurity:
         std_dev = (sum((x - mean) ** 2 for x in timings) / len(timings)) ** 0.5
 
         if std_dev / mean > 0.5:  # High variance is suspicious
-            self.evidence.append(f"High variance in execution time (std_dev/mean = {std_dev/mean:.2f}).")
+            self.evidence.append(
+                f"High variance in execution time (std_dev/mean = {std_dev/mean:.2f})."
+            )
             return 2
         return 0
 
@@ -166,7 +170,9 @@ class ForensicSecurity:
         score = 0
         try:
             for proc in psutil.process_iter(["name"]):
-                if proc.info["name"] and any(p in proc.info["name"].lower() for p in suspicious_procs):
+                if proc.info["name"] and any(
+                    p in proc.info["name"].lower() for p in suspicious_procs
+                ):
                     self.evidence.append(f"Suspicious process found: {proc.info['name']}")
                     score += 3
         except (psutil.NoSuchProcess, psutil.AccessDenied):

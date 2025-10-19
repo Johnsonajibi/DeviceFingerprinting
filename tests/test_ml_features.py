@@ -13,11 +13,14 @@ mock_cpu_times.user = 100
 mock_cpu_times.system = 20
 mock_cpu_times.idle = 500
 mock_psutil.cpu_times.return_value = mock_cpu_times
-mock_psutil.virtual_memory.return_value = MagicMock(percent=50.0, total=16*1024**3, available=8*1024**3)
+mock_psutil.virtual_memory.return_value = MagicMock(
+    percent=50.0, total=16 * 1024**3, available=8 * 1024**3
+)
 mock_psutil.sensors_battery.return_value = MagicMock(percent=85, secsleft=3600, power_plugged=False)
 
-with patch.dict('sys.modules', {'psutil': mock_psutil}):
+with patch.dict("sys.modules", {"psutil": mock_psutil}):
     from device_fingerprinting.ml_features import FeatureExtractor, AnomalyDetector
+
 
 class TestMLFeatures(unittest.TestCase):
 
@@ -45,30 +48,31 @@ class TestMLFeatures(unittest.TestCase):
 
     def test_feature_values(self):
         """Test the correctness of the extracted feature values based on mocks."""
-        features = self.extractor.collect_features()[0] # Get the 1D array
-        
+        features = self.extractor.collect_features()[0]  # Get the 1D array
+
         # Expected CPU usage: delta_user+delta_system / delta_total
         # (100-90) + (20-18) / (100-90) + (20-18) + (500-450) = 12 / (10 + 2 + 50) = 12 / 62
         expected_cpu_usage = 12 / 62.0
         self.assertAlmostEqual(features[0], expected_cpu_usage, places=4)
-        
+
         # Expected Memory usage from mock is 50%
         expected_mem_usage = 0.5
         self.assertAlmostEqual(features[1], expected_mem_usage, places=4)
-        
+
         # Expected Battery level
         self.assertAlmostEqual(features[2], 85.0 / 100.0, places=4)
 
-    @patch('device_fingerprinting.ml_features.psutil')
+    @patch("device_fingerprinting.ml_features.psutil")
     def test_feature_extraction_no_battery(self, mock_psutil_local):
         """Test feature extraction on a system with no battery."""
         # Configure the local mock for this test
         mock_psutil_local.sensors_battery.return_value = None
-        mock_psutil_local.cpu_times.return_value = mock_cpu_times # Keep other mocks working
+        mock_psutil_local.cpu_times.return_value = mock_cpu_times  # Keep other mocks working
         mock_psutil_local.virtual_memory.return_value = MagicMock(percent=50.0)
 
         # Re-import the class to use the patched module
         from device_fingerprinting.ml_features import FeatureExtractor
+
         extractor = FeatureExtractor()
         features = extractor.collect_features()[0]
         # Should return a default value (e.g., -1) for battery
@@ -79,7 +83,7 @@ class TestMLFeatures(unittest.TestCase):
         """Test that the anomaly detector's model is trained."""
         self.assertIsInstance(self.detector.model, IsolationForest)
         # The model should be fitted (has attributes ending with '_')
-        self.assertTrue(hasattr(self.detector.model, 'estimators_'))
+        self.assertTrue(hasattr(self.detector.model, "estimators_"))
 
     def test_predict_normal_behavior(self):
         """Test that data similar to training data is predicted as normal."""
@@ -102,18 +106,19 @@ class TestMLFeatures(unittest.TestCase):
         model_path = "test_anomaly_model.joblib"
         if os.path.exists(model_path):
             os.remove(model_path)
-            
+
         self.detector.save_model(model_path)
         self.assertTrue(os.path.exists(model_path))
-        
+
         new_detector = AnomalyDetector()
         new_detector.load_model(model_path)
-        
+
         self.assertIsNotNone(new_detector.model)
-        self.assertTrue(hasattr(new_detector.model, 'estimators_'))
-        
+        self.assertTrue(hasattr(new_detector.model, "estimators_"))
+
         # Clean up
         os.remove(model_path)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

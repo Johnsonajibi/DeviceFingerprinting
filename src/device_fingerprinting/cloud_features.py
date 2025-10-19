@@ -30,7 +30,10 @@ class CloudStorageBackend(StorageBackend):
     """
 
     def __init__(
-        self, provider: str = "aws", encryption_key: Optional[bytes] = None, config: Optional[Dict[str, Any]] = None
+        self,
+        provider: str = "aws",
+        encryption_key: Optional[bytes] = None,
+        config: Optional[Dict[str, Any]] = None,
     ) -> None:
         self.provider = provider.lower()
         self.config = config or {}
@@ -109,10 +112,15 @@ class CloudStorageBackend(StorageBackend):
 
             if self.provider == "aws":
                 self.client.put_object(
-                    Bucket=self.bucket_name, Key=object_key, Body=encrypted_data, ServerSideEncryption="AES256"
+                    Bucket=self.bucket_name,
+                    Key=object_key,
+                    Body=encrypted_data,
+                    ServerSideEncryption="AES256",
                 )
             elif self.provider == "azure":
-                blob_client = self.client.get_blob_client(container=self.container_name, blob=object_key)
+                blob_client = self.client.get_blob_client(
+                    container=self.container_name, blob=object_key
+                )
                 blob_client.upload_blob(encrypted_data, overwrite=True)
 
             logging.info(f"Successfully stored data for key: {key}")
@@ -135,7 +143,9 @@ class CloudStorageBackend(StorageBackend):
                 response = self.client.get_object(Bucket=self.bucket_name, Key=object_key)
                 encrypted_data = response["Body"].read()
             elif self.provider == "azure":
-                blob_client = self.client.get_blob_client(container=self.container_name, blob=object_key)
+                blob_client = self.client.get_blob_client(
+                    container=self.container_name, blob=object_key
+                )
                 encrypted_data = blob_client.download_blob().readall()
 
             if encrypted_data:
@@ -155,7 +165,9 @@ class DistributedVerification:
     Enables multi-node verification and consensus for high-security scenarios.
     """
 
-    def __init__(self, nodes: List[str], consensus_threshold: float = 0.67, timeout: int = 10) -> None:
+    def __init__(
+        self, nodes: List[str], consensus_threshold: float = 0.67, timeout: int = 10
+    ) -> None:
         """
         Initialize distributed verification.
 
@@ -183,16 +195,21 @@ class DistributedVerification:
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(self.nodes)) as executor:
             future_to_node = {
-                executor.submit(self._verify_with_node, node, fingerprint, binding_data): node for node in self.nodes
+                executor.submit(self._verify_with_node, node, fingerprint, binding_data): node
+                for node in self.nodes
             }
             for future in concurrent.futures.as_completed(future_to_node):
                 node_url = future_to_node[future]
                 try:
                     result = future.get()
-                    node_results.append({"node": node_url, "result": result, "timestamp": time.time()})
+                    node_results.append(
+                        {"node": node_url, "result": result, "timestamp": time.time()}
+                    )
                 except Exception as e:
                     logging.warning(f"Node {node_url} failed verification: {e}")
-                    node_results.append({"node": node_url, "error": str(e), "timestamp": time.time()})
+                    node_results.append(
+                        {"node": node_url, "error": str(e), "timestamp": time.time()}
+                    )
 
         valid_results = [r for r in node_results if "result" in r and r["result"]]
         if not valid_results:
@@ -212,11 +229,17 @@ class DistributedVerification:
             "verification_timestamp": time.time(),
         }
 
-    def _verify_with_node(self, node_url: str, fingerprint: str, binding_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _verify_with_node(
+        self, node_url: str, fingerprint: str, binding_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Send a verification request to a single node."""
         import requests
 
-        payload = {"fingerprint": fingerprint, "binding_data": binding_data, "timestamp": time.time()}
+        payload = {
+            "fingerprint": fingerprint,
+            "binding_data": binding_data,
+            "timestamp": time.time(),
+        }
 
         response = requests.post(
             f"{node_url.rstrip('/')}/verify",
@@ -239,7 +262,9 @@ class MultiDeviceManager:
     def __init__(self, storage_backend: StorageBackend) -> None:
         self.storage = storage_backend
 
-    def register_device(self, user_id: str, device_id: str, fingerprint_data: Dict[str, Any]) -> bool:
+    def register_device(
+        self, user_id: str, device_id: str, fingerprint_data: Dict[str, Any]
+    ) -> bool:
         """Register a new device for a user."""
         user_record = self.storage.load(f"user_{user_id}") or {"devices": {}}
 
@@ -264,7 +289,9 @@ class MultiDeviceManager:
             devices.append(device_info)
         return devices
 
-    def verify_cross_device(self, user_id: str, current_fingerprint_data: Dict[str, Any]) -> Dict[str, Any]:
+    def verify_cross_device(
+        self, user_id: str, current_fingerprint_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Verify the current device against a user's known devices.
 
@@ -277,9 +304,15 @@ class MultiDeviceManager:
 
         similarities = []
         for device in user_devices:
-            similarity = self._calculate_device_similarity(current_fingerprint_data, device["fingerprint_data"])
+            similarity = self._calculate_device_similarity(
+                current_fingerprint_data, device["fingerprint_data"]
+            )
             similarities.append(
-                {"device_id": device["device_id"], "similarity": similarity, "last_seen": device.get("last_seen")}
+                {
+                    "device_id": device["device_id"],
+                    "similarity": similarity,
+                    "last_seen": device.get("last_seen"),
+                }
             )
 
         best_match = max(similarities, key=lambda x: x["similarity"])
@@ -298,7 +331,9 @@ class MultiDeviceManager:
             "recommendation": self._get_verification_recommendation(status),
         }
 
-    def _calculate_device_similarity(self, fp1_data: Dict[str, Any], fp2_data: Dict[str, Any]) -> float:
+    def _calculate_device_similarity(
+        self, fp1_data: Dict[str, Any], fp2_data: Dict[str, Any]
+    ) -> float:
         """Calculate a similarity score between two device fingerprints."""
         if not fp1_data or not fp2_data:
             return 0.0
@@ -321,7 +356,9 @@ class MultiDeviceManager:
         # Compare CPU details
         cpu1 = fp1_data.get("cpu_details", {})
         cpu2 = fp2_data.get("cpu_details", {})
-        if cpu1.get("model") == cpu2.get("model") and cpu1.get("architecture") == cpu2.get("architecture"):
+        if cpu1.get("model") == cpu2.get("model") and cpu1.get("architecture") == cpu2.get(
+            "architecture"
+        ):
             total_score += weights["cpu_details"]
 
         # Compare memory

@@ -55,7 +55,9 @@ class HSMCryptoBackend(CryptoBackend):
             slot = pkcs11.getSlotList(tokenPresent=True)[0]
 
             # Open a session
-            self.session = pkcs11.openSession(slot, PyKCS11.CKF_SERIAL_SESSION | PyKCS11.CKF_RW_SESSION)
+            self.session = pkcs11.openSession(
+                slot, PyKCS11.CKF_SERIAL_SESSION | PyKCS11.CKF_RW_SESSION
+            )
             self.session.login(self.user_pin)
 
             # Find or create the key
@@ -79,7 +81,10 @@ class HSMCryptoBackend(CryptoBackend):
         try:
             # Look for an existing key with the given label
             key = self.session.findObjects(
-                [(Attribute.CKA_LABEL, self.key_label), (Attribute.CKA_CLASS, PyKCS11.CKO_SECRET_KEY)]
+                [
+                    (Attribute.CKA_LABEL, self.key_label),
+                    (Attribute.CKA_CLASS, PyKCS11.CKO_SECRET_KEY),
+                ]
             )
             if key:
                 return key[0]

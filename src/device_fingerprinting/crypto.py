@@ -20,7 +20,9 @@ class ScryptKDF:
     A wrapper for the Scrypt Key Derivation Function.
     """
 
-    def __init__(self, salt_size: int = 16, n: int = 2**14, r: int = 8, p: int = 1, key_size: int = 32):
+    def __init__(
+        self, salt_size: int = 16, n: int = 2**14, r: int = 8, p: int = 1, key_size: int = 32
+    ):
         self.salt_size = salt_size
         self.n = n
         self.r = r
@@ -157,7 +159,9 @@ def get_crypto_manager() -> CryptoManager:
     """
     with _crypto_lock:
         if _crypto_manager is None:
-            raise RuntimeError("CryptoManager has not been initialized. Call initialize_crypto_manager first.")
+            raise RuntimeError(
+                "CryptoManager has not been initialized. Call initialize_crypto_manager first."
+            )
         return _crypto_manager
 
 

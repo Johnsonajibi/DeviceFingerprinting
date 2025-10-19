@@ -4,6 +4,7 @@ from unittest.mock import patch, MagicMock
 
 from device_fingerprinting.secure_storage import SecureStorage
 
+
 class TestSecureStorage(unittest.TestCase):
 
     def setUp(self):
@@ -40,10 +41,10 @@ class TestSecureStorage(unittest.TestCase):
         test_data = {"secret": "this should not be readable"}
         with SecureStorage(self.test_file, self.password) as store:
             store.set_item("test_data", test_data)
-        
-        with open(self.test_file, 'rb') as f:
+
+        with open(self.test_file, "rb") as f:
             file_content = f.read()
-        
+
         self.assertNotIn(b"this should not be readable", file_content)
         # Check for structure: salt + nonce + ciphertext
         self.assertGreater(len(file_content), 16 + 12)
@@ -73,7 +74,7 @@ class TestSecureStorage(unittest.TestCase):
         with SecureStorage(self.test_file, self.password) as store:
             store.set_item("to_delete", "this will be removed")
             self.assertIn("to_delete", store.list_keys())
-            
+
             deleted = store.delete_item("to_delete")
             self.assertTrue(deleted)
             self.assertNotIn("to_delete", store.list_keys())
@@ -87,7 +88,7 @@ class TestSecureStorage(unittest.TestCase):
         with SecureStorage(self.test_file, self.password) as store:
             value = store.get_item("non_existent_key", "default_val")
             self.assertEqual(value, "default_val")
-            
+
             # Ensure it returns None by default if no default is provided
             self.assertIsNone(store.get_item("non_existent_key"))
 
@@ -95,10 +96,11 @@ class TestSecureStorage(unittest.TestCase):
         """Test that the context manager automatically saves changes."""
         with SecureStorage(self.test_file, self.password) as store:
             store.set_item("auto_saved", "data")
-        
+
         # Re-open and check if data is there
         with SecureStorage(self.test_file, self.password) as reloaded_store:
             self.assertEqual(reloaded_store.get_item("auto_saved"), "data")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

@@ -175,8 +175,12 @@ def enable_admin_mode(admin_password: str) -> bool:
 
     # Validate password (in production, this should use proper authentication)
     # This is a simplified implementation for demonstration
-    expected_hash = hashlib.sha256(f"{admin_password}_device_fingerprint_admin".encode()).hexdigest()
-    provided_hash = hashlib.sha256(f"{admin_password}_device_fingerprint_admin".encode()).hexdigest()
+    expected_hash = hashlib.sha256(
+        f"{admin_password}_device_fingerprint_admin".encode()
+    ).hexdigest()
+    provided_hash = hashlib.sha256(
+        f"{admin_password}_device_fingerprint_admin".encode()
+    ).hexdigest()
 
     if not secrets.compare_digest(expected_hash, provided_hash):
         _failed_auth_attempts += 1
@@ -451,7 +455,9 @@ def enable_anti_replay_protection(enabled: bool = True, nonce_lifetime: int = 30
     _nonce_lifetime = nonce_lifetime
 
     status = "enabled" if enabled else "disabled"
-    _logger.info(f"Anti-replay protection {status} (nonce lifetime: {nonce_lifetime}s) - admin authorized")
+    _logger.info(
+        f"Anti-replay protection {status} (nonce lifetime: {nonce_lifetime}s) - admin authorized"
+    )
 
 
 def _get_monotonic_counter() -> int:
@@ -472,7 +478,9 @@ def _get_monotonic_counter() -> int:
                 # Validate counter is a positive integer and within reasonable bounds
                 if isinstance(counter_value, int) and 1 <= counter_value <= 2**32:
                     # Additional integrity check
-                    expected_checksum = hashlib.sha256(f"{counter_value}_{_counter_storage_key}".encode()).hexdigest()[:8]
+                    expected_checksum = hashlib.sha256(
+                        f"{counter_value}_{_counter_storage_key}".encode()
+                    ).hexdigest()[:8]
                     stored_checksum = counter_data.get("checksum", "")
                     if expected_checksum == stored_checksum:
                         return counter_value
@@ -510,7 +518,9 @@ def _increment_monotonic_counter() -> int:
                     new_counter = 1
 
                 # Create counter data with integrity check
-                checksum = hashlib.sha256(f"{new_counter}_{_counter_storage_key}".encode()).hexdigest()[:8]
+                checksum = hashlib.sha256(
+                    f"{new_counter}_{_counter_storage_key}".encode()
+                ).hexdigest()[:8]
                 counter_data = {
                     "counter": new_counter,
                     "last_updated": int(time.time()),
@@ -530,14 +540,18 @@ def _increment_monotonic_counter() -> int:
                     and verification_data.get("checksum") == checksum
                 ):
 
-                    _logger.debug(f"Incremented anti-replay counter: {current_counter} -> {new_counter}")
+                    _logger.debug(
+                        f"Incremented anti-replay counter: {current_counter} -> {new_counter}"
+                    )
                     return new_counter
                 else:
                     _logger.warning(f"Counter verification failed on attempt {attempt + 1}")
                     continue
 
             except Exception as e:
-                _logger.warning(f"Failed to increment counter (attempt {attempt + 1}): {type(e).__name__}")
+                _logger.warning(
+                    f"Failed to increment counter (attempt {attempt + 1}): {type(e).__name__}"
+                )
                 if attempt == max_retries - 1:
                     # Final fallback - return current + 1 without storage
                     fallback_counter = _get_monotonic_counter() + 1
@@ -813,10 +827,26 @@ def get_available_crypto_backends() -> Dict[str, Any]:
             "hmac_sha256": {
                 "name": "HMAC-SHA256",
                 "function": "set_crypto_backend_sha256()",
-                "security": {"classical_bits": 256, "quantum_bits": 128, "quantum_resistant": False},
-                "performance": {"relative_speed": "100% (baseline)", "hash_speed_mbps": "~600", "signature_time_ms": "<0.1"},
-                "compatibility": {"standard": "FIPS 180-4", "adoption": "Universal", "migration_needed": True},
-                "timeline": {"secure_until": "2040", "quantum_concern": "Medium-High", "recommendation": "Migrate by 2030"},
+                "security": {
+                    "classical_bits": 256,
+                    "quantum_bits": 128,
+                    "quantum_resistant": False,
+                },
+                "performance": {
+                    "relative_speed": "100% (baseline)",
+                    "hash_speed_mbps": "~600",
+                    "signature_time_ms": "<0.1",
+                },
+                "compatibility": {
+                    "standard": "FIPS 180-4",
+                    "adoption": "Universal",
+                    "migration_needed": True,
+                },
+                "timeline": {
+                    "secure_until": "2040",
+                    "quantum_concern": "Medium-High",
+                    "recommendation": "Migrate by 2030",
+                },
                 "use_cases": [
                     "Legacy system compatibility",
                     "Maximum performance required",
@@ -827,9 +857,21 @@ def get_available_crypto_backends() -> Dict[str, Any]:
                 "name": "HMAC-SHA3-512",
                 "function": "set_crypto_backend_sha3_512(compatibility_mode=False)",
                 "security": {"classical_bits": 512, "quantum_bits": 256, "quantum_resistant": True},
-                "performance": {"relative_speed": "~50% (2x slower)", "hash_speed_mbps": "~300", "signature_time_ms": "<0.2"},
-                "compatibility": {"standard": "FIPS 202", "adoption": "Growing", "migration_needed": False},
-                "timeline": {"secure_until": "2060+", "quantum_concern": "Low", "recommendation": "Preferred for new systems"},
+                "performance": {
+                    "relative_speed": "~50% (2x slower)",
+                    "hash_speed_mbps": "~300",
+                    "signature_time_ms": "<0.2",
+                },
+                "compatibility": {
+                    "standard": "FIPS 202",
+                    "adoption": "Growing",
+                    "migration_needed": False,
+                },
+                "timeline": {
+                    "secure_until": "2060+",
+                    "quantum_concern": "Low",
+                    "recommendation": "Preferred for new systems",
+                },
                 "use_cases": [
                     "Long-term security (10+ years)",
                     "Post-quantum preparation",
@@ -840,13 +882,22 @@ def get_available_crypto_backends() -> Dict[str, Any]:
             "hmac_sha3_512_compat": {
                 "name": "HMAC-SHA3-512 with SHA-256 compatibility",
                 "function": "set_crypto_backend_sha3_512(compatibility_mode=True)",
-                "security": {"classical_bits": 512, "quantum_bits": 256, "quantum_resistant": True, "migration_support": True},
+                "security": {
+                    "classical_bits": 512,
+                    "quantum_bits": 256,
+                    "quantum_resistant": True,
+                    "migration_support": True,
+                },
                 "performance": {
                     "relative_speed": "~45% (slightly slower due to compatibility)",
                     "hash_speed_mbps": "~280",
                     "signature_time_ms": "<0.25",
                 },
-                "compatibility": {"standard": "FIPS 202 + FIPS 180-4", "adoption": "Hybrid", "migration_friendly": True},
+                "compatibility": {
+                    "standard": "FIPS 202 + FIPS 180-4",
+                    "adoption": "Hybrid",
+                    "migration_friendly": True,
+                },
                 "timeline": {
                     "secure_until": "2060+",
                     "quantum_concern": "Low",
@@ -873,7 +924,11 @@ def get_available_crypto_backends() -> Dict[str, Any]:
                     "hash_speed_mbps": "~250",
                     "signature_time_ms": "<0.3",
                 },
-                "compatibility": {"standard": "FIPS 202 + FIPS 180-4", "adoption": "Custom", "special_support_needed": True},
+                "compatibility": {
+                    "standard": "FIPS 202 + FIPS 180-4",
+                    "adoption": "Custom",
+                    "special_support_needed": True,
+                },
                 "timeline": {
                     "secure_until": "Until both hashes break",
                     "quantum_concern": "Minimal",
@@ -900,7 +955,11 @@ def get_available_crypto_backends() -> Dict[str, Any]:
                     "signature_size": "~3-4KB",
                     "key_size": "1952/4032 bytes",
                 },
-                "compatibility": {"standard": "NIST FIPS 204 (ML-DSA)", "adoption": "Emerging", "future_standard": True},
+                "compatibility": {
+                    "standard": "NIST FIPS 204 (ML-DSA)",
+                    "adoption": "Emerging",
+                    "future_standard": True,
+                },
                 "timeline": {
                     "secure_until": "2050+",
                     "quantum_concern": "None",
@@ -930,7 +989,11 @@ def get_available_crypto_backends() -> Dict[str, Any]:
                 "sha3_512_secure_until": "2060+",
                 "pqc_signatures_secure_until": "2050+",
             },
-            "bit_security_quantum": {"sha256": 128, "sha3_512": 256, "dilithium3": "NIST Level 3 (~192 bit equivalent)"},
+            "bit_security_quantum": {
+                "sha256": 128,
+                "sha3_512": 256,
+                "dilithium3": "NIST Level 3 (~192 bit equivalent)",
+            },
             "performance_impact": {
                 "sha256_to_sha3_512": "~50% slower hashing",
                 "adding_pqc": "~10-20% slower overall",
@@ -952,7 +1015,11 @@ def get_crypto_info() -> Dict[str, Any]:
     Returns:
         Dictionary with crypto backend details
     """
-    info = {"pqc_enabled": _pqc_enabled, "backend_type": type(_crypto_backend).__name__, "version": __version__}
+    info = {
+        "pqc_enabled": _pqc_enabled,
+        "backend_type": type(_crypto_backend).__name__,
+        "version": __version__,
+    }
 
     if _pqc_enabled:
         try:
@@ -970,7 +1037,11 @@ def get_crypto_info() -> Dict[str, Any]:
             info["pqc_info_error"] = str(e)
     else:
         info.update(
-            {"quantum_resistant": False, "algorithm": "HMAC-SHA256", "note": "Classical MAC - not a true digital signature"}
+            {
+                "quantum_resistant": False,
+                "algorithm": "HMAC-SHA256",
+                "note": "Classical MAC - not a true digital signature",
+            }
         )
 
     return info
@@ -1016,7 +1087,12 @@ def _sanitize_log_message(msg: str) -> str:
         import re
 
         # Remove various UUID formats and hardware identifiers
-        msg = re.sub(r"[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}", "[UUID]", msg, flags=re.IGNORECASE)
+        msg = re.sub(
+            r"[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}",
+            "[UUID]",
+            msg,
+            flags=re.IGNORECASE,
+        )
         msg = re.sub(r"[A-F0-9]{32}", "[UUID32]", msg, flags=re.IGNORECASE)  # UUID without dashes
         msg = re.sub(r"0x[A-F0-9]{8,}", "[MEM_ADDR]", msg, flags=re.IGNORECASE)
         msg = re.sub(r"\b[A-F0-9]{12,64}\b", "[HEX_ID]", msg, flags=re.IGNORECASE)
@@ -1045,7 +1121,12 @@ def _sanitize_log_message(msg: str) -> str:
         msg = re.sub(r"\/home\/[^\/]+", "/home/[USER]", msg)
 
         # Remove common sensitive patterns
-        msg = re.sub(r"\b(password|secret|key|token)[\s=:]+[^\s]+", r"\1=[REDACTED]", msg, flags=re.IGNORECASE)
+        msg = re.sub(
+            r"\b(password|secret|key|token)[\s=:]+[^\s]+",
+            r"\1=[REDACTED]",
+            msg,
+            flags=re.IGNORECASE,
+        )
         msg = re.sub(r"Bearer\s+[A-Za-z0-9._-]+", "Bearer [REDACTED]", msg)
 
         # Remove base64-like strings (potential encoded sensitive data)
@@ -1313,7 +1394,14 @@ def _validate_command_safety(cmd) -> bool:
     base_cmd = os.path.basename(cmd[0]).lower()
 
     # Whitelist of allowed commands for hardware detection
-    allowed_commands = {"wmic.exe", "wmic", "systeminfo.exe", "systeminfo", "reg.exe", "reg"}  # For registry queries only
+    allowed_commands = {
+        "wmic.exe",
+        "wmic",
+        "systeminfo.exe",
+        "systeminfo",
+        "reg.exe",
+        "reg",
+    }  # For registry queries only
 
     if base_cmd not in allowed_commands:
         return False
@@ -1372,7 +1460,9 @@ def _secure_subprocess_run(cmd: List[str], **kwargs: Any) -> subprocess.Complete
     if not _validate_command_safety(cmd):
         _logger.warning(f"Command rejected by security policy: {cmd[0] if cmd else 'empty'}")
         # Return a safe failure result
-        return subprocess.CompletedProcess(args=cmd, returncode=1, stdout="", stderr="Command blocked by security policy")
+        return subprocess.CompletedProcess(
+            args=cmd, returncode=1, stdout="", stderr="Command blocked by security policy"
+        )
 
     # Create a minimal, controlled environment
     safe_env: Dict[str, str] = {}
@@ -1411,7 +1501,9 @@ def _secure_subprocess_run(cmd: List[str], **kwargs: Any) -> subprocess.Complete
     # Apply platform-specific security settings
     if os.name == "nt":  # Windows
         secure_kwargs["creationflags"] = (
-            subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
+            subprocess.CREATE_NO_WINDOW
+            | subprocess.CREATE_NEW_PROCESS_GROUP
+            | subprocess.DETACHED_PROCESS
         )
     else:  # Unix-like
         # Set process group to enable better process management
@@ -1444,11 +1536,15 @@ def _secure_subprocess_run(cmd: List[str], **kwargs: Any) -> subprocess.Complete
 
     except subprocess.TimeoutExpired:
         _logger.warning("Subprocess execution timed out (security limit)")
-        return subprocess.CompletedProcess(args=cmd, returncode=124, stdout="", stderr="Command timed out")
+        return subprocess.CompletedProcess(
+            args=cmd, returncode=124, stdout="", stderr="Command timed out"
+        )
 
     except (subprocess.SubprocessError, OSError, ValueError) as e:
         _logger.warning(f"Subprocess execution failed: {type(e).__name__}")
-        return subprocess.CompletedProcess(args=cmd, returncode=1, stdout="", stderr="Command execution failed")
+        return subprocess.CompletedProcess(
+            args=cmd, returncode=1, stdout="", stderr="Command execution failed"
+        )
 
 
 def _get_wmi_uuid() -> Optional[str]:
@@ -1518,7 +1614,9 @@ def _get_windows_hardware() -> Dict[str, Any]:
         import winreg
 
         try:
-            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"HARDWARE\DESCRIPTION\System\CentralProcessor\0") as key:
+            with winreg.OpenKey(
+                winreg.HKEY_LOCAL_MACHINE, r"HARDWARE\DESCRIPTION\System\CentralProcessor\0"
+            ) as key:
                 try:
                     cpu_name = winreg.QueryValueEx(key, "ProcessorNameString")[0]
                     if cpu_name and isinstance(cpu_name, str):
@@ -1644,7 +1742,14 @@ def _score_field_match(current: Dict[str, Any], stored: Dict[str, Any]) -> float
     Uses weighted scoring where some fields are more important.
     """
     # Define field weights (more stable fields have higher weight)
-    weights = {"cpu_model": 0.25, "cpu_name": 0.25, "ram_gb": 0.15, "board_uuid": 0.20, "disk_serial": 0.10, "mac_hash": 0.05}
+    weights = {
+        "cpu_model": 0.25,
+        "cpu_name": 0.25,
+        "ram_gb": 0.15,
+        "board_uuid": 0.20,
+        "disk_serial": 0.10,
+        "mac_hash": 0.05,
+    }
 
     total_weight = 0.0
     matched_weight = 0.0
@@ -1694,7 +1799,9 @@ def generate_fingerprint(method: str = "stable") -> str:
         _logger.warning(f"Security check failed: {type(e).__name__}")
 
     # Check cache first using secure lookup
-    cache_key = hashlib.sha256(f"{method}_{_pqc_enabled}_{_pqc_algorithm}".encode()).hexdigest()[:16]
+    cache_key = hashlib.sha256(f"{method}_{_pqc_enabled}_{_pqc_algorithm}".encode()).hexdigest()[
+        :16
+    ]
     access_token = _generate_cache_token()
     cached = _secure_cache_lookup(cache_key, access_token)
     if cached:
@@ -1702,7 +1809,11 @@ def generate_fingerprint(method: str = "stable") -> str:
 
     # Gather fingerprint fields
     if method == "basic":
-        fields = {"os": platform.system(), "machine": platform.machine(), "version": platform.release()}
+        fields = {
+            "os": platform.system(),
+            "machine": platform.machine(),
+            "version": platform.release(),
+        }
     else:
         fields = _generate_fingerprint_fields()
 
@@ -1734,7 +1845,9 @@ def generate_fingerprint(method: str = "stable") -> str:
             "fp": fingerprint,
             "time": time.time(),
             "fields": fields,
-            "checksum": hashlib.sha256(fingerprint.encode() if isinstance(fingerprint, str) else fingerprint).hexdigest()[:16],
+            "checksum": hashlib.sha256(
+                fingerprint.encode() if isinstance(fingerprint, str) else fingerprint
+            ).hexdigest()[:16],
         }
         _cache[cache_key] = cache_entry
 
@@ -1830,18 +1943,26 @@ def create_device_binding(
     }
 
     # Sign the original binding data and fingerprint together
-    data_to_sign = json.dumps({"binding_data": binding_data, "fingerprint_components": fields}, sort_keys=True).encode("utf-8")
+    data_to_sign = json.dumps(
+        {"binding_data": binding_data, "fingerprint_components": fields}, sort_keys=True
+    ).encode("utf-8")
 
     crypto_backend = get_backend("crypto")
     if isinstance(crypto_backend, HybridPQC):
         signature = crypto_backend.sign(data_to_sign)
-        final_token["device_binding"]["fingerprint_signature"] = {"signature": signature, "algorithm": "HYBRID_PQC_V2"}
+        final_token["device_binding"]["fingerprint_signature"] = {
+            "signature": signature,
+            "algorithm": "HYBRID_PQC_V2",
+        }
     else:
         # Fallback to a simple HMAC if PQC is not available.
         # The key for the HMAC will be the fingerprint itself, which is a signature of the fields.
         hmac_key = fingerprint
         hmac_sig = hmac.new(hmac_key.encode("utf-8"), data_to_sign, hashlib.sha256).hexdigest()
-        final_token["device_binding"]["fingerprint_signature"] = {"signature": hmac_sig, "algorithm": "HMAC-SHA256"}
+        final_token["device_binding"]["fingerprint_signature"] = {
+            "signature": hmac_sig,
+            "algorithm": "HMAC-SHA256",
+        }
 
     _logger.info(f"Created device binding with '{security_level}' security level.")
     return final_token
@@ -1972,7 +2093,9 @@ class AdvancedDeviceFingerprinter(DeviceFingerprintGenerator):
     including quantum-resistant cryptographic methods.
     """
 
-    def __init__(self, storage_path: str = ".device_id_cache", use_rust_bridge: bool = False) -> None:
+    def __init__(
+        self, storage_path: str = ".device_id_cache", use_rust_bridge: bool = False
+    ) -> None:
         super().__init__()
         self.pqc_enabled = False
         self.rust_bridge_enabled = use_rust_bridge
@@ -1984,7 +2107,9 @@ class AdvancedDeviceFingerprinter(DeviceFingerprintGenerator):
                 logging.error(f"Failed to initialize Rust crypto bridge: {e}")
                 self.rust_bridge_enabled = False
 
-    def generate(self, method: Union[FingerprintMethod, str] = FingerprintMethod.QUANTUM_RESISTANT) -> FingerprintResult:
+    def generate(
+        self, method: Union[FingerprintMethod, str] = FingerprintMethod.QUANTUM_RESISTANT
+    ) -> FingerprintResult:
         """
         Generates a device fingerprint using the specified method.
 
@@ -2038,7 +2163,9 @@ class AdvancedDeviceFingerprinter(DeviceFingerprintGenerator):
         # Add any extra components specific to the advanced fingerprinter here
         return components
 
-    def verify_fingerprint(self, fingerprint_to_verify: str, method: Union[FingerprintMethod, str]) -> bool:
+    def verify_fingerprint(
+        self, fingerprint_to_verify: str, method: Union[FingerprintMethod, str]
+    ) -> bool:
         """
         Verifies a given fingerprint against a newly generated one.
 
@@ -2056,10 +2183,20 @@ class AdvancedDeviceFingerprinter(DeviceFingerprintGenerator):
             return False  # Not a valid fingerprint
 
         current_result = self.generate(method)
-        current_fingerprint_json = json.loads(base64.b64decode(current_result.fingerprint).decode("utf-8"))
+        current_fingerprint_json = json.loads(
+            base64.b64decode(current_result.fingerprint).decode("utf-8")
+        )
 
         # For stability, we only compare a subset of fields, ignoring volatile ones.
-        stable_keys = ["os_family", "os_build", "cpu_arch", "cpu_model", "cpu_name", "ram_gb", "mac_hash"]
+        stable_keys = [
+            "os_family",
+            "os_build",
+            "cpu_arch",
+            "cpu_model",
+            "cpu_name",
+            "ram_gb",
+            "mac_hash",
+        ]
 
         for key in stable_keys:
             if fingerprint_json.get(key) != current_fingerprint_json.get(key):
@@ -2072,7 +2209,9 @@ def bind_token_to_device(token: Dict[str, Any]) -> Dict[str, Any]:
     Binds a token to the device by adding a device fingerprint.
     This function is deprecated. Use create_device_binding instead.
     """
-    warnings.warn("bind_token_to_device is deprecated. Use create_device_binding instead.", DeprecationWarning)
+    warnings.warn(
+        "bind_token_to_device is deprecated. Use create_device_binding instead.", DeprecationWarning
+    )
     binding_result = create_device_binding(binding_data=token, server_nonce=token.get("nonce"))
     # The original token is modified in-place by some of the backend logic,
     # so we merge the results into a new dictionary to be safe.
@@ -2080,14 +2219,19 @@ def bind_token_to_device(token: Dict[str, Any]) -> Dict[str, Any]:
     new_token["device_binding"] = binding_result
 
     # For backward compatibility with old tests that expect 'device_signature'
-    if "fingerprint_signature" in binding_result and "signature" in binding_result["fingerprint_signature"]:
+    if (
+        "fingerprint_signature" in binding_result
+        and "signature" in binding_result["fingerprint_signature"]
+    ):
         new_token["device_signature"] = binding_result["fingerprint_signature"]["signature"]
 
     return new_token
 
 
 def verify_device_binding(
-    bound_token: Dict[str, Any], strict_mode: bool = False, custom_verification_logic: Optional[callable] = None
+    bound_token: Dict[str, Any],
+    strict_mode: bool = False,
+    custom_verification_logic: Optional[callable] = None,
 ) -> Tuple[bool, Dict[str, Any]]:
     """
     Verify that data is bound to this specific device.
@@ -2154,7 +2298,9 @@ def verify_device_binding(
         is_fingerprint_signature_valid = False
 
     if not is_fingerprint_signature_valid:
-        details["reason"] = "Internal fingerprint signature is invalid. The fingerprint does not match its components."
+        details["reason"] = (
+            "Internal fingerprint signature is invalid. The fingerprint does not match its components."
+        )
         return False, details
 
     # 4. Compare stored fingerprint fields with current hardware to get a confidence score
@@ -2170,7 +2316,9 @@ def verify_device_binding(
     is_match = confidence >= threshold
 
     if not is_match:
-        details["reason"] = f"Hardware match confidence too low: {confidence:.2f} (threshold: {threshold})"
+        details["reason"] = (
+            f"Hardware match confidence too low: {confidence:.2f} (threshold: {threshold})"
+        )
         return False, details
 
     # 6. Verify the overall token signature if it exists
@@ -2181,7 +2329,8 @@ def verify_device_binding(
     if sig and alg:
         original_binding_data = {k: v for k, v in bound_token.items() if k != "device_binding"}
         data_to_verify = json.dumps(
-            {"binding_data": original_binding_data, "fingerprint_components": stored_fields}, sort_keys=True
+            {"binding_data": original_binding_data, "fingerprint_components": stored_fields},
+            sort_keys=True,
         ).encode("utf-8")
 
         crypto_backend = get_backend("crypto")
@@ -2195,7 +2344,9 @@ def verify_device_binding(
         elif alg == "HMAC-SHA256":
             # Re-create the HMAC key used during creation, which was the fingerprint itself.
             hmac_key = fingerprint
-            expected_hmac = hmac.new(hmac_key.encode("utf-8"), data_to_verify, hashlib.sha256).hexdigest()
+            expected_hmac = hmac.new(
+                hmac_key.encode("utf-8"), data_to_verify, hashlib.sha256
+            ).hexdigest()
             is_overall_sig_valid = hmac.compare_digest(sig, expected_hmac)
             if is_overall_sig_valid:
                 details["classical_verified"] = True

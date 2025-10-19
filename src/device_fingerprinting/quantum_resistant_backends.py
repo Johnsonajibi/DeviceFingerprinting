@@ -63,7 +63,12 @@ class HmacSha3_512Backend(CryptoBackend):
 
         # Combine all entropy sources
         combined_entropy: bytes = (
-            system_entropy + time_entropy + process_entropy + random_entropy + memory_entropy + thread_entropy
+            system_entropy
+            + time_entropy
+            + process_entropy
+            + random_entropy
+            + memory_entropy
+            + thread_entropy
         )
 
         # Use SHA3-512 for quantum-resistant key derivation

@@ -152,7 +152,9 @@ class MLAnomalyDetector:
         self.recent_features = deque(maxlen=window_size)
         self.is_fitted = False
 
-    def extract_features(self, fingerprint_data: Dict[str, Any], session_info: Optional[Dict[str, Any]] = None) -> np.ndarray:
+    def extract_features(
+        self, fingerprint_data: Dict[str, Any], session_info: Optional[Dict[str, Any]] = None
+    ) -> np.ndarray:
         """Extracts and hashes features from fingerprint and session data."""
         features = []
 
@@ -225,7 +227,12 @@ class MLAnomalyDetector:
         anomaly_score = -self.model.score_samples(scaled_features)[0]
         is_anomaly = self.model.predict(scaled_features)[0] == -1
 
-        return {"anomaly_score": anomaly_score, "is_anomaly": bool(is_anomaly), "confidence": 1.0, "status": "predicting"}
+        return {
+            "anomaly_score": anomaly_score,
+            "is_anomaly": bool(is_anomaly),
+            "confidence": 1.0,
+            "status": "predicting",
+        }
 
 
 class AdaptiveSecurityManager:

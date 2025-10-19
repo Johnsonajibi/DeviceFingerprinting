@@ -25,7 +25,9 @@ class SecureStorage:
     integration with the system's secret management service (keyring).
     """
 
-    def __init__(self, file_path: str, password: Optional[str] = None, key_iterations: int = 100_000):
+    def __init__(
+        self, file_path: str, password: Optional[str] = None, key_iterations: int = 100_000
+    ):
         """
         Initializes the secure storage.
 
@@ -45,7 +47,9 @@ class SecureStorage:
             self._password = self._get_password_from_keyring()
 
         if not self._password:
-            raise ValueError("A password must be provided if the system keyring is not available or contains no password.")
+            raise ValueError(
+                "A password must be provided if the system keyring is not available or contains no password."
+            )
 
         self._setup_encryptor()
 
@@ -114,7 +118,9 @@ class SecureStorage:
             decrypted_data = self._encryptor.decrypt(encrypted_blob, self._key)
             self.data = json.loads(decrypted_data)
         except (ValueError, InvalidTag) as e:
-            raise IOError(f"Failed to decrypt or load data. Incorrect password or corrupted file. Reason: {e}")
+            raise IOError(
+                f"Failed to decrypt or load data. Incorrect password or corrupted file. Reason: {e}"
+            )
         except json.JSONDecodeError:
             raise IOError("File is corrupted and does not contain valid JSON.")
 
