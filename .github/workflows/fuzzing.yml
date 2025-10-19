@@ -19,7 +19,7 @@ jobs:
         fuzzer: ['fuzz_crypto', 'fuzz_fingerprint', 'fuzz_storage']
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
@@ -52,7 +52,7 @@ jobs:
     
     - name: Upload crash artifacts
       if: env.crash_found == 'true'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: fuzzing-crashes-${{ matrix.fuzzer }}
         path: |
