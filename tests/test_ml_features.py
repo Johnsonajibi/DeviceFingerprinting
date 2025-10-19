@@ -33,8 +33,10 @@ class TestMLFeatures(unittest.TestCase):
         last_times.system = 18
         last_times.idle = 450
         self.extractor._last_cpu_times = last_times
-        # Train a dummy model for the anomaly detector
-        dummy_data = np.random.rand(10, 3)
+        # Train a dummy model for the anomaly detector with more samples for stability
+        # Use fixed seed for reproducibility
+        np.random.seed(42)
+        dummy_data = np.random.rand(100, 3)  # More samples for better model
         self.detector = AnomalyDetector()
         self.detector.train(dummy_data)
 
