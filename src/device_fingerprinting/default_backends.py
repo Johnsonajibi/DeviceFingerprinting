@@ -53,6 +53,20 @@ class HmacSha256Backend(CryptoBackend):
         expected = self.sign(data)
         return hmac.compare_digest(signature, expected)
 
+    def export_key_info(self) -> str:
+        """
+        Export key metadata as JSON (not the key itself, for security).
+
+        Returns JSON string with key derivation info.
+        """
+        key_info = {
+            "algorithm": "HMAC-SHA256",
+            "key_length": len(self.key) * 8,
+            "derived_from": "multi-source-entropy",
+            "timestamp": time.time(),
+        }
+        return json.dumps(key_info)
+
 
 class InMemoryStorage(StorageBackend):
     """Simple in-memory storage backend"""

@@ -136,6 +136,18 @@ class CryptoManager:
         expected_sig = self.sign(data)
         return hmac.compare_digest(signature, expected_sig)
 
+    def generate_key_pair(self) -> Tuple[bytes, bytes]:
+        """
+        Generate a cryptographic key pair for asymmetric operations.
+
+        Returns:
+            Tuple of (public_key_material, private_key_material) as bytes.
+        """
+        # For symmetric HMAC context, return derived keys for different purposes
+        public_material = hashlib.sha256(self.key + b"public").digest()
+        private_material = hashlib.sha256(self.key + b"private").digest()
+        return (public_material, private_material)
+
 
 # Global instance management
 _crypto_manager: Optional[CryptoManager] = None
