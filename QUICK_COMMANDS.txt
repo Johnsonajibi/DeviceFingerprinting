@@ -1,0 +1,26 @@
+# Quick Commands - Copy and Paste These!
+
+# 1. Clone OSS-Fuzz (from your fork)
+cd C:\Users\ajibi\Music\CorrectOne
+git clone https://github.com/Johnsonajibi/oss-fuzz.git
+cd oss-fuzz
+
+# 2. Create project directory
+mkdir projects\device-fingerprinting
+
+# 3. Copy your files
+Copy-Item ..\device_fingerprinting\ossfuzz\* projects\device-fingerprinting\
+
+# 4. Create branch
+git checkout -b add-device-fingerprinting
+
+# 5. Add and commit
+git add projects/device-fingerprinting
+git commit -m "Add device-fingerprinting project to OSS-Fuzz"
+
+# 6. Push to your fork
+git push origin add-device-fingerprinting
+
+# Then go to: https://github.com/Johnsonajibi/oss-fuzz
+# Click "Compare & pull request"
+# Fill in details and submit!
