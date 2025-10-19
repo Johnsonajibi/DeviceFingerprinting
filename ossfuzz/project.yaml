@@ -1,8 +1,8 @@
 homepage: "https://github.com/Johnsonajibi/DeviceFingerprinting"
 language: python
-primary_contact: "info@devicefingerprinting.dev"
+primary_contact: "ajibijohnson@gmail.com"
 auto_ccs:
-  - "info@devicefingerprinting.dev"
+  - "ajibijohnson@gmail.com"
 main_repo: "https://github.com/Johnsonajibi/DeviceFingerprinting.git"
 file_github_issue: true
 sanitizers:
