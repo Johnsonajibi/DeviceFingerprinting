@@ -59,16 +59,18 @@ class TestSecurityModules(unittest.TestCase):
         self.assertEqual(len(hw_id), 64)
 
     # --- EnvironmentValidator Tests ---
-    def test_is_admin_true(self):
-        """Test admin check returns true when running as admin."""
-        if platform.system() == "Windows":
-            # Windows: mock the IsUserAnAdmin API in the security module
-            with patch("device_fingerprinting.security.ctypes.windll.shell32.IsUserAnAdmin", return_value=1):
-                self.assertTrue(self.env_validator.is_admin())
-        else:
-            # Unix/Linux/macOS: mock os.getuid in the security module
-            with patch("device_fingerprinting.security.os.getuid", return_value=0):
-                self.assertTrue(self.env_validator.is_admin())
+    @unittest.skipUnless(platform.system() == "Windows", "Windows-specific test")
+    @patch("ctypes.windll")
+    def test_is_admin_true_windows(self, mock_windll):
+        """Test admin check returns true when running as admin on Windows."""
+        mock_windll.shell32.IsUserAnAdmin.return_value = 1
+        self.assertTrue(self.env_validator.is_admin())
+
+    @unittest.skipIf(platform.system() == "Windows", "Unix-specific test")
+    @patch("os.getuid", return_value=0)
+    def test_is_admin_true_unix(self, mock_getuid):
+        """Test admin check returns true when running as root on Unix."""
+        self.assertTrue(self.env_validator.is_admin())
 
     @patch("builtins.open", new_callable=unittest.mock.mock_open, read_data="GenuineIntel")
     def test_is_virtualized_false_for_real_cpu(self, mock_open):
