@@ -62,10 +62,12 @@ class TestSecurityModules(unittest.TestCase):
     def test_is_admin_true(self):
         """Test admin check returns true when running as admin."""
         if platform.system() == "Windows":
-            with patch("ctypes.windll.shell32.IsUserAnAdmin", return_value=1):
+            # Windows: mock the IsUserAnAdmin API in the security module
+            with patch("device_fingerprinting.security.ctypes.windll.shell32.IsUserAnAdmin", return_value=1):
                 self.assertTrue(self.env_validator.is_admin())
         else:
-            with patch("os.getuid", return_value=0):
+            # Unix/Linux/macOS: mock os.getuid in the security module
+            with patch("device_fingerprinting.security.os.getuid", return_value=0):
                 self.assertTrue(self.env_validator.is_admin())
 
     @patch("builtins.open", new_callable=unittest.mock.mock_open, read_data="GenuineIntel")
