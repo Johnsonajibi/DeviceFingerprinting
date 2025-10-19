@@ -18,11 +18,13 @@ try:
 except ImportError:
     keyring = None
 
+
 class SecureStorage:
     """
     Manages encrypted storage of key-value data in a file, with optional
     integration with the system's secret management service (keyring).
     """
+
     def __init__(self, file_path: str, password: Optional[str] = None, key_iterations: int = 100_000):
         """
         Initializes the secure storage.
@@ -80,7 +82,7 @@ class SecureStorage:
         """Sets up the encryptor instance variable."""
         # Derive a key from the password
         # In a real application, the salt should be stored with the encrypted data
-        salt = b'\\x00' * 16 
+        salt = b"\\x00" * 16
         kdf = ScryptKDF()
         self._key = kdf.derive_key(self._password, salt)
         self._encryptor = AESGCMEncryptor()
@@ -91,11 +93,11 @@ class SecureStorage:
         """
         if not self._encryptor:
             self._setup_encryptor()
-            
-        json_data = json.dumps(self.data).encode('utf-8')
+
+        json_data = json.dumps(self.data).encode("utf-8")
         encrypted_blob = self._encryptor.encrypt(json_data, self._key)
-        
-        with open(self.file_path, 'wb') as f:
+
+        with open(self.file_path, "wb") as f:
             f.write(encrypted_blob)
 
     def load(self):
@@ -105,9 +107,9 @@ class SecureStorage:
         if not self._encryptor:
             self._setup_encryptor()
 
-        with open(self.file_path, 'rb') as f:
+        with open(self.file_path, "rb") as f:
             encrypted_blob = f.read()
-            
+
         try:
             decrypted_data = self._encryptor.decrypt(encrypted_blob, self._key)
             self.data = json.loads(decrypted_data)
@@ -169,7 +171,7 @@ class SecureStorage:
     def _save_secret_local(self, secret: str):
         """Saves the secret to a local file (fallback)."""
         secret_path = self._get_local_secret_path()
-        with open(secret_path, 'w') as f:
+        with open(secret_path, "w") as f:
             f.write(secret)
 
     def _load_secret_local(self) -> Optional[str]:
@@ -177,5 +179,5 @@ class SecureStorage:
         secret_path = self._get_local_secret_path()
         if not os.path.exists(secret_path):
             return None
-        with open(secret_path, 'r') as f:
+        with open(secret_path, "r") as f:
             return f.read()

@@ -20,6 +20,7 @@ RELEASE_NAME = "Post-Quantum Cryptography Integration"
 MIN_PYTHON_VERSION = (3, 8)
 SUPPORTED_PYTHON_VERSIONS = ["3.8", "3.9", "3.10", "3.11", "3.12"]
 
+
 def get_version() -> str:
     """Get the version string."""
     return __version__
@@ -33,4 +34,5 @@ def get_version_info() -> tuple:
 def check_python_version() -> bool:
     """Check if the current Python version is supported."""
     import sys
+
     return sys.version_info >= MIN_PYTHON_VERSION
