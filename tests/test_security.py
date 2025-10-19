@@ -59,14 +59,14 @@ class TestSecurityModules(unittest.TestCase):
         self.assertEqual(len(hw_id), 64)
 
     # --- EnvironmentValidator Tests ---
-    @patch("os.getuid", create=True, return_value=0)  # Mock for Unix-like systems
-    @patch("ctypes.windll.shell32.IsUserAnAdmin", create=True, return_value=1)  # Mock for Windows
-    def test_is_admin_true(self, mock_is_admin_win, mock_getuid):
+    def test_is_admin_true(self):
         """Test admin check returns true when running as admin."""
         if platform.system() == "Windows":
-            self.assertTrue(self.env_validator.is_admin())
+            with patch("ctypes.windll.shell32.IsUserAnAdmin", return_value=1):
+                self.assertTrue(self.env_validator.is_admin())
         else:
-            self.assertTrue(self.env_validator.is_admin())
+            with patch("os.getuid", return_value=0):
+                self.assertTrue(self.env_validator.is_admin())
 
     @patch("builtins.open", new_callable=unittest.mock.mock_open, read_data="GenuineIntel")
     def test_is_virtualized_false_for_real_cpu(self, mock_open):
