@@ -66,4 +66,4 @@ __all__ = [
     'bind_token_to_device'
 ]
 
-__version__ = "2.1.0-PQC-DUALUSB-V3"
+__version__ = "2.1.2-PQC-DUALUSB-0.15.2"
