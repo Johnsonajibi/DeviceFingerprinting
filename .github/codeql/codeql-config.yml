@@ -1,0 +1,31 @@
+# CodeQL configuration for device-fingerprinting
+# https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning
+
+name: python-security-and-quality
+
+# Disable default setup - we only want Python analysis
+disable-default-queries: false
+
+# Configure queries to run
+queries:
+  - uses: security-and-quality
+  - uses: security-extended
+
+# Paths to analyze (Python only)
+paths:
+  - src/device_fingerprinting
+  - tests
+  - fuzz
+
+# Paths to ignore
+paths-ignore:
+  - '**/*.md'
+  - '**/*.txt'
+  - '**/*.yml'
+  - '**/*.yaml'
+  - '**/*.json'
+  - 'docs/**'
+  - '.github/**'
+  - 'oss-fuzz/**'
+  - 'ossfuzz/**'
+  - 'rust/**'
