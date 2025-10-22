@@ -1,0 +1,152 @@
+name: ClusterFuzzLite Continuous Fuzzing
+
+"on":
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run fuzzing twice daily (2 AM and 2 PM UTC)
+    - cron: '0 2,14 * * *'
+
+permissions: read-all
+
+jobs:
+  # Build fuzzers for fuzzing
+  Build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer:
+          - address
+          - undefined
+    steps:
+    - name: Build Fuzzers (${{ matrix.sanitizer }})
+      id: build
+      uses: google/clusterfuzzlite/actions/build_fuzzers@v1
+      with:
+        language: python
+        sanitizer: ${{ matrix.sanitizer }}
+        
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: fuzzers-${{ matrix.sanitizer }}
+        path: build-out/
+        retention-days: 7
+
+  # Run fuzzers on PRs
+  PR-Fuzzing:
+    if: github.event_name == 'pull_request'
+    needs: Build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer:
+          - address
+          - undefined
+        fuzzer:
+          - fuzz_crypto
+          - fuzz_fingerprint
+          - fuzz_storage
+    steps:
+    - name: Download Build Artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: fuzzers-${{ matrix.sanitizer }}
+        path: build-out/
+
+    - name: Run Fuzzing (${{ matrix.fuzzer }}, ${{ matrix.sanitizer }})
+      id: run_fuzzer
+      uses: google/clusterfuzzlite/actions/run_fuzzers@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        fuzz-seconds: 300  # 5 minutes per fuzzer on PRs
+        mode: 'code-change'
+        sanitizer: ${{ matrix.sanitizer }}
+        parallel-fuzzing: true
+        output-sarif: true
+        
+    - name: Upload Crash Artifacts
+      if: always() && steps.run_fuzzer.outputs.crash-found == 'true'
+      uses: actions/upload-artifact@v3
+      with:
+        name: crashes-${{ matrix.fuzzer }}-${{ matrix.sanitizer }}
+        path: out/
+        retention-days: 30
+
+    - name: Upload SARIF Results
+      if: always() && steps.run_fuzzer.outputs.sarif-output != ''
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: ${{ steps.run_fuzzer.outputs.sarif-output }}
+        category: clusterfuzzlite-${{ matrix.sanitizer }}
+
+  # Batch fuzzing on schedule/push
+  Batch-Fuzzing:
+    if: github.event_name != 'pull_request'
+    needs: Build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer:
+          - address
+          - undefined
+    steps:
+    - name: Download Build Artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: fuzzers-${{ matrix.sanitizer }}
+        path: build-out/
+
+    - name: Run Batch Fuzzing (${{ matrix.sanitizer }})
+      id: run_batch
+      uses: google/clusterfuzzlite/actions/run_fuzzers@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        fuzz-seconds: 1800  # 30 minutes per sanitizer on main/schedule
+        mode: 'batch'
+        sanitizer: ${{ matrix.sanitizer }}
+        parallel-fuzzing: true
+        storage-repo: https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+        storage-repo-branch: gh-pages
+        storage-repo-branch-coverage: gh-pages
+        
+    - name: Upload Crash Artifacts
+      if: always() && steps.run_batch.outputs.crash-found == 'true'
+      uses: actions/upload-artifact@v3
+      with:
+        name: crashes-batch-${{ matrix.sanitizer }}-${{ github.run_number }}
+        path: out/
+        retention-days: 90
+
+  # Summary report
+  Summary:
+    if: always()
+    needs: [Build, PR-Fuzzing, Batch-Fuzzing]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Generate Fuzzing Summary
+      run: |
+        echo "# 🔍 ClusterFuzzLite Fuzzing Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Workflow**: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Date**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Sanitizers Used" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ AddressSanitizer (ASan) - Memory safety issues" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ UndefinedBehaviorSanitizer (UBSan) - Undefined behavior" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Fuzz Targets" >> $GITHUB_STEP_SUMMARY
+        echo "- \`fuzz_crypto\` - Cryptographic operations" >> $GITHUB_STEP_SUMMARY
+        echo "- \`fuzz_fingerprint\` - Device fingerprinting" >> $GITHUB_STEP_SUMMARY
+        echo "- \`fuzz_storage\` - Secure storage operations" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Check individual job logs for detailed results." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "📊 View coverage reports in the artifacts." >> $GITHUB_STEP_SUMMARY

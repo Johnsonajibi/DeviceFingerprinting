@@ -1,0 +1,20 @@
+# ClusterFuzzLite configuration for device-fingerprinting
+# https://google.github.io/clusterfuzzlite/
+
+homepage: "https://github.com/Johnsonajibi/DeviceFingerprinting"
+language: python
+primary_contact: "ajibijohnson@gmail.com"
+
+# Sanitizers to use (address, memory, undefined)
+sanitizers:
+  - address
+  - undefined
+
+# Fuzzing engines
+fuzzing_engines:
+  - libfuzzer
+  - afl
+
+# Build architecture
+architectures:
+  - x86_64
