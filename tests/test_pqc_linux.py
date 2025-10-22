@@ -70,7 +70,7 @@ def test_pqc_backend_info():
     assert 'pqc_available' in info
     assert 'production_ready' in info
     
-    assert info['type'] == 'hybrid_pqc'
+    assert info['type'] == 'hybrid_pqc_v3'
     assert info['production_ready'] is True
     
     # Check PQC support function
