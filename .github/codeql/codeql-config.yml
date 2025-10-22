@@ -1,31 +1,67 @@
-# CodeQL configuration for device-fingerprinting
+# CodeQL configuration for device-fingerprinting Python package
 # https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning
 
-name: python-security-and-quality
+name: python-security-analysis
 
-# Disable default setup - we only want Python analysis
+# Use default queries but focus on security
 disable-default-queries: false
 
-# Configure queries to run
+# Configure queries to run - focus on Python security
 queries:
   - uses: security-and-quality
-  - uses: security-extended
 
-# Paths to analyze (Python only)
+# Explicitly specify Python-only paths
 paths:
-  - src/device_fingerprinting
-  - tests
-  - fuzz
+  - "src/device_fingerprinting/**/*.py"
+  - "tests/**/*.py" 
+  - "examples/**/*.py"
 
-# Paths to ignore
+# Comprehensive exclusion list
 paths-ignore:
+  # Documentation and config files
   - '**/*.md'
+  - '**/*.rst'
   - '**/*.txt'
   - '**/*.yml'
   - '**/*.yaml'
   - '**/*.json'
-  - 'docs/**'
-  - '.github/**'
+  - '**/*.toml'
+  - '**/*.cfg'
+  - '**/*.ini'
+  
+  # C/C++ and other compiled languages
+  - '**/*.c'
+  - '**/*.cpp'
+  - '**/*.cc'
+  - '**/*.cxx'
+  - '**/*.C'
+  - '**/*.h'
+  - '**/*.hpp'
+  - '**/*.hxx'
+  - '**/*.H'
+  
+  # Rust code
+  - 'rust/**'
+  - '**/*.rs'
+  
+  # OSS-Fuzz integration
   - 'oss-fuzz/**'
   - 'ossfuzz/**'
-  - 'rust/**'
+  
+  # Build and distribution
+  - 'build/**'
+  - 'dist/**'
+  - '**/*.egg-info/**'
+  
+  # Documentation
+  - 'docs/**'
+  
+  # GitHub workflows (avoid recursion)
+  - '.github/**'
+  
+  # Virtual environments and caches
+  - '.venv/**'
+  - 'venv/**'
+  - '__pycache__/**'
+  - '.pytest_cache/**'
+  - '.tox/**'

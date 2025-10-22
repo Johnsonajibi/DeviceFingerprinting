@@ -1,0 +1,49 @@
+# CodeQL ignore file - exclude C/C++ and other non-Python files
+# This prevents CodeQL from trying to analyze C/C++ code
+
+# Exclude all C/C++ files
+**/*.c
+**/*.cpp
+**/*.cc
+**/*.cxx
+**/*.C
+**/*.h
+**/*.hpp
+**/*.hxx
+**/*.H
+
+# Exclude OSS-Fuzz directory entirely
+oss-fuzz/
+ossfuzz/
+
+# Exclude Rust code
+rust/
+
+# Exclude build artifacts
+build/
+dist/
+*.egg-info/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Exclude documentation and config
+docs/
+.github/workflows/
+*.md
+*.txt
+*.yml
+*.yaml
+*.json
+
+# Exclude test artifacts
+.coverage
+.pytest_cache/
+.tox/
+.venv/
+venv/
+
+# Exclude OS specific files
+.DS_Store
+Thumbs.db
