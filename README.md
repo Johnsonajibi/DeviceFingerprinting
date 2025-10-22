@@ -945,7 +945,7 @@ graph TD
     OPT --> CLOUD[Cloud Storage]
     OPT --> DEV[Development Tools]
     
-    PQC --> PQD[pqcdualusb >= 0.1.4]
+    PQC --> PQD[pqcdualusb >= 0.15.0]
     
     CLOUD --> B3[boto3]
     CLOUD --> AZ[azure-storage-blob]
@@ -976,7 +976,7 @@ graph TD
 ```bash
 pip install -e .[pqc]
 ```
-- `pqcdualusb >= 0.1.4` - Dilithium/Kyber quantum-resistant algorithms
+- `pqcdualusb >= 0.15.0` - Dilithium3/Kyber1024 quantum-resistant algorithms with power analysis protection
 
 **Cloud Storage:**
 ```bash

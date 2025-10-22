@@ -51,7 +51,7 @@ dependencies = [
 
 [project.optional-dependencies]
 pqc = [
-    "pqcdualusb>=0.1.4",
+    "pqcdualusb>=0.15.0",
 ]
 cloud = [
     "boto3>=1.28.0",

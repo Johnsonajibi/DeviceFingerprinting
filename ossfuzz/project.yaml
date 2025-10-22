@@ -13,5 +13,3 @@ fuzzing_engines:
   - libfuzzer
   - afl
   - honggfuzz
-vendor_ccs:
-  - "security@python.org"

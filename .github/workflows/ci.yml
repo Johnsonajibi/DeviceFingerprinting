@@ -32,6 +32,14 @@ jobs:
       run: |
         python -m pytest -v --cov=device_fingerprinting --cov-report=xml --cov-report=term
     
+    - name: Test PQC with liboqs (Linux only)
+      if: matrix.os == 'ubuntu-latest'
+      continue-on-error: true
+      run: |
+        echo "Installing liboqs-python for quantum-resistant PQC testing..."
+        pip install liboqs-python || echo "liboqs-python installation failed (expected on some systems)"
+        python -m pytest tests/test_pqc_linux.py -v -s || echo "PQC tests with liboqs failed (optional feature)"
+    
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
       uses: codecov/codecov-action@v3

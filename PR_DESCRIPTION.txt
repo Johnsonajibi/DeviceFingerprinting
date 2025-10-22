@@ -1,0 +1,38 @@
+## Pull Request Description for OSS-Fuzz
+
+**Title:** Add device-fingerprinting project
+
+**Description:**
+
+Hi! I'd like to add my device fingerprinting library to OSS-Fuzz.
+
+This is a Python library that helps identify hardware devices through their unique characteristics. It's useful for software licensing, device authentication, and detecting suspicious activity.
+
+The library handles:
+- Cryptographic operations (HMAC, AES-GCM encryption)
+- Post-Quantum Cryptography (Dilithium3, Kyber1024) for quantum-resistant security
+- Device fingerprint generation from hardware specs
+- Secure encrypted storage
+- ML-based anomaly detection for unusual behavior
+
+I've prepared three fuzz targets to test the main components:
+- `fuzz_crypto.py` - Tests the crypto functions including PQC operations
+- `fuzz_fingerprint.py` - Tests fingerprint generation logic
+- `fuzz_storage.py` - Tests secure storage operations
+
+**Repository:** https://github.com/Johnsonajibi/DeviceFingerprinting  
+**Contact:** ajibijohnson@gmail.com  
+**License:** MIT
+
+The project has good test coverage and is actively maintained. I'm looking forward to continuous fuzzing to help find any security issues, especially in the quantum-resistant cryptographic implementations!
+
+Thanks for reviewing!
+
+---
+
+## How to Use This:
+
+1. Copy the description above (without the title and instructions)
+2. Go to: https://github.com/Johnsonajibi/oss-fuzz/pull/new/add-device-fingerprinting
+3. Paste in the description field
+4. Click "Create pull request"
