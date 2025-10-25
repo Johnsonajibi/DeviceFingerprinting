@@ -16,7 +16,7 @@
 # Build script for OSS-Fuzz
 
 # Navigate to project directory
-cd $SRC/device-fingerprinting-pro
+cd $SRC/device-fingerprinting-pro/device_fingerprinting
 
 # Install the package
 pip3 install -e .
@@ -24,9 +24,11 @@ pip3 install -e .
 # Build fuzz targets
 for fuzzer in fuzz/fuzz_*.py; do
   fuzzer_basename=$(basename -s .py $fuzzer)
+  fuzzer_package="device_fingerprinting.fuzz.${fuzzer_basename}"
   
-  # Compile with atheris - package discovery is handled automatically after pip install
-  compile_python_fuzzer $fuzzer
+  # Compile with atheris
+  compile_python_fuzzer $fuzzer \
+    --add-binary="/usr/local/lib/python3.*/dist-packages/device_fingerprinting:device_fingerprinting"
 done
 
 # Copy seed corpus if available

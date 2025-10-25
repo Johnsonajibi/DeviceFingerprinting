@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install -y \
 RUN git clone --depth 1 https://github.com/Johnsonajibi/DeviceFingerprinting.git device-fingerprinting-pro
 
 # Set working directory
-WORKDIR $SRC/device-fingerprinting-pro
+WORKDIR $SRC/device-fingerprinting-pro/device_fingerprinting
 
 # Install Python dependencies
 RUN pip3 install --upgrade pip && \
