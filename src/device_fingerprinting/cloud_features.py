@@ -100,21 +100,6 @@ class CloudStorageBackend(StorageBackend):
         decrypted_data = self.encryptor.decrypt(encrypted_data)
         return json.loads(decrypted_data)
 
-    def compute_data_checksum(self, data: Dict[str, Any]) -> str:
-        """
-        Compute SHA-256 checksum of data for integrity verification.
-
-        Returns base64-encoded checksum for cloud storage metadata.
-        """
-        json_data = json.dumps(data, sort_keys=True).encode("utf-8")
-        checksum = hashlib.sha256(json_data).digest()
-        return base64.b64encode(checksum).decode("utf-8")
-
-    def verify_data_integrity(self, data: Dict[str, Any], expected_checksum: str) -> bool:
-        """Verify data integrity using stored checksum."""
-        actual_checksum = self.compute_data_checksum(data)
-        return actual_checksum == expected_checksum
-
     def store(self, key: str, data: Dict[str, Any]) -> bool:
         """Store encrypted data in the configured cloud storage."""
         if not self.available:

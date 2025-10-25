@@ -108,6 +108,7 @@ import atexit
 
 def _cleanup_resources() -> None:
     """Cleanup resources on module shutdown"""
+    global _executor
     if _executor:
         _executor.shutdown(wait=False)
 
@@ -1400,8 +1401,8 @@ def _validate_command_safety(cmd) -> bool:
         "systeminfo.exe",
         "systeminfo",
         "reg.exe",
-        "reg",
-    }  # For registry queries only
+        "reg",  # For registry queries only
+    }
 
     if base_cmd not in allowed_commands:
         return False

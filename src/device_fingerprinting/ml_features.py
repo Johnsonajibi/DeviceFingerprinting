@@ -6,7 +6,7 @@ import time
 import hashlib
 import numpy as np
 import psutil
-from typing import Dict, Any, List, Optional, Union
+from typing import Dict, Any, List, Optional
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from sklearn.ensemble import IsolationForest
@@ -79,7 +79,7 @@ class AnomalyDetector:
     Uses an Isolation Forest model to detect anomalies in feature vectors.
     """
 
-    def __init__(self, contamination: Union[str, float] = "auto"):
+    def __init__(self, contamination: str = "auto"):
         """
         Initializes the AnomalyDetector.
 
@@ -87,9 +87,7 @@ class AnomalyDetector:
             contamination: The expected proportion of outliers in the data set.
         """
         self.model = IsolationForest(contamination=contamination, random_state=42)
-        self._contamination = contamination
         self._is_trained = False
-        self._threshold: Optional[float] = None
 
     def train(self, normal_data: np.ndarray):
         """
@@ -102,22 +100,6 @@ class AnomalyDetector:
             raise ValueError("Input data must be a 2D array with at least one sample.")
         self.model.fit(normal_data)
         self._is_trained = True
-        scores = self.model.decision_function(normal_data)
-        if scores.size == 0:
-            self._threshold = 0.0
-            return
-
-        contamination_param = self._contamination
-        if isinstance(contamination_param, str):
-            # Isolation Forest uses 'auto' to target ~10% contamination; mimic that behaviour.
-            contamination_rate = 0.1
-        else:
-            contamination_rate = float(contamination_param)
-
-        if contamination_rate <= 0.0 or contamination_rate >= 0.5:
-            self._threshold = float(np.min(scores))
-        else:
-            self._threshold = float(np.quantile(scores, contamination_rate))
 
     def predict(self, features: np.ndarray) -> tuple[int, float]:
         """
@@ -129,19 +111,14 @@ class AnomalyDetector:
         Returns:
             A tuple containing:
             - prediction (int): 1 for normal, -1 for anomaly.
-            - score (float): Distance from the learned normality threshold (positive values indicate normal behaviour).
+            - score (float): The anomaly score (lower is more anomalous).
         """
         if not self._is_trained:
             raise RuntimeError("The model must be trained before making predictions.")
-        if self._threshold is None:
-            raise RuntimeError(
-                "Anomaly detector threshold not initialised; train() must be called first."
-            )
 
-        raw_score = float(self.model.decision_function(features)[0])
-        prediction = 1 if raw_score >= self._threshold else -1
-        adjusted_score = raw_score - self._threshold
-        return prediction, adjusted_score
+        prediction = self.model.predict(features)[0]
+        score = self.model.decision_function(features)[0]
+        return int(prediction), float(score)
 
     def save_model(self, file_path: str):
         """Saves the trained model to a file."""
@@ -171,10 +148,8 @@ class MLAnomalyDetector:
         self.model = IsolationForest(contamination=contamination, random_state=42)
         self.scaler = StandardScaler()
 
-        self.feature_stats: Dict[str, Dict[str, float]] = defaultdict(
-            lambda: {"mean": 0.0, "std": 1.0, "count": 0}
-        )
-        self.recent_features: deque = deque(maxlen=window_size)
+        self.feature_stats = defaultdict(lambda: {"mean": 0.0, "std": 1.0, "count": 0})
+        self.recent_features = deque(maxlen=window_size)
         self.is_fitted = False
 
     def extract_features(
@@ -274,7 +249,7 @@ class AdaptiveSecurityManager:
             "critical": {"checks": ["forensic", "vm_detection"]},
         }
         self.current_level = "medium"
-        self.threat_history: deque = deque(maxlen=100)
+        self.threat_history = deque(maxlen=100)
 
     def assess_and_adapt(
         self, fingerprint_data: Dict[str, Any], session_info: Optional[Dict[str, Any]] = None
