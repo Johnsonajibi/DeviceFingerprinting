@@ -31,7 +31,7 @@ jobs:
         sanitizer: ${{ matrix.sanitizer }}
         
     - name: Upload Build Artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: fuzzers-${{ matrix.sanitizer }}
         path: build-out/
@@ -54,7 +54,7 @@ jobs:
           - fuzz_storage
     steps:
     - name: Download Build Artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: fuzzers-${{ matrix.sanitizer }}
         path: build-out/
@@ -72,7 +72,7 @@ jobs:
         
     - name: Upload Crash Artifacts
       if: always() && steps.run_fuzzer.outputs.crash-found == 'true'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: crashes-${{ matrix.fuzzer }}-${{ matrix.sanitizer }}
         path: out/
@@ -98,7 +98,7 @@ jobs:
           - undefined
     steps:
     - name: Download Build Artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: fuzzers-${{ matrix.sanitizer }}
         path: build-out/
@@ -118,7 +118,7 @@ jobs:
         
     - name: Upload Crash Artifacts
       if: always() && steps.run_batch.outputs.crash-found == 'true'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: crashes-batch-${{ matrix.sanitizer }}-${{ github.run_number }}
         path: out/
