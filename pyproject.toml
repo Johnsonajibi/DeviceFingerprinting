@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "device-fingerprinting-pro"
-version = "2.1.2"
+version = "2.1.3"
 description = "Production-ready hardware device fingerprinting with post-quantum cryptography and ML-based anomaly detection"
 readme = "README_PYPI.md"
 license = "MIT"
@@ -50,7 +50,7 @@ dependencies = [
 
 [project.optional-dependencies]
 pqc = [
-    "pqcdualusb>=0.15.2",
+    "pqcdualusb>=0.15.5",
 ]
 cloud = [
     "boto3>=1.28.0",

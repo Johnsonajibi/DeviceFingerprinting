@@ -1,0 +1,39 @@
+[package]
+name = "pqc_rust"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "pqc_rust"
+crate-type = ["cdylib"]
+
+[dependencies]
+# Python integration
+pyo3 = { version = "0.21", features = ["extension-module"] }
+pyo3-log = "0.10"
+
+# Memory security
+zeroize = { version = "1", features = ["zeroize_derive"] }
+secrecy = "0.8"
+
+# Cryptographic randomness
+rand = "0.8"
+
+# Hashing and encoding
+sha3 = "0.10"
+hex = "0.4"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# RustCrypto ecosystem - modern cryptographic implementations
+aes-gcm = "0.10"
+chacha20poly1305 = "0.10"
+argon2 = "0.5"
+scrypt = "0.11"
+subtle = "2"
+password-hash = "0.5"
+
+[build-dependencies]
+pyo3-build-config = "0.21"

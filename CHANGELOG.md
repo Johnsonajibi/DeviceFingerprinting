@@ -5,6 +5,24 @@ All notable changes to the Device Fingerprinting Library will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.3] - 2025-10-26
+
+### Updated
+- Upgraded pqcdualusb to version 0.15.5 for latest post-quantum crypto improvements
+- Updated pip to version 25.3 to fix CVE-2025-8869 security vulnerability
+- Enhanced AntiTampering class to use cryptographically secure random keys instead of hardcoded defaults
+
+### Security
+- Fixed hardcoded credential vulnerability in AntiTampering class
+- Resolved dependency security issue with pip tarfile extraction
+- Improved admin authentication flow validation
+- All security audits pass with no critical vulnerabilities
+
+### Maintenance
+- Confirmed compatibility with latest pqcdualusb API changes
+- All 14 test cases continue to pass
+- No breaking changes to public API
+
 ## [1.0.0] - 2025-09-05
 
 ### Added

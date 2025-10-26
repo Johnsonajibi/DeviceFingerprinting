@@ -156,7 +156,7 @@ class RealPostQuantumBackend(CryptoBackend):
             if self.algorithm in ["Dilithium2", "Dilithium3", "Dilithium5"]:
                 self.rust_dilithium = rust_pqc.create_dilithium3()
                 self.library = "rust_pqc"
-                print(f"✅ Real Rust PQC library initialized: {self.algorithm}")
+                print(f"SUCCESS: Real Rust PQC library initialized: {self.algorithm}")
             else:
                 raise RuntimeError(f"Algorithm {self.algorithm} not supported in Rust module")
 
@@ -191,7 +191,7 @@ class RealPostQuantumBackend(CryptoBackend):
                 raise RuntimeError("dilithium-python verification test failed")
 
             self.library = "dilithium_python"
-            print(f"✅ Real Dilithium library initialized: {self.algorithm}")
+            print(f"SUCCESS: Real Dilithium library initialized: {self.algorithm}")
 
         except Exception as e:
             raise RuntimeError(f"Failed to initialize dilithium-python: {e}")
@@ -227,7 +227,7 @@ class RealPostQuantumBackend(CryptoBackend):
 
     def _init_fallback(self):
         """Initialize fallback implementation for demonstration"""
-        print(f"⚠️  Using fallback implementation for {self.algorithm}")
+        print(f"WARNING: Using fallback implementation for {self.algorithm}")
         print("   In production, ensure proper PQC library compilation")
         self.library = "fallback_demo"
         self.pqc_module = None

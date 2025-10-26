@@ -86,10 +86,16 @@ class AntiTampering:
     Provides methods to detect tampering of files using HMAC-SHA256.
     """
 
-    def __init__(self, file_path: str, key: bytes = b"default-secret-key"):
+    def __init__(self, file_path: str, key: bytes = None):
         self.file_path = file_path
         self.mac_file_path = file_path + ".mac"
-        self._key = key
+        if key is None:
+            # Generate a secure random key if none provided
+            import secrets
+            self._key = secrets.token_bytes(32)  # 256-bit key
+            # In production, this key should be stored securely or derived from user input
+        else:
+            self._key = key
 
     def generate_mac(self):
         """Generates and saves an HMAC for the file."""

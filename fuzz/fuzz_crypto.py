@@ -3,6 +3,7 @@
 Fuzz target for cryptographic functions in device_fingerprinting.
 
 This fuzzer tests the crypto module for crashes, exceptions, and security issues.
+Fixes ImportError by using correct module-level functions instead of non-existent Crypto class.
 """
 
 import atheris
@@ -10,12 +11,13 @@ import sys
 
 # Import after atheris to enable instrumentation
 with atheris.instrument_imports():
+    # Import module-level functions (not a Crypto class which doesn't exist)
     from device_fingerprinting.crypto import (
-        initialize_crypto_manager, 
-        encrypt_data, 
-        decrypt_data, 
-        sign_data, 
-        verify_signature
+        initialize_crypto_manager,  # Initialize the global crypto manager
+        encrypt_data,                # Encrypt string data
+        decrypt_data,                # Decrypt encrypted bytes
+        sign_data,                   # Create HMAC signature of dict
+        verify_signature             # Verify HMAC signature
     )
 
 
@@ -27,11 +29,13 @@ def TestOneInput(data):
     fdp = atheris.FuzzedDataProvider(data)
     
     try:
-        # Initialize crypto manager with random password
+        # Initialize crypto manager with random password for this fuzzing session
+        # The crypto module uses a global singleton pattern requiring initialization
         password = fdp.ConsumeString(32)
         if not password:
             password = "default_fuzz_password"
         
+        # Initialize the global crypto manager (must be called before other crypto functions)
         initialize_crypto_manager(password)
         
         # Fuzz encryption/decryption
