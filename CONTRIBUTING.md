@@ -420,7 +420,7 @@ Any other relevant information
 
 - **Discussions**: Use GitHub Discussions for questions
 - **Chat**: Join our Discord (link in README)
-- **Email**: contact@devicefingerprinting.dev
+- **Email**: ajibijohnson@jtnetsolutions.com
 
 ---
 
