@@ -92,6 +92,7 @@ class AntiTampering:
         if key is None:
             # Generate a secure random key if none provided
             import secrets
+
             self._key = secrets.token_bytes(32)  # 256-bit key
             # In production, this key should be stored securely or derived from user input
         else:
