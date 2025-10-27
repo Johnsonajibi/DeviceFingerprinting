@@ -29,6 +29,15 @@ jobs:
       with:
         language: python
         sanitizer: ${{ matrix.sanitizer }}
+    
+    - name: Check Build Output
+      run: |
+        echo "Checking build output directory..."
+        ls -laR build-out/ || echo "build-out directory not found or empty"
+        if [ -d "build-out" ]; then
+          echo "Files in build-out:"
+          find build-out -type f -name "fuzz_*" || echo "No fuzz targets found"
+        fi
         
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
