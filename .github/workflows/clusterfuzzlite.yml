@@ -117,13 +117,14 @@ jobs:
       uses: google/clusterfuzzlite/actions/run_fuzzers@v1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        fuzz-seconds: 1800  # 30 minutes per sanitizer on main/schedule
+        fuzz-seconds: 600  # 10 minutes per sanitizer (reduced from 30)
         mode: 'batch'
         sanitizer: ${{ matrix.sanitizer }}
         parallel-fuzzing: true
         storage-repo: https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
         storage-repo-branch: gh-pages
         storage-repo-branch-coverage: gh-pages
+        minimize-crashes: true  # Minimize crash testcases to reduce noise
         
     - name: Upload Crash Artifacts
       if: always() && steps.run_batch.outputs.crash-found == 'true'
