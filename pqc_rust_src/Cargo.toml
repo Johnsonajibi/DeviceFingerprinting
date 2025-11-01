@@ -8,9 +8,9 @@ name = "pqc_rust"
 crate-type = ["cdylib"]
 
 [dependencies]
-# Python integration
-pyo3 = { version = "0.21", features = ["extension-module"] }
-pyo3-log = "0.10"
+# Python integration - Updated for security fixes
+pyo3 = { version = "0.22", features = ["extension-module"] }
+pyo3-log = "0.11"
 
 # Memory security
 zeroize = { version = "1", features = ["zeroize_derive"] }
@@ -36,4 +36,4 @@ subtle = "2"
 password-hash = "0.5"
 
 [build-dependencies]
-pyo3-build-config = "0.21"
+pyo3-build-config = "0.22"
