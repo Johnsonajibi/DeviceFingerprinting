@@ -1,0 +1,23 @@
+{
+  "version": "1.0",
+  "ignores": [
+    "oss-fuzz/**",
+    "**/oss-fuzz/**",
+    "tests/**",
+    "**/test_*.py"
+  ],
+  "suppressions": [
+    {
+      "id": "DS173237",
+      "reason": "SHA3-256 is quantum-resistant and appropriate for password hashing"
+    },
+    {
+      "id": "DS168931",
+      "reason": "Base64 encoding for secret obfuscation, not encryption"
+    },
+    {
+      "id": "DS440000",
+      "reason": "No SSL/TLS code present, false positive on AES-GCM"
+    }
+  ]
+}
