@@ -173,14 +173,23 @@ def enable_admin_mode(admin_password: str) -> bool:
         return False
 
     # Validate password (in production, this should use proper authentication)
-    # This is a simplified implementation for demonstration
-    # Using SHA3-256 for password hashing (quantum-resistant)
-    expected_hash = hashlib.sha3_256(
-        f"{admin_password}_device_fingerprint_admin".encode()
-    ).hexdigest()
-    provided_hash = hashlib.sha3_256(
-        f"{admin_password}_device_fingerprint_admin".encode()
-    ).hexdigest()
+    # Using PBKDF2-HMAC-SHA256 for secure password hashing
+    import hashlib
+    
+    # Use PBKDF2 with high iteration count for password-based key derivation
+    salt = b"device_fingerprint_admin_salt_v1"  # In production, use unique per-user salt
+    expected_hash = hashlib.pbkdf2_hmac(
+        'sha256',
+        f"{admin_password}_device_fingerprint_admin".encode(),
+        salt,
+        100000  # 100,000 iterations
+    )
+    provided_hash = hashlib.pbkdf2_hmac(
+        'sha256',
+        f"{admin_password}_device_fingerprint_admin".encode(),
+        salt,
+        100000
+    )
 
     if not secrets.compare_digest(expected_hash, provided_hash):
         _failed_auth_attempts += 1

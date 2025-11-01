@@ -178,22 +178,66 @@ class SecureStorage:
         """Saves the secret to a local file (fallback) with encryption."""
         secret_path = self._get_local_secret_path()
         # Encrypt the secret before storing to prevent clear-text storage
-        # Use a simple XOR with environment-derived key for basic obfuscation
-        import base64
-        obfuscated = base64.b64encode(secret.encode('utf-8')).decode('utf-8')
-        with open(secret_path, "w") as f:
-            f.write(obfuscated)
+        # Use Fernet symmetric encryption with machine-specific key
+        try:
+            from cryptography.fernet import Fernet
+            import hashlib
+            
+            # Generate a deterministic key from machine-specific data
+            machine_key = hashlib.sha256(
+                f"{os.environ.get('COMPUTERNAME', 'default')}{os.environ.get('USERNAME', 'user')}".encode()
+            ).digest()
+            # Fernet requires base64-encoded 32-byte key
+            import base64
+            fernet_key = base64.urlsafe_b64encode(machine_key)
+            cipher = Fernet(fernet_key)
+            
+            encrypted = cipher.encrypt(secret.encode('utf-8'))
+            with open(secret_path, "wb") as f:
+                f.write(encrypted)
+        except ImportError:
+            # Fallback to base64 if cryptography not available
+            import base64
+            obfuscated = base64.b64encode(secret.encode('utf-8'))
+            with open(secret_path, "wb") as f:
+                f.write(obfuscated)
 
     def _load_secret_local(self) -> Optional[str]:
         """Loads the secret from a local file (fallback) and decrypts it."""
         secret_path = self._get_local_secret_path()
         if not os.path.exists(secret_path):
             return None
-        import base64
-        with open(secret_path, "r") as f:
-            obfuscated = f.read()
+        
         try:
-            return base64.b64decode(obfuscated.encode('utf-8')).decode('utf-8')
-        except Exception:
-            # Handle legacy unencrypted secrets
-            return obfuscated
+            from cryptography.fernet import Fernet
+            import hashlib
+            import base64
+            
+            # Generate the same machine-specific key
+            machine_key = hashlib.sha256(
+                f"{os.environ.get('COMPUTERNAME', 'default')}{os.environ.get('USERNAME', 'user')}".encode()
+            ).digest()
+            fernet_key = base64.urlsafe_b64encode(machine_key)
+            cipher = Fernet(fernet_key)
+            
+            with open(secret_path, "rb") as f:
+                encrypted = f.read()
+            
+            try:
+                return cipher.decrypt(encrypted).decode('utf-8')
+            except Exception:
+                # Try base64 fallback for legacy secrets
+                import base64
+                try:
+                    return base64.b64decode(encrypted).decode('utf-8')
+                except Exception:
+                    return encrypted.decode('utf-8')
+        except ImportError:
+            # Fallback if cryptography not available
+            import base64
+            with open(secret_path, "rb") as f:
+                data = f.read()
+            try:
+                return base64.b64decode(data).decode('utf-8')
+            except Exception:
+                return data.decode('utf-8')
