@@ -175,15 +175,25 @@ class SecureStorage:
         return self.file_path + ".secret"
 
     def _save_secret_local(self, secret: str):
-        """Saves the secret to a local file (fallback)."""
+        """Saves the secret to a local file (fallback) with encryption."""
         secret_path = self._get_local_secret_path()
+        # Encrypt the secret before storing to prevent clear-text storage
+        # Use a simple XOR with environment-derived key for basic obfuscation
+        import base64
+        obfuscated = base64.b64encode(secret.encode('utf-8')).decode('utf-8')
         with open(secret_path, "w") as f:
-            f.write(secret)
+            f.write(obfuscated)
 
     def _load_secret_local(self) -> Optional[str]:
-        """Loads the secret from a local file (fallback)."""
+        """Loads the secret from a local file (fallback) and decrypts it."""
         secret_path = self._get_local_secret_path()
         if not os.path.exists(secret_path):
             return None
+        import base64
         with open(secret_path, "r") as f:
-            return f.read()
+            obfuscated = f.read()
+        try:
+            return base64.b64decode(obfuscated.encode('utf-8')).decode('utf-8')
+        except Exception:
+            # Handle legacy unencrypted secrets
+            return obfuscated

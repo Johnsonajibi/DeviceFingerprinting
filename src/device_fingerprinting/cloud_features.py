@@ -246,6 +246,7 @@ class DistributedVerification:
             json=payload,
             timeout=self.timeout,
             headers={"Content-Type": "application/json", "Accept": "application/json"},
+            verify=True,  # Explicitly enable TLS certificate verification
         )
 
         response.raise_for_status()

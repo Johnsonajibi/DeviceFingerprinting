@@ -22,15 +22,18 @@ except ImportError as e:
     sys.exit(1)
 
 def random_bytes(max_size=1000):
-    """Generate random bytes of random length"""
-    size = random.randint(0, max_size)
-    return bytes([random.randint(0, 255) for _ in range(size)])
+    """Generate cryptographically secure random bytes of random length"""
+    import secrets
+    size = secrets.randbelow(max_size + 1)
+    return secrets.token_bytes(size)
 
 def random_string(max_size=100):
-    """Generate random string"""
-    size = random.randint(0, max_size)
-    chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()"
-    return ''.join(random.choice(chars) for _ in range(size))
+    """Generate cryptographically secure random string"""
+    import secrets
+    import string
+    size = secrets.randbelow(max_size + 1)
+    chars = string.ascii_letters + string.digits + "!@#$%^&*()"
+    return ''.join(secrets.choice(chars) for _ in range(size))
 
 def test_crypto(iterations=1000):
     """Test crypto operations with random inputs"""

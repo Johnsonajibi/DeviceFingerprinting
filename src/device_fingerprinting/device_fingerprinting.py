@@ -111,7 +111,6 @@ def _cleanup_resources() -> None:
     if _executor:
         _executor.shutdown(wait=False)
 
-
 # Register cleanup function
 atexit.register(_cleanup_resources)
 
@@ -175,10 +174,11 @@ def enable_admin_mode(admin_password: str) -> bool:
 
     # Validate password (in production, this should use proper authentication)
     # This is a simplified implementation for demonstration
-    expected_hash = hashlib.sha256(
+    # Using SHA3-256 for password hashing (quantum-resistant)
+    expected_hash = hashlib.sha3_256(
         f"{admin_password}_device_fingerprint_admin".encode()
     ).hexdigest()
-    provided_hash = hashlib.sha256(
+    provided_hash = hashlib.sha3_256(
         f"{admin_password}_device_fingerprint_admin".encode()
     ).hexdigest()
 
@@ -755,8 +755,8 @@ def verify_server_nonce(nonce: str, server_signature: str) -> bool:
         return False
 
     try:
-        # Create nonce hash for reuse detection
-        nonce_hash = hashlib.sha256(nonce.encode("utf-8")).hexdigest()[:16]
+        # Create nonce hash for reuse detection (using SHA3-256 for security)
+        nonce_hash = hashlib.sha3_256(nonce.encode("utf-8")).hexdigest()[:16]
 
         # Check for nonce reuse
         if _is_nonce_reused(nonce_hash):
