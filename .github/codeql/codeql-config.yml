@@ -1,0 +1,17 @@
+name: "CodeQL Config"
+
+# Exclude third-party code from scanning
+paths-ignore:
+  - oss-fuzz/**
+  - "**/oss-fuzz/**"
+
+# Include only our source code
+paths:
+  - src/**
+  - examples/**
+  - fuzz/**
+  - tests/**
+  - "*.py"
+
+queries:
+  - uses: security-and-quality
