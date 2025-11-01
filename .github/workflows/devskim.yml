@@ -1,17 +1,10 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+# This workflow is disabled due to excessive false positives
+# CodeQL provides more accurate security scanning
 
-name: DevSkim
+name: DevSkim (Disabled)
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-  schedule:
-    - cron: '41 19 * * 4'
+  workflow_dispatch:  # Manual trigger only
 
 jobs:
   lint:
