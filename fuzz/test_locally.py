@@ -5,7 +5,6 @@ Run this to test for bugs locally without needing Atheris
 
 import sys
 import os
-import random
 import traceback
 
 # Add src directory to path
