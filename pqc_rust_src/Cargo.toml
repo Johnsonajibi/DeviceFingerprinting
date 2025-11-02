@@ -9,7 +9,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 # Python integration - Latest versions for security fixes
-pyo3 = { version = "0.23", features = ["extension-module"] }
+pyo3 = { version = "0.24", features = ["extension-module"] }
 pyo3-log = "0.12"
 
 # Memory security
@@ -36,4 +36,4 @@ subtle = "2"
 password-hash = "0.5"
 
 [build-dependencies]
-pyo3-build-config = "0.23"
+pyo3-build-config = "0.24"
