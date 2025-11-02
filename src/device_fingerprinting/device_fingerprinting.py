@@ -111,6 +111,7 @@ def _cleanup_resources() -> None:
     if _executor:
         _executor.shutdown(wait=False)
 
+
 # Register cleanup function
 atexit.register(_cleanup_resources)
 
@@ -175,20 +176,17 @@ def enable_admin_mode(admin_password: str) -> bool:
     # Validate password (in production, this should use proper authentication)
     # Using PBKDF2-HMAC-SHA256 for secure password hashing
     import hashlib
-    
+
     # Use PBKDF2 with high iteration count for password-based key derivation
     salt = b"device_fingerprint_admin_salt_v1"  # In production, use unique per-user salt
     expected_hash = hashlib.pbkdf2_hmac(
-        'sha256',
+        "sha256",
         f"{admin_password}_device_fingerprint_admin".encode(),
         salt,
-        100000  # 100,000 iterations
+        100000,  # 100,000 iterations
     )
     provided_hash = hashlib.pbkdf2_hmac(
-        'sha256',
-        f"{admin_password}_device_fingerprint_admin".encode(),
-        salt,
-        100000
+        "sha256", f"{admin_password}_device_fingerprint_admin".encode(), salt, 100000
     )
 
     if not secrets.compare_digest(expected_hash, provided_hash):

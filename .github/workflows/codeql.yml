@@ -1,12 +1,15 @@
 name: "CodeQL Advanced"
 
+# DISABLED: Conflicts with GitHub's default CodeQL setup
+# Re-enable this if you disable the default CodeQL scanning in repository settings
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
-  schedule:
-    - cron: '30 1 * * 0'  # Weekly on Sundays
+  workflow_dispatch:  # Manual trigger only
+  # push:
+  #   branches: [ main, develop ]
+  # pull_request:
+  #   branches: [ main ]
+  # schedule:
+  #   - cron: '30 1 * * 0'  # Weekly on Sundays
 
 permissions:
   actions: read
