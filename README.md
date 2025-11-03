@@ -572,7 +572,7 @@ The dashboard provides comprehensive analytics and visualizations including:
 
 To enhance this documentation, you can add a screenshot of your dashboard here.
 
-**Example placement (copy this outside of any code block when ready):**
+**Example markdown syntax (use this when ready):**
 
 ![Device Fingerprinting Dashboard](./docs/dashboard-screenshot.png)
 
@@ -582,7 +582,7 @@ To enhance this documentation, you can add a screenshot of your dashboard here.
 1. Create a `docs/` directory in your repository root (if it doesn't exist)
 2. Take a screenshot of your dashboard showing key metrics
 3. Save it as `dashboard-screenshot.png` in the `docs/` directory
-4. Add the markdown image reference (shown above) to this section
+4. Copy the markdown image reference shown above to your desired location in this section
 
 **Pro tip:** Update the screenshot periodically to reflect the latest dashboard features and metrics.
 
