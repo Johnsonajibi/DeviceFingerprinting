@@ -19,6 +19,7 @@ A Python library for hardware-based device fingerprinting with anomaly detection
 - [Usage](#usage)
   - [Quick Start Guide](#quick-start-guide)
   - [Basic Fingerprinting](#basic-fingerprinting)
+  - [Device Fingerprinting & Dashboard Integration](#device-fingerprinting--dashboard-integration)
   - [Secure Storage](#secure-storage)
   - [Anomaly Detection](#anomaly-detection)
   - [Advanced Usage](#advanced-usage-complete-integration)
@@ -433,6 +434,154 @@ print(f"Timestamp: {fingerprint_data['metadata']['timestamp']}")
     }
 }
 ```
+
+### Device Fingerprinting & Dashboard Integration
+
+This section demonstrates the complete workflow from generating a device fingerprint to visualizing analytics in a dashboard, ideal for monitoring device behavior and security insights.
+
+#### Step 1: Install the Library
+
+```bash
+# Install from PyPI
+pip install device-fingerprinting-pro
+
+# Or install with additional dependencies for backend integration
+pip install device-fingerprinting-pro requests
+```
+
+#### Step 2: Generate a Device Fingerprint
+
+```python
+from device_fingerprinting.production_fingerprint import ProductionFingerprintGenerator
+import json
+from datetime import datetime
+
+# Initialize the fingerprint generator
+generator = ProductionFingerprintGenerator()
+
+# Generate device fingerprint
+fingerprint_data = generator.generate_fingerprint()
+
+# Access key information
+device_id = fingerprint_data['fingerprint_hash']
+platform = fingerprint_data['system_info']['platform']
+cpu_model = fingerprint_data['hardware_info']['cpu_model']
+timestamp = fingerprint_data['metadata']['timestamp']
+
+print(f"Device ID: {device_id}")
+print(f"Platform: {platform}")
+print(f"CPU: {cpu_model}")
+```
+
+#### Step 3: Send Fingerprint Data to Backend for Dashboard Analytics
+
+The following example shows how to send fingerprint data to a backend API that integrates with ClickHouse for real-time dashboard analytics:
+
+```python
+import requests
+from device_fingerprinting.production_fingerprint import ProductionFingerprintGenerator
+from device_fingerprinting.ml_features import FeatureExtractor, AnomalyDetector
+
+# Initialize components
+generator = ProductionFingerprintGenerator()
+feature_extractor = FeatureExtractor()
+
+# Generate fingerprint
+fingerprint_data = generator.generate_fingerprint()
+
+# Collect system metrics for anomaly detection
+current_features = feature_extractor.collect_features()
+
+# Prepare data payload for ClickHouse backend
+payload = {
+    'device_id': fingerprint_data['fingerprint_hash'],
+    'timestamp': fingerprint_data['metadata']['timestamp'],
+    'platform': fingerprint_data['system_info']['platform'],
+    'cpu_model': fingerprint_data['hardware_info']['cpu_model'],
+    'cpu_cores': fingerprint_data['hardware_info']['cpu_cores'],
+    'mac_addresses': fingerprint_data['hardware_info'].get('mac_addresses', []),
+    'disk_serials': fingerprint_data['hardware_info'].get('disk_serials', []),
+    'cpu_usage_percent': current_features[0] if len(current_features) > 0 else 0,
+    'memory_usage_percent': current_features[1] if len(current_features) > 1 else 0,
+    'battery_level_percent': current_features[2] if len(current_features) > 2 else 0,
+    'anomaly_score': 0.0  # This will be populated by your anomaly detector
+}
+
+# Send data to backend API (replace with your actual endpoint)
+backend_url = "https://your-api-endpoint.com/api/fingerprints"
+headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_API_TOKEN'  # Add your authentication token
+}
+
+try:
+    response = requests.post(backend_url, json=payload, headers=headers)
+    if response.status_code == 200:
+        print("✓ Fingerprint data sent successfully to backend")
+        print(f"Response: {response.json()}")
+    else:
+        print(f"⚠ Failed to send data. Status code: {response.status_code}")
+except requests.exceptions.RequestException as e:
+    print(f"✗ Error sending data: {e}")
+```
+
+**Note:** For ClickHouse integration, your backend should insert data into a ClickHouse table with a schema similar to:
+
+```sql
+CREATE TABLE device_fingerprints (
+    device_id String,
+    timestamp DateTime,
+    platform String,
+    cpu_model String,
+    cpu_cores UInt32,
+    mac_addresses Array(String),
+    disk_serials Array(String),
+    cpu_usage_percent Float32,
+    memory_usage_percent Float32,
+    battery_level_percent Float32,
+    anomaly_score Float32
+) ENGINE = MergeTree()
+ORDER BY (timestamp, device_id);
+```
+
+#### Step 4: View Live Dashboard
+
+Access the live dashboard to visualize your device fingerprint analytics:
+
+🔗 **Dashboard URL:** [https://clickpy.clickhouse.com/dashboard/device-fingerprinting-pro](https://clickpy.clickhouse.com/dashboard/device-fingerprinting-pro)
+
+The dashboard provides real-time insights into your device fingerprinting data, powered by ClickHouse for high-performance analytics.
+
+#### Step 5: What the Dashboard Visualizes
+
+The dashboard provides comprehensive analytics and visualizations including:
+
+- **Device Fingerprints**: Unique device identifiers tracked over time
+- **Platform Distribution**: Breakdown of devices by operating system (Windows, macOS, Linux)
+- **Hardware Statistics**: CPU models, core counts, and hardware configurations
+- **Temporal Analysis**: Device activity patterns and registration timestamps
+- **Anomaly Scores**: Real-time monitoring of suspicious device behavior
+- **Geographic Distribution**: Device locations (if IP geolocation is enabled)
+- **Trend Analysis**: Historical trends in device registrations and activity
+- **Security Alerts**: Anomaly detection triggers and security events
+
+#### Step 6: Dashboard Screenshot
+
+To enhance this documentation, you can add a screenshot of your dashboard here:
+
+```markdown
+![Device Fingerprinting Dashboard](./docs/dashboard-screenshot.png)
+```
+
+**Recommended screenshot location:** `./docs/dashboard-screenshot.png`
+
+**Steps to add a screenshot:**
+1. Create a `docs/` directory in your repository root (if it doesn't exist)
+2. Take a screenshot of your dashboard showing key metrics
+3. Save it as `dashboard-screenshot.png` in the `docs/` directory
+4. Uncomment the markdown image reference above
+
+**Pro tip:** Update the screenshot periodically to reflect the latest dashboard features and metrics.
 
 ### Secure Storage
 
