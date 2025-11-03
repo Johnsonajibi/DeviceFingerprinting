@@ -501,9 +501,9 @@ payload = {
     'cpu_cores': fingerprint_data['hardware_info']['cpu_cores'],
     'mac_addresses': fingerprint_data['hardware_info'].get('mac_addresses', []),
     'disk_serials': fingerprint_data['hardware_info'].get('disk_serials', []),
-    'cpu_usage_percent': current_features[0][0] if len(current_features) > 0 else 0,
-    'memory_usage_percent': current_features[0][1] if len(current_features[0]) > 1 else 0,
-    'battery_level_percent': current_features[0][2] if len(current_features[0]) > 2 else 0,
+    'cpu_usage_percent': current_features[0][0] if len(current_features) > 0 and len(current_features[0]) > 0 else 0,
+    'memory_usage_percent': current_features[0][1] if len(current_features) > 0 and len(current_features[0]) > 1 else 0,
+    'battery_level_percent': current_features[0][2] if len(current_features) > 0 and len(current_features[0]) > 2 else 0,
     'anomaly_score': 0.0  # This will be populated by your anomaly detector
 }
 
