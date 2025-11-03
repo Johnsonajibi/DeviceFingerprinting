@@ -501,17 +501,18 @@ payload = {
     'cpu_cores': fingerprint_data['hardware_info']['cpu_cores'],
     'mac_addresses': fingerprint_data['hardware_info'].get('mac_addresses', []),
     'disk_serials': fingerprint_data['hardware_info'].get('disk_serials', []),
-    'cpu_usage_percent': current_features[0] if len(current_features) > 0 else 0,
-    'memory_usage_percent': current_features[1] if len(current_features) > 1 else 0,
-    'battery_level_percent': current_features[2] if len(current_features) > 2 else 0,
+    'cpu_usage_percent': current_features[0][0] if len(current_features) > 0 else 0,
+    'memory_usage_percent': current_features[0][1] if len(current_features[0]) > 1 else 0,
+    'battery_level_percent': current_features[0][2] if len(current_features[0]) > 2 else 0,
     'anomaly_score': 0.0  # This will be populated by your anomaly detector
 }
 
-# Send data to backend API (replace with your actual endpoint)
-backend_url = "https://your-api-endpoint.com/api/fingerprints"
+# Send data to backend API
+# NOTE: Replace with your actual backend endpoint and authentication token
+backend_url = "https://your-api-endpoint.com/api/fingerprints"  # Replace with your API endpoint
 headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer YOUR_API_TOKEN'  # Add your authentication token
+    'Authorization': 'Bearer YOUR_API_TOKEN'  # Replace with your actual API token
 }
 
 try:
@@ -550,6 +551,8 @@ Access the live dashboard to visualize your device fingerprint analytics:
 
 🔗 **Dashboard URL:** [https://clickpy.clickhouse.com/dashboard/device-fingerprinting-pro](https://clickpy.clickhouse.com/dashboard/device-fingerprinting-pro)
 
+**Note:** This is an example dashboard URL. Replace with your actual dashboard endpoint once you've configured ClickHouse and created your visualization dashboard.
+
 The dashboard provides real-time insights into your device fingerprinting data, powered by ClickHouse for high-performance analytics.
 
 #### Step 5: What the Dashboard Visualizes
@@ -567,11 +570,11 @@ The dashboard provides comprehensive analytics and visualizations including:
 
 #### Step 6: Dashboard Screenshot
 
-To enhance this documentation, you can add a screenshot of your dashboard here:
+To enhance this documentation, you can add a screenshot of your dashboard here.
 
-```markdown
+**Example placement (copy this outside of any code block when ready):**
+
 ![Device Fingerprinting Dashboard](./docs/dashboard-screenshot.png)
-```
 
 **Recommended screenshot location:** `./docs/dashboard-screenshot.png`
 
@@ -579,7 +582,7 @@ To enhance this documentation, you can add a screenshot of your dashboard here:
 1. Create a `docs/` directory in your repository root (if it doesn't exist)
 2. Take a screenshot of your dashboard showing key metrics
 3. Save it as `dashboard-screenshot.png` in the `docs/` directory
-4. Uncomment the markdown image reference above
+4. Add the markdown image reference (shown above) to this section
 
 **Pro tip:** Update the screenshot periodically to reflect the latest dashboard features and metrics.
 
