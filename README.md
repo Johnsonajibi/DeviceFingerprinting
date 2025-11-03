@@ -545,19 +545,22 @@ CREATE TABLE device_fingerprints (
 ORDER BY (timestamp, device_id);
 ```
 
-#### Step 4: View Live Dashboard
+#### Step 4: Set Up Your Dashboard
 
-Access the live dashboard to visualize your device fingerprint analytics:
+After sending fingerprint data to your backend, create a visualization dashboard to monitor your device analytics.
 
-🔗 **Dashboard URL:** [https://clickpy.clickhouse.com/dashboard/device-fingerprinting-pro](https://clickpy.clickhouse.com/dashboard/device-fingerprinting-pro)
+**Dashboard Setup Options:**
 
-**Note:** This is an example dashboard URL. Replace with your actual dashboard endpoint once you've configured ClickHouse and created your visualization dashboard.
+1. **ClickHouse + ClickPy**: Use ClickPy (ClickHouse's visualization tool) to create interactive dashboards
+   - Example URL format: `https://your-clickpy-instance.com/dashboard/your-dashboard-id`
+   
+2. **Other Visualization Tools**: Integrate with Grafana, Tableau, or custom dashboards that can query your ClickHouse backend
 
-The dashboard provides real-time insights into your device fingerprinting data, powered by ClickHouse for high-performance analytics.
+**Your dashboard can provide real-time insights into your device fingerprinting data, powered by ClickHouse for high-performance analytics.**
 
-#### Step 5: What the Dashboard Visualizes
+#### Step 5: Dashboard Visualizations
 
-The dashboard provides comprehensive analytics and visualizations including:
+Your dashboard can provide comprehensive analytics and visualizations including:
 
 - **Device Fingerprints**: Unique device identifiers tracked over time
 - **Platform Distribution**: Breakdown of devices by operating system (Windows, macOS, Linux)
