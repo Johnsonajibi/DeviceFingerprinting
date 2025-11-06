@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Start Guide | Device Fingerprinting Docs</title>
+    <style>
+        :root {
+            --slate-900: #0f172a;
+            --slate-800: #1e293b;
+            --slate-700: #334155;
+            --slate-600: #475569;
+            --slate-200: #e2e8f0;
+            --slate-100: #f1f5f9;
+            --brand: #2563eb;
+            --brand-dark: #1e40af;
+            --brand-soft: rgba(37, 99, 235, 0.12);
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.18);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a, #111827);
+            color: var(--slate-900);
+        }
+
+        .page {
+            display: grid;
+            grid-template-columns: 300px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 0;
+            align-self: start;
+            min-height: 100vh;
+            padding: 32px 28px;
+            background: linear-gradient(160deg, rgba(30, 64, 175, 0.95), rgba(8, 47, 73, 0.95));
+            color: #f8fafc;
+            box-shadow: inset -1px 0 0 rgba(148, 163, 184, 0.12);
+        }
+
+        .brand {
+            font-size: 1.35rem;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-bottom: 28px;
+        }
+
+        .brand a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .nav-title {
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            margin-bottom: 18px;
+            color: rgba(226, 232, 240, 0.7);
+        }
+
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 6px;
+        }
+
+        .nav-item a {
+            display: block;
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            color: rgba(248, 250, 252, 0.88);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .nav-item a:hover {
+            background: rgba(148, 163, 184, 0.18);
+            color: #fff;
+        }
+
+        .nav-item.active a {
+            background: rgba(37, 99, 235, 0.95);
+            color: #fff;
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
+        }
+
+        .content {
+            padding: 56px 72px;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.02), rgba(15, 23, 42, 0.06));
+        }
+
+        .content-inner {
+            max-width: 960px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            padding: 56px 56px 40px;
+        }
+
+        .page-header {
+            margin-bottom: 36px;
+            border-bottom: 1px solid var(--slate-200);
+            padding-bottom: 24px;
+        }
+
+        .page-header h1 {
+            font-size: 2.2rem;
+            margin: 0 0 12px;
+            color: var(--slate-900);
+        }
+
+        .page-meta {
+            font-size: 0.9rem;
+            color: var(--slate-600);
+        }
+
+        .doc-toc {
+            background: var(--slate-100);
+            border-radius: var(--radius-md);
+            padding: 24px 24px 16px;
+            margin-bottom: 32px;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+
+        .doc-toc strong {
+            display: block;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            color: var(--slate-700);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .doc-toc ul {
+            margin: 0;
+            padding-left: 20px;
+            color: var(--slate-700);
+        }
+
+        .doc-toc li {
+            margin-bottom: 6px;
+        }
+
+        article {
+            color: var(--slate-800);
+            font-size: 1rem;
+            line-height: 1.75;
+        }
+
+        article h2 {
+            margin-top: 40px;
+            margin-bottom: 16px;
+            font-size: 1.55rem;
+            color: var(--slate-900);
+        }
+
+        article h3 {
+            margin-top: 28px;
+            margin-bottom: 12px;
+            font-size: 1.25rem;
+            color: var(--slate-800);
+        }
+
+        article h4 {
+            margin-top: 24px;
+            margin-bottom: 10px;
+            font-size: 1.05rem;
+            color: var(--slate-700);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        article p {
+            margin: 0 0 16px;
+        }
+
+        article code {
+            background: rgba(37, 99, 235, 0.08);
+            color: var(--brand-dark);
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 0.92rem;
+        }
+
+        pre {
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 20px 24px;
+            border-radius: var(--radius-sm);
+            overflow-x: auto;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 24px 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 28px 0;
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.28);
+        }
+
+        th {
+            background: var(--brand);
+            color: #fff;
+            font-weight: 600;
+            border-bottom: none;
+        }
+
+        tr:nth-child(even) td {
+            background: rgba(148, 163, 184, 0.08);
+        }
+
+        blockquote {
+            margin: 24px 0;
+            padding: 18px 24px;
+            border-left: 4px solid var(--brand);
+            background: var(--brand-soft);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            color: var(--slate-700);
+            font-style: italic;
+        }
+
+        a {
+            color: var(--brand-dark);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .pager {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 1px solid var(--slate-200);
+            gap: 16px;
+        }
+
+        .pager-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: var(--radius-sm);
+            background: rgba(37, 99, 235, 0.08);
+            color: var(--brand-dark);
+            font-weight: 600;
+        }
+
+        .pager-link:hover {
+            background: rgba(37, 99, 235, 0.18);
+            text-decoration: none;
+        }
+
+        .page-footer {
+            margin-top: 32px;
+            font-size: 0.88rem;
+            color: var(--slate-600);
+        }
+
+        .no-nav {
+            justify-content: flex-end;
+        }
+
+        @media (max-width: 1080px) {
+            .page {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .sidebar {
+                position: relative;
+                min-height: auto;
+                border-radius: 0 0 var(--radius-md) var(--radius-md);
+            }
+
+            .content {
+                padding: 32px 24px;
+            }
+
+            .content-inner {
+                padding: 36px 26px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <aside class="sidebar">
+            <div class="brand"><a href="WIKI_HOME.html">Device Fingerprinting Docs</a></div>
+            <div class="nav-title">Documentation</div>
+            <ul class="nav-list"><li class="nav-item"><a href="WIKI_HOME.html">Device Fingerprinting Library - Documentation</a></li>
+<li class="nav-item"><a href="WIKI_API_CORE.html">API Reference - Core</a></li>
+<li class="nav-item"><a href="WIKI_BASIC_EXAMPLES.html">Basic Examples</a></li>
+<li class="nav-item"><a href="WIKI_DEPLOYMENT.html">Deployment Guide</a></li>
+<li class="nav-item"><a href="WIKI_INSTALLATION.html">Installation Guide</a></li>
+<li class="nav-item"><a href="WIKI_PQC.html">Post-Quantum Cryptography (PQC) Guide</a></li>
+<li class="nav-item active"><a href="WIKI_QUICK_START.html">Quick Start Guide</a></li>
+<li class="nav-item"><a href="WIKI_SECURITY.html">Security Architecture</a></li></ul>
+        </aside>
+        <section class="content">
+            <div class="content-inner">
+                <header class="page-header">
+                    <h1>Quick Start Guide</h1>
+                    <div class="page-meta">Generated on 2025-11-05 20:17</div>
+                </header>
+                <aside class="doc-toc"><strong>On this page</strong><ul>
+<li><a href="#table-of-contents">📋 Table of Contents</a></li>
+<li><a href="#basic-usage">Basic Usage</a><ul>
+<li><a href="#simple-fingerprint-generation">Simple Fingerprint Generation</a></li>
+<li><a href="#device-binding">Device Binding</a></li>
+</ul>
+</li>
+<li><a href="#common-patterns">Common Patterns</a><ul>
+<li><a href="#1-software-licensing">1. Software Licensing</a></li>
+<li><a href="#2-user-authentication">2. User Authentication</a></li>
+<li><a href="#3-fraud-detection">3. Fraud Detection</a></li>
+</ul>
+</li>
+<li><a href="#configuration">Configuration</a><ul>
+<li><a href="#basic-configuration">Basic Configuration</a></li>
+<li><a href="#backend-configuration">Backend Configuration</a></li>
+<li><a href="#post-quantum-cryptography">Post-Quantum Cryptography</a></li>
+</ul>
+</li>
+<li><a href="#error-handling">Error Handling</a><ul>
+<li><a href="#basic-error-handling">Basic Error Handling</a></li>
+<li><a href="#verification-error-handling">Verification Error Handling</a></li>
+</ul>
+</li>
+<li><a href="#best-practices">Best Practices</a><ul>
+<li><a href="#dos">✅ Do's</a></li>
+<li><a href="#donts">❌ Don'ts</a></li>
+</ul>
+</li>
+<li><a href="#performance-tips">Performance Tips</a><ul>
+<li><a href="#caching">Caching</a></li>
+<li><a href="#async-usage">Async Usage</a></li>
+</ul>
+</li>
+<li><a href="#testing-your-integration">Testing Your Integration</a><ul>
+<li><a href="#unit-test-example">Unit Test Example</a></li>
+</ul>
+</li>
+<li><a href="#next-steps">Next Steps</a></li>
+<li><a href="#common-questions">Common Questions</a></li>
+</ul></aside>
+                <article>
+                    <p>Get up and running with Device Fingerprinting in 5 minutes.</p>
+<h2 id="table-of-contents">📋 Table of Contents</h2>
+<ul>
+<li><a href="#basic-usage">Basic Usage</a></li>
+<li><a href="#common-patterns">Common Patterns</a></li>
+<li><a href="#configuration">Configuration</a></li>
+<li><a href="#next-steps">Next Steps</a></li>
+</ul>
+<hr />
+<h2 id="basic-usage">Basic Usage</h2>
+<h3 id="simple-fingerprint-generation">Simple Fingerprint Generation</h3>
+<pre><code class="language-python">from device_fingerprinting import DeviceFingerprinter
+
+# Create instance
+fingerprinter = DeviceFingerprinter()
+
+# Generate fingerprint
+result = fingerprinter.generate()
+
+# Access results
+print(f&quot;Fingerprint: {result.fingerprint}&quot;)
+print(f&quot;Confidence: {result.confidence_score}&quot;)
+print(f&quot;Components: {result.components_used}&quot;)
+</code></pre>
+<p><strong>Output:</strong></p>
+<pre><code>Fingerprint: a1b2c3d4e5f6...
+Confidence: 0.95
+Components: ['cpu', 'ram', 'storage', 'network']
+</code></pre>
+<h3 id="device-binding">Device Binding</h3>
+<pre><code class="language-python">from device_fingerprinting import DeviceFingerprinter
+
+fingerprinter = DeviceFingerprinter()
+
+# Generate and bind license
+license_token = &quot;YOUR-LICENSE-KEY-12345&quot;
+bound_token = fingerprinter.bind_token(license_token)
+
+# Store bound token securely
+print(f&quot;Bound Token: {bound_token}&quot;)
+
+# Later: Verify device
+is_valid = fingerprinter.verify_token(bound_token)
+print(f&quot;Valid: {is_valid}&quot;)  # True on same device
+</code></pre>
+<hr />
+<h2 id="common-patterns">Common Patterns</h2>
+<h3 id="1-software-licensing">1. Software Licensing</h3>
+<pre><code class="language-python">from device_fingerprinting import DeviceFingerprinter
+
+class LicenseManager:
+    def __init__(self):
+        self.fingerprinter = DeviceFingerprinter()
+
+    def activate_license(self, license_key):
+        &quot;&quot;&quot;Bind license to this device&quot;&quot;&quot;
+        bound_token = self.fingerprinter.bind_token(license_key)
+        # Store in database or config file
+        return bound_token
+
+    def verify_license(self, bound_token):
+        &quot;&quot;&quot;Check if license is valid on this device&quot;&quot;&quot;
+        return self.fingerprinter.verify_token(bound_token)
+
+# Usage
+manager = LicenseManager()
+
+# On first activation
+token = manager.activate_license(&quot;ABC-123-XYZ&quot;)
+print(f&quot;License activated: {token}&quot;)
+
+# On each app startup
+if manager.verify_license(token):
+    print(&quot;✅ License valid!&quot;)
+else:
+    print(&quot;❌ License invalid or different device!&quot;)
+</code></pre>
+<h3 id="2-user-authentication">2. User Authentication</h3>
+<pre><code class="language-python">from device_fingerprinting import DeviceFingerprinter
+import json
+
+class DeviceAuth:
+    def __init__(self):
+        self.fingerprinter = DeviceFingerprinter()
+
+    def register_device(self, user_id):
+        &quot;&quot;&quot;Register current device for user&quot;&quot;&quot;
+        result = self.fingerprinter.generate()
+
+        device_data = {
+            'user_id': user_id,
+            'fingerprint': result.fingerprint,
+            'confidence': result.confidence_score,
+            'registered_at': result.metadata['timestamp']
+        }
+        return device_data
+
+    def verify_device(self, user_id, stored_fingerprint):
+        &quot;&quot;&quot;Verify if current device matches registered device&quot;&quot;&quot;
+        current = self.fingerprinter.generate()
+
+        # Simple comparison (production should use verify_token)
+        return current.fingerprint == stored_fingerprint
+
+# Usage
+auth = DeviceAuth()
+
+# Registration
+device_info = auth.register_device(user_id=&quot;user123&quot;)
+print(f&quot;Device registered: {device_info['fingerprint'][:20]}...&quot;)
+
+# Verification
+is_same_device = auth.verify_device(&quot;user123&quot;, device_info['fingerprint'])
+print(f&quot;Same device: {is_same_device}&quot;)
+</code></pre>
+<h3 id="3-fraud-detection">3. Fraud Detection</h3>
+<pre><code class="language-python">from device_fingerprinting import DeviceFingerprinter
+
+class FraudDetector:
+    def __init__(self):
+        self.fingerprinter = DeviceFingerprinter(
+            enable_ml=True,  # Enable ML detection
+            advanced_mode=True
+        )
+        self.known_devices = {}
+
+    def check_transaction(self, user_id, transaction_id):
+        &quot;&quot;&quot;Check if transaction is from known device&quot;&quot;&quot;
+        result = self.fingerprinter.generate()
+
+        risk_score = 0.0
+
+        # Check against known devices
+        if user_id in self.known_devices:
+            known_fp = self.known_devices[user_id]
+            if result.fingerprint != known_fp:
+                risk_score += 0.5
+
+        # Low confidence = higher risk
+        if result.confidence_score &lt; 0.8:
+            risk_score += 0.3
+
+        # Check anomalies (if ML enabled)
+        if hasattr(result, 'anomaly_score'):
+            risk_score += result.anomaly_score
+
+        return {
+            'transaction_id': transaction_id,
+            'risk_score': min(risk_score, 1.0),
+            'fingerprint': result.fingerprint,
+            'allow': risk_score &lt; 0.7
+        }
+
+    def add_trusted_device(self, user_id):
+        &quot;&quot;&quot;Add current device as trusted&quot;&quot;&quot;
+        result = self.fingerprinter.generate()
+        self.known_devices[user_id] = result.fingerprint
+
+# Usage
+detector = FraudDetector()
+
+# Add trusted device
+detector.add_trusted_device(&quot;user123&quot;)
+
+# Check transaction
+fraud_check = detector.check_transaction(&quot;user123&quot;, &quot;txn_001&quot;)
+print(f&quot;Risk Score: {fraud_check['risk_score']}&quot;)
+print(f&quot;Allow: {fraud_check['allow']}&quot;)
+</code></pre>
+<hr />
+<h2 id="configuration">Configuration</h2>
+<h3 id="basic-configuration">Basic Configuration</h3>
+<pre><code class="language-python">from device_fingerprinting import DeviceFingerprinter
+
+# Create with custom settings
+fingerprinter = DeviceFingerprinter(
+    include_network=True,      # Include network adapters
+    include_usb=False,         # Exclude USB devices
+    enable_ml=True,            # Enable ML anomaly detection
+    advanced_mode=True,        # Use advanced fingerprinting
+    cache_duration=3600        # Cache for 1 hour
+)
+</code></pre>
+<h3 id="backend-configuration">Backend Configuration</h3>
+<pre><code class="language-python">from device_fingerprinting import DeviceFingerprinter
+from device_fingerprinting.backends import CryptoBackend, StorageBackend
+
+# Custom crypto backend
+class MyCustomCrypto(CryptoBackend):
+    def hash(self, data: str) -&gt; str:
+        # Custom hashing logic
+        return hashlib.sha256(data.encode()).hexdigest()
+
+# Use custom backend
+fingerprinter = DeviceFingerprinter(
+    crypto_backend=MyCustomCrypto()
+)
+</code></pre>
+<h3 id="post-quantum-cryptography">Post-Quantum Cryptography</h3>
+<pre><code class="language-python">from device_fingerprinting import DeviceFingerprinter
+from device_fingerprinting.hybrid_pqc import HybridPQC
+
+# Enable PQC protection
+fingerprinter = DeviceFingerprinter()
+
+# Create PQC backend
+pqc = HybridPQC()
+
+# Bind token with PQC signatures
+license_key = &quot;ABC-123-XYZ&quot;
+bound_token = fingerprinter.bind_token(license_key)
+
+# Add PQC signature
+data = f&quot;{license_key}:{fingerprinter.generate().fingerprint}&quot;
+signature = pqc.sign(data)
+
+# Verify with PQC
+is_valid = pqc.verify(data, signature)
+print(f&quot;PQC Verification: {is_valid}&quot;)
+</code></pre>
+<hr />
+<h2 id="error-handling">Error Handling</h2>
+<h3 id="basic-error-handling">Basic Error Handling</h3>
+<pre><code class="language-python">from device_fingerprinting import DeviceFingerprinter
+from device_fingerprinting.exceptions import (
+    FingerprintError,
+    VerificationError,
+    HardwareError
+)
+
+fingerprinter = DeviceFingerprinter()
+
+try:
+    result = fingerprinter.generate()
+    print(f&quot;Success: {result.fingerprint}&quot;)
+
+except HardwareError as e:
+    print(f&quot;Hardware access error: {e}&quot;)
+    # Fallback to basic fingerprinting
+
+except FingerprintError as e:
+    print(f&quot;Fingerprint generation failed: {e}&quot;)
+    # Handle gracefully
+
+except Exception as e:
+    print(f&quot;Unexpected error: {e}&quot;)
+</code></pre>
+<h3 id="verification-error-handling">Verification Error Handling</h3>
+<pre><code class="language-python">try:
+    is_valid = fingerprinter.verify_token(bound_token)
+
+    if not is_valid:
+        print(&quot;⚠️ Device mismatch detected&quot;)
+        # Log security event
+        # Request re-authentication
+    else:
+        print(&quot;✅ Device verified&quot;)
+
+except VerificationError as e:
+    print(f&quot;Verification failed: {e}&quot;)
+    # Token corrupted or invalid
+</code></pre>
+<hr />
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="dos">✅ Do's</h3>
+<pre><code class="language-python"># ✅ Cache fingerprints appropriately
+fingerprinter = DeviceFingerprinter(cache_duration=3600)
+
+# ✅ Use token binding for security
+bound_token = fingerprinter.bind_token(license_key)
+
+# ✅ Check confidence scores
+result = fingerprinter.generate()
+if result.confidence_score &lt; 0.7:
+    print(&quot;⚠️ Low confidence, hardware may have changed&quot;)
+
+# ✅ Handle errors gracefully
+try:
+    result = fingerprinter.generate()
+except Exception:
+    # Fallback logic
+    pass
+
+# ✅ Store bound tokens securely
+# Use encrypted storage, not plain text
+</code></pre>
+<h3 id="donts">❌ Don'ts</h3>
+<pre><code class="language-python"># ❌ Don't store raw fingerprints in plain text
+# BAD: open('fingerprint.txt', 'w').write(fingerprint)
+
+# ❌ Don't compare fingerprints directly
+# BAD: if fp1 == fp2:
+# GOOD: if fingerprinter.verify_token(bound_token):
+
+# ❌ Don't ignore confidence scores
+# BAD: result = fingerprinter.generate()  # and use blindly
+
+# ❌ Don't generate fingerprints too frequently
+# BAD: for i in range(1000): fingerprinter.generate()
+# GOOD: Use caching
+
+# ❌ Don't expose internal hardware details
+# BAD: print(result.raw_components)  # May leak sensitive info
+</code></pre>
+<hr />
+<h2 id="performance-tips">Performance Tips</h2>
+<h3 id="caching">Caching</h3>
+<pre><code class="language-python"># Enable caching for better performance
+fingerprinter = DeviceFingerprinter(cache_duration=3600)
+
+# First call: ~200-500ms
+result1 = fingerprinter.generate()
+
+# Subsequent calls: ~1-5ms (cached)
+result2 = fingerprinter.generate()
+</code></pre>
+<h3 id="async-usage">Async Usage</h3>
+<pre><code class="language-python">import asyncio
+from device_fingerprinting import DeviceFingerprinter
+
+async def verify_multiple_devices(tokens):
+    fingerprinter = DeviceFingerprinter()
+
+    tasks = [
+        asyncio.to_thread(fingerprinter.verify_token, token)
+        for token in tokens
+    ]
+
+    results = await asyncio.gather(*tasks)
+    return results
+
+# Usage
+tokens = [&quot;token1&quot;, &quot;token2&quot;, &quot;token3&quot;]
+results = asyncio.run(verify_multiple_devices(tokens))
+</code></pre>
+<hr />
+<h2 id="testing-your-integration">Testing Your Integration</h2>
+<h3 id="unit-test-example">Unit Test Example</h3>
+<pre><code class="language-python">import unittest
+from device_fingerprinting import DeviceFingerprinter
+
+class TestFingerprinting(unittest.TestCase):
+    def setUp(self):
+        self.fingerprinter = DeviceFingerprinter()
+
+    def test_generate_fingerprint(self):
+        result = self.fingerprinter.generate()
+        self.assertIsNotNone(result.fingerprint)
+        self.assertGreater(result.confidence_score, 0)
+
+    def test_token_binding(self):
+        token = &quot;test-token-123&quot;
+        bound = self.fingerprinter.bind_token(token)
+        self.assertTrue(self.fingerprinter.verify_token(bound))
+
+    def test_verification_fails_on_invalid(self):
+        invalid_token = &quot;invalid-token-xyz&quot;
+        self.assertFalse(self.fingerprinter.verify_token(invalid_token))
+
+if __name__ == '__main__':
+    unittest.main()
+</code></pre>
+<hr />
+<h2 id="next-steps">Next Steps</h2>
+<p>Now that you have the basics:</p>
+<ol>
+<li><strong>Explore Examples</strong>: <a href="WIKI_BASIC_EXAMPLES.html">Basic Examples →</a></li>
+<li><strong>Learn About Backends</strong>: <a href="WIKI_BACKENDS.md">Backend Configuration →</a></li>
+<li><strong>Security Setup</strong>: <a href="WIKI_SECURITY.html">Security Guide →</a></li>
+<li><strong>Enable PQC</strong>: <a href="WIKI_PQC.html">Post-Quantum Crypto →</a></li>
+<li><strong>Production Deploy</strong>: <a href="WIKI_DEPLOYMENT.html">Deployment Guide →</a></li>
+</ol>
+<hr />
+<h2 id="common-questions">Common Questions</h2>
+<p><strong>Q: How stable are fingerprints?</strong><br />
+A: Fingerprints remain consistent across reboots and minor system changes. Major hardware modifications (CPU or RAM replacement) will change the fingerprint.</p>
+<p><strong>Q: Can users bypass fingerprinting?</strong><br />
+A: Determined users with virtualization or emulation tools may attempt to circumvent fingerprinting. Implement additional verification layers for sensitive applications.</p>
+<p><strong>Q: Does this work in virtual machines?</strong><br />
+A: Yes, but VM fingerprints may be less distinctive than physical hardware. Enable <code>advanced_mode=True</code> for improved differentiation.</p>
+<p><strong>Q: What is the performance impact?</strong><br />
+A: Initial fingerprint generation typically takes 200-500ms. Cached results return in 1-5ms. CPU and memory overhead is minimal.</p>
+<p><strong>Q: Is this GDPR compliant?</strong><br />
+A: Fingerprints are hashed hardware identifiers and don't contain personal data. However, consult legal counsel regarding your specific implementation and jurisdiction.</p>
+<hr />
+<p><strong>Navigation</strong>: <a href="WIKI_INSTALLATION.html">← Installation</a> | <a href="WIKI_HOME.html">Home</a> | <a href="WIKI_BASIC_EXAMPLES.html">Examples →</a></p>
+                </article>
+                <footer class="page-footer">
+                    <div class="pager ">
+                        <a class="pager-link prev" href="WIKI_PQC.html">&#8592; Post-Quantum Cryptography (PQC) Guide</a>
+                        <a class="pager-link next" href="WIKI_SECURITY.html">Security Architecture &#8594;</a>
+                    </div>
+                </footer>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

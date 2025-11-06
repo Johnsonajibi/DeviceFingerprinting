@@ -121,9 +121,6 @@ jobs:
         mode: 'batch'
         sanitizer: ${{ matrix.sanitizer }}
         parallel-fuzzing: true
-        storage-repo: https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-        storage-repo-branch: gh-pages
-        storage-repo-branch-coverage: gh-pages
         minimize-crashes: true  # Minimize crash testcases to reduce noise
         
     - name: Upload Crash Artifacts
@@ -137,7 +134,7 @@ jobs:
   # Summary report
   Summary:
     if: always()
-    needs: [Build, PR-Fuzzing, Batch-Fuzzing]
+    needs: [Build]
     runs-on: ubuntu-latest
     steps:
     - name: Generate Fuzzing Summary

@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deployment Guide | Device Fingerprinting Docs</title>
+    <style>
+        :root {
+            --slate-900: #0f172a;
+            --slate-800: #1e293b;
+            --slate-700: #334155;
+            --slate-600: #475569;
+            --slate-200: #e2e8f0;
+            --slate-100: #f1f5f9;
+            --brand: #2563eb;
+            --brand-dark: #1e40af;
+            --brand-soft: rgba(37, 99, 235, 0.12);
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.18);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a, #111827);
+            color: var(--slate-900);
+        }
+
+        .page {
+            display: grid;
+            grid-template-columns: 300px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 0;
+            align-self: start;
+            min-height: 100vh;
+            padding: 32px 28px;
+            background: linear-gradient(160deg, rgba(30, 64, 175, 0.95), rgba(8, 47, 73, 0.95));
+            color: #f8fafc;
+            box-shadow: inset -1px 0 0 rgba(148, 163, 184, 0.12);
+        }
+
+        .brand {
+            font-size: 1.35rem;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-bottom: 28px;
+        }
+
+        .brand a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .nav-title {
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            margin-bottom: 18px;
+            color: rgba(226, 232, 240, 0.7);
+        }
+
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 6px;
+        }
+
+        .nav-item a {
+            display: block;
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            color: rgba(248, 250, 252, 0.88);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .nav-item a:hover {
+            background: rgba(148, 163, 184, 0.18);
+            color: #fff;
+        }
+
+        .nav-item.active a {
+            background: rgba(37, 99, 235, 0.95);
+            color: #fff;
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
+        }
+
+        .content {
+            padding: 56px 72px;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.02), rgba(15, 23, 42, 0.06));
+        }
+
+        .content-inner {
+            max-width: 960px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            padding: 56px 56px 40px;
+        }
+
+        .page-header {
+            margin-bottom: 36px;
+            border-bottom: 1px solid var(--slate-200);
+            padding-bottom: 24px;
+        }
+
+        .page-header h1 {
+            font-size: 2.2rem;
+            margin: 0 0 12px;
+            color: var(--slate-900);
+        }
+
+        .page-meta {
+            font-size: 0.9rem;
+            color: var(--slate-600);
+        }
+
+        .doc-toc {
+            background: var(--slate-100);
+            border-radius: var(--radius-md);
+            padding: 24px 24px 16px;
+            margin-bottom: 32px;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+
+        .doc-toc strong {
+            display: block;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            color: var(--slate-700);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .doc-toc ul {
+            margin: 0;
+            padding-left: 20px;
+            color: var(--slate-700);
+        }
+
+        .doc-toc li {
+            margin-bottom: 6px;
+        }
+
+        article {
+            color: var(--slate-800);
+            font-size: 1rem;
+            line-height: 1.75;
+        }
+
+        article h2 {
+            margin-top: 40px;
+            margin-bottom: 16px;
+            font-size: 1.55rem;
+            color: var(--slate-900);
+        }
+
+        article h3 {
+            margin-top: 28px;
+            margin-bottom: 12px;
+            font-size: 1.25rem;
+            color: var(--slate-800);
+        }
+
+        article h4 {
+            margin-top: 24px;
+            margin-bottom: 10px;
+            font-size: 1.05rem;
+            color: var(--slate-700);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        article p {
+            margin: 0 0 16px;
+        }
+
+        article code {
+            background: rgba(37, 99, 235, 0.08);
+            color: var(--brand-dark);
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 0.92rem;
+        }
+
+        pre {
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 20px 24px;
+            border-radius: var(--radius-sm);
+            overflow-x: auto;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 24px 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 28px 0;
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.28);
+        }
+
+        th {
+            background: var(--brand);
+            color: #fff;
+            font-weight: 600;
+            border-bottom: none;
+        }
+
+        tr:nth-child(even) td {
+            background: rgba(148, 163, 184, 0.08);
+        }
+
+        blockquote {
+            margin: 24px 0;
+            padding: 18px 24px;
+            border-left: 4px solid var(--brand);
+            background: var(--brand-soft);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            color: var(--slate-700);
+            font-style: italic;
+        }
+
+        a {
+            color: var(--brand-dark);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .pager {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 1px solid var(--slate-200);
+            gap: 16px;
+        }
+
+        .pager-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: var(--radius-sm);
+            background: rgba(37, 99, 235, 0.08);
+            color: var(--brand-dark);
+            font-weight: 600;
+        }
+
+        .pager-link:hover {
+            background: rgba(37, 99, 235, 0.18);
+            text-decoration: none;
+        }
+
+        .page-footer {
+            margin-top: 32px;
+            font-size: 0.88rem;
+            color: var(--slate-600);
+        }
+
+        .no-nav {
+            justify-content: flex-end;
+        }
+
+        @media (max-width: 1080px) {
+            .page {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .sidebar {
+                position: relative;
+                min-height: auto;
+                border-radius: 0 0 var(--radius-md) var(--radius-md);
+            }
+
+            .content {
+                padding: 32px 24px;
+            }
+
+            .content-inner {
+                padding: 36px 26px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <aside class="sidebar">
+            <div class="brand"><a href="WIKI_HOME.html">Device Fingerprinting Docs</a></div>
+            <div class="nav-title">Documentation</div>
+            <ul class="nav-list"><li class="nav-item"><a href="WIKI_HOME.html">Device Fingerprinting Library - Documentation</a></li>
+<li class="nav-item"><a href="WIKI_API_CORE.html">API Reference - Core</a></li>
+<li class="nav-item"><a href="WIKI_BASIC_EXAMPLES.html">Basic Examples</a></li>
+<li class="nav-item active"><a href="WIKI_DEPLOYMENT.html">Deployment Guide</a></li>
+<li class="nav-item"><a href="WIKI_INSTALLATION.html">Installation Guide</a></li>
+<li class="nav-item"><a href="WIKI_PQC.html">Post-Quantum Cryptography (PQC) Guide</a></li>
+<li class="nav-item"><a href="WIKI_QUICK_START.html">Quick Start Guide</a></li>
+<li class="nav-item"><a href="WIKI_SECURITY.html">Security Architecture</a></li></ul>
+        </aside>
+        <section class="content">
+            <div class="content-inner">
+                <header class="page-header">
+                    <h1>Deployment Guide</h1>
+                    <div class="page-meta">Generated on 2025-11-05 20:17</div>
+                </header>
+                <aside class="doc-toc"><strong>On this page</strong><ul>
+<li><a href="#table-of-contents">📋 Table of Contents</a></li>
+<li><a href="#pre-deployment-checklist">Pre-Deployment Checklist</a><ul>
+<li><a href="#essential-requirements">Essential Requirements</a></li>
+<li><a href="#security-checklist">Security Checklist</a></li>
+</ul>
+</li>
+<li><a href="#installation-setup">Installation &amp; Setup</a><ul>
+<li><a href="#1-environment-setup">1. Environment Setup</a></li>
+<li><a href="#2-install-dependencies">2. Install Dependencies</a></li>
+<li><a href="#3-verify-security">3. Verify Security</a></li>
+</ul>
+</li>
+<li><a href="#configuration">Configuration</a><ul>
+<li><a href="#1-environment-variables">1. Environment Variables</a></li>
+<li><a href="#2-application-configuration">2. Application Configuration</a></li>
+<li><a href="#3-initialize-application">3. Initialize Application</a></li>
+</ul>
+</li>
+<li><a href="#security-hardening">Security Hardening</a><ul>
+<li><a href="#1-file-permissions">1. File Permissions</a></li>
+<li><a href="#2-firewall-configuration">2. Firewall Configuration</a></li>
+<li><a href="#3-system-hardening">3. System Hardening</a></li>
+<li><a href="#4-code-obfuscation">4. Code Obfuscation</a></li>
+</ul>
+</li>
+<li><a href="#performance-optimization">Performance Optimization</a><ul>
+<li><a href="#1-caching-strategy">1. Caching Strategy</a></li>
+<li><a href="#2-async-operations">2. Async Operations</a></li>
+<li><a href="#3-database-optimization">3. Database Optimization</a></li>
+</ul>
+</li>
+<li><a href="#monitoring-logging">Monitoring &amp; Logging</a><ul>
+<li><a href="#1-application-logging">1. Application Logging</a></li>
+<li><a href="#2-security-audit-logging">2. Security Audit Logging</a></li>
+<li><a href="#3-prometheus-metrics">3. Prometheus Metrics</a></li>
+<li><a href="#4-health-checks">4. Health Checks</a></li>
+</ul>
+</li>
+<li><a href="#troubleshooting">Troubleshooting</a><ul>
+<li><a href="#common-issues">Common Issues</a><ul>
+<li><a href="#issue-1-pqc-not-available">Issue 1: PQC Not Available</a></li>
+<li><a href="#issue-2-high-memory-usage">Issue 2: High Memory Usage</a></li>
+<li><a href="#issue-3-slow-verification">Issue 3: Slow Verification</a></li>
+<li><a href="#issue-4-storage-errors">Issue 4: Storage Errors</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#next-steps">Next Steps</a></li>
+</ul></aside>
+                <article>
+                    <p>This guide covers deploying the Device Fingerprinting library in enterprise environments.</p>
+<h2 id="table-of-contents">📋 Table of Contents</h2>
+<ul>
+<li><a href="#pre-deployment-checklist">Pre-Deployment Checklist</a></li>
+<li><a href="#installation--setup">Installation &amp; Setup</a></li>
+<li><a href="#configuration">Configuration</a></li>
+<li><a href="#security-hardening">Security Hardening</a></li>
+<li><a href="#performance-optimization">Performance Optimization</a></li>
+<li><a href="#monitoring--logging">Monitoring &amp; Logging</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+<hr />
+<h2 id="pre-deployment-checklist">Pre-Deployment Checklist</h2>
+<h3 id="essential-requirements">Essential Requirements</h3>
+<ul>
+<li>[ ] Python 3.9+ installed</li>
+<li>[ ] Virtual environment configured</li>
+<li>[ ] All dependencies installed</li>
+<li>[ ] PQC libraries verified (<code>pqcdualusb&gt;=0.15.5</code>)</li>
+<li>[ ] Security scan completed (0 vulnerabilities)</li>
+<li>[ ] Tests passing (100% critical paths)</li>
+<li>[ ] Configuration reviewed</li>
+<li>[ ] Backup strategy defined</li>
+<li>[ ] Monitoring configured</li>
+<li>[ ] Documentation reviewed</li>
+</ul>
+<h3 id="security-checklist">Security Checklist</h3>
+<ul>
+<li>[ ] PQC enabled and tested</li>
+<li>[ ] Token binding implemented</li>
+<li>[ ] Encrypted storage configured</li>
+<li>[ ] Rate limiting implemented</li>
+<li>[ ] Audit logging enabled</li>
+<li>[ ] Error handling secured</li>
+<li>[ ] Code obfuscated (if applicable)</li>
+<li>[ ] HTTPS enforced</li>
+<li>[ ] Secrets management configured</li>
+<li>[ ] Incident response plan ready</li>
+</ul>
+<hr />
+<h2 id="installation-setup">Installation &amp; Setup</h2>
+<h3 id="1-environment-setup">1. Environment Setup</h3>
+<pre><code class="language-bash"># Create production directory
+mkdir -p /opt/your_app
+cd /opt/your_app
+
+# Create virtual environment
+python3.11 -m venv venv
+
+# Activate
+source venv/bin/activate  # Linux/macOS
+# or
+venv\Scripts\activate  # Windows
+
+# Upgrade pip
+pip install --upgrade pip setuptools wheel
+</code></pre>
+<h3 id="2-install-dependencies">2. Install Dependencies</h3>
+<pre><code class="language-bash"># Install with all production features
+pip install device-fingerprinting-pro[pqc,cloud]
+
+# Verify installation
+python -c &quot;from device_fingerprinting import DeviceFingerprinter; print('✅ Ready')&quot;
+python -c &quot;from device_fingerprinting.hybrid_pqc import HybridPQC; print('✅ PQC Ready')&quot;
+</code></pre>
+<h3 id="3-verify-security">3. Verify Security</h3>
+<pre><code class="language-bash"># Check for vulnerabilities
+pip install pip-audit
+pip-audit
+
+# Expected output: Found 0 known vulnerabilities
+
+# Verify PQC
+python &lt;&lt; EOF
+from device_fingerprinting.hybrid_pqc import HybridPQC
+pqc = HybridPQC()
+info = pqc.get_info()
+assert info['pqc_available'], &quot;PQC not available&quot;
+assert info['algorithm'] == 'Dilithium3', &quot;Unexpected algorithm&quot;
+print(f&quot;PQC Verified: {info['pqc_library']}&quot;)
+EOF
+</code></pre>
+<hr />
+<h2 id="configuration">Configuration</h2>
+<h3 id="1-environment-variables">1. Environment Variables</h3>
+<p>Create <code>.env</code> file:</p>
+<pre><code class="language-bash"># Application Settings
+APP_ENV=production
+APP_DEBUG=false
+APP_LOG_LEVEL=INFO
+
+# Device Fingerprinting
+FINGERPRINT_CACHE_DURATION=3600  # 1 hour
+FINGERPRINT_INCLUDE_NETWORK=true
+FINGERPRINT_INCLUDE_USB=false
+FINGERPRINT_ADVANCED_MODE=true
+FINGERPRINT_ENABLE_ML=true
+
+# PQC Settings
+PQC_BACKEND=pqcrypto  # or 'liboqs'
+PQC_ALGORITHM=Dilithium3
+
+# Storage Settings
+STORAGE_BACKEND=encrypted_file  # or 's3', 'azure'
+STORAGE_ENCRYPTION_KEY_PATH=/etc/your_app/encryption.key
+
+# Security
+RATE_LIMIT_ENABLED=true
+RATE_LIMIT_MAX_ATTEMPTS=5
+RATE_LIMIT_WINDOW_SECONDS=300
+
+# Monitoring
+SENTRY_DSN=your_sentry_dsn
+PROMETHEUS_PORT=9090
+</code></pre>
+<h3 id="2-application-configuration">2. Application Configuration</h3>
+<pre><code class="language-python"># config.py
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+class ProductionConfig:
+    # App settings
+    ENV = os.getenv('APP_ENV', 'production')
+    DEBUG = os.getenv('APP_DEBUG', 'false').lower() == 'true'
+    LOG_LEVEL = os.getenv('APP_LOG_LEVEL', 'INFO')
+
+    # Fingerprinting settings
+    FINGERPRINT_CONFIG = {
+        'cache_duration': int(os.getenv('FINGERPRINT_CACHE_DURATION', 3600)),
+        'include_network': os.getenv('FINGERPRINT_INCLUDE_NETWORK', 'true').lower() == 'true',
+        'include_usb': os.getenv('FINGERPRINT_INCLUDE_USB', 'false').lower() == 'true',
+        'advanced_mode': os.getenv('FINGERPRINT_ADVANCED_MODE', 'true').lower() == 'true',
+        'enable_ml': os.getenv('FINGERPRINT_ENABLE_ML', 'true').lower() == 'true',
+    }
+
+    # Storage settings
+    STORAGE_CONFIG = {
+        'backend': os.getenv('STORAGE_BACKEND', 'encrypted_file'),
+        'encryption_key_path': os.getenv('STORAGE_ENCRYPTION_KEY_PATH'),
+    }
+
+    # Rate limiting
+    RATE_LIMIT_CONFIG = {
+        'enabled': os.getenv('RATE_LIMIT_ENABLED', 'true').lower() == 'true',
+        'max_attempts': int(os.getenv('RATE_LIMIT_MAX_ATTEMPTS', 5)),
+        'window_seconds': int(os.getenv('RATE_LIMIT_WINDOW_SECONDS', 300)),
+    }
+
+config = ProductionConfig()
+</code></pre>
+<h3 id="3-initialize-application">3. Initialize Application</h3>
+<pre><code class="language-python"># app.py
+from device_fingerprinting import DeviceFingerprinter
+from device_fingerprinting.hybrid_pqc import HybridPQC
+from device_fingerprinting.secure_storage import SecureStorage
+from config import config
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=getattr(logging, config.LOG_LEVEL),
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('/var/log/your_app/app.log'),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
+
+class LicenseManager:
+    def __init__(self):
+        &quot;&quot;&quot;Initialize with production configuration&quot;&quot;&quot;
+        self.fingerprinter = DeviceFingerprinter(**config.FINGERPRINT_CONFIG)
+        self.pqc = HybridPQC()
+        self.storage = SecureStorage()
+
+        # Verify PQC
+        pqc_info = self.pqc.get_info()
+        if not pqc_info['pqc_available']:
+            logger.warning(&quot;PQC not available, using fallback mode&quot;)
+        else:
+            logger.info(f&quot;PQC initialized: {pqc_info['pqc_library']}&quot;)
+
+    def activate_license(self, license_key: str, user_id: str = None):
+        &quot;&quot;&quot;Activate license with full security&quot;&quot;&quot;
+        try:
+            # Generate fingerprint
+            result = self.fingerprinter.generate()
+
+            if result.confidence_score &lt; 0.8:
+                logger.warning(f&quot;Low confidence score: {result.confidence_score}&quot;)
+
+            # Bind token
+            bound_token = self.fingerprinter.bind_token(
+                license_key,
+                metadata={'user_id': user_id}
+            )
+
+            # Add PQC signature
+            binding_data = f&quot;{license_key}:{result.fingerprint}&quot;
+            pqc_signature = self.pqc.sign(binding_data)
+
+            # Store securely
+            self.storage.store('license_token', bound_token)
+            self.storage.store('pqc_signature', pqc_signature)
+            self.storage.store('fingerprint', result.fingerprint)
+
+            logger.info(f&quot;License activated: {license_key[:8]}...&quot;)
+
+            return {
+                'success': True,
+                'fingerprint': result.fingerprint,
+                'confidence': result.confidence_score
+            }
+
+        except Exception as e:
+            logger.error(f&quot;License activation failed: {e}&quot;, exc_info=True)
+            return {'success': False, 'error': 'Activation process failed'}
+
+    def verify_license(self):
+        &quot;&quot;&quot;Verify license with full security checks&quot;&quot;&quot;
+        try:
+            # Load stored data
+            bound_token = self.storage.retrieve('license_token')
+            pqc_signature = self.storage.retrieve('pqc_signature')
+            stored_fp = self.storage.retrieve('fingerprint')
+
+            if not all([bound_token, pqc_signature, stored_fp]):
+                logger.warning(&quot;Missing license data&quot;)
+                return False
+
+            # Verify bound token
+            if not self.fingerprinter.verify_token(bound_token):
+                logger.warning(&quot;Token verification failed&quot;)
+                return False
+
+            # Verify PQC signature
+            current_result = self.fingerprinter.generate()
+            binding_data = f&quot;&lt;license_key&gt;:{current_result.fingerprint}&quot;
+
+            # Note: You'd need to store the original license_key or reconstruct it
+            # This is simplified for demonstration
+
+            logger.info(&quot;License verification successful&quot;)
+            return True
+
+        except Exception as e:
+            logger.error(f&quot;License verification failed: {e}&quot;, exc_info=True)
+            return False
+
+# Initialize
+license_manager = LicenseManager()
+</code></pre>
+<hr />
+<h2 id="security-hardening">Security Hardening</h2>
+<h3 id="1-file-permissions">1. File Permissions</h3>
+<pre><code class="language-bash"># Linux/macOS
+# Restrict access to sensitive files
+chmod 600 /etc/your_app/encryption.key
+chmod 600 /etc/your_app/.env
+chmod 700 /opt/your_app/storage
+
+# Set ownership
+chown your_app_user:your_app_group /opt/your_app -R
+</code></pre>
+<h3 id="2-firewall-configuration">2. Firewall Configuration</h3>
+<pre><code class="language-bash"># Linux (ufw)
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow 443/tcp  # HTTPS
+sudo ufw enable
+
+# Allow monitoring (if needed)
+sudo ufw allow from 10.0.0.0/8 to any port 9090  # Prometheus
+</code></pre>
+<h3 id="3-system-hardening">3. System Hardening</h3>
+<pre><code class="language-bash"># Disable unnecessary services
+sudo systemctl disable bluetooth
+sudo systemctl disable cups
+
+# Enable automatic security updates
+sudo apt-get install unattended-upgrades
+sudo dpkg-reconfigure -plow unattended-upgrades
+</code></pre>
+<h3 id="4-code-obfuscation">4. Code Obfuscation</h3>
+<pre><code class="language-bash"># Install PyArmor
+pip install pyarmor
+
+# Obfuscate production code
+pyarmor pack \
+    --clean \
+    --without-license \
+    -e &quot;--onefile --hidden-import=device_fingerprinting&quot; \
+    your_app.py
+
+# Output: dist/your_app
+</code></pre>
+<hr />
+<h2 id="performance-optimization">Performance Optimization</h2>
+<h3 id="1-caching-strategy">1. Caching Strategy</h3>
+<pre><code class="language-python">from device_fingerprinting import DeviceFingerprinter
+from functools import lru_cache
+from datetime import datetime, timedelta
+
+class OptimizedFingerprinter:
+    def __init__(self):
+        self.fingerprinter = DeviceFingerprinter(
+            cache_duration=3600  # 1 hour cache
+        )
+        self.cache_timestamp = None
+
+    def get_fingerprint(self):
+        &quot;&quot;&quot;Get fingerprint with intelligent caching&quot;&quot;&quot;
+        # Check if cache needs refresh
+        if self.cache_timestamp:
+            age = (datetime.now() - self.cache_timestamp).total_seconds()
+            if age &lt; 3600:  # 1 hour
+                return self.fingerprinter.generate(force_refresh=False)
+
+        # Refresh cache
+        result = self.fingerprinter.generate(force_refresh=True)
+        self.cache_timestamp = datetime.now()
+        return result
+
+    @lru_cache(maxsize=1000)
+    def verify_cached(self, bound_token: str):
+        &quot;&quot;&quot;Cache verification results&quot;&quot;&quot;
+        return self.fingerprinter.verify_token(bound_token)
+</code></pre>
+<h3 id="2-async-operations">2. Async Operations</h3>
+<pre><code class="language-python">import asyncio
+from concurrent.futures import ThreadPoolExecutor
+
+class AsyncLicenseManager:
+    def __init__(self):
+        self.fingerprinter = DeviceFingerprinter()
+        self.executor = ThreadPoolExecutor(max_workers=4)
+
+    async def verify_license_async(self, bound_token):
+        &quot;&quot;&quot;Async license verification&quot;&quot;&quot;
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            self.executor,
+            self.fingerprinter.verify_token,
+            bound_token
+        )
+
+    async def verify_batch(self, tokens):
+        &quot;&quot;&quot;Verify multiple licenses concurrently&quot;&quot;&quot;
+        tasks = [
+            self.verify_license_async(token)
+            for token in tokens
+        ]
+        return await asyncio.gather(*tasks)
+
+# Usage
+async def main():
+    manager = AsyncLicenseManager()
+    tokens = ['token1', 'token2', 'token3']
+    results = await manager.verify_batch(tokens)
+    print(results)
+
+# asyncio.run(main())
+</code></pre>
+<h3 id="3-database-optimization">3. Database Optimization</h3>
+<pre><code class="language-python">import sqlite3
+from datetime import datetime
+
+class LicenseDatabase:
+    def __init__(self, db_path='/var/lib/your_app/licenses.db'):
+        self.db_path = db_path
+        self.init_db()
+
+    def init_db(self):
+        &quot;&quot;&quot;Initialize database with indexes&quot;&quot;&quot;
+        conn = sqlite3.connect(self.db_path)
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS licenses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                license_key TEXT UNIQUE NOT NULL,
+                fingerprint TEXT NOT NULL,
+                bound_token TEXT NOT NULL,
+                pqc_signature TEXT NOT NULL,
+                activated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_verified TIMESTAMP,
+                verification_count INTEGER DEFAULT 0
+            )
+        ''')
+
+        # Create indexes for fast lookups
+        conn.execute('CREATE INDEX IF NOT EXISTS idx_license_key ON licenses(license_key)')
+        conn.execute('CREATE INDEX IF NOT EXISTS idx_fingerprint ON licenses(fingerprint)')
+        conn.commit()
+        conn.close()
+
+    def store_license(self, license_key, fingerprint, bound_token, pqc_signature):
+        &quot;&quot;&quot;Store license with optimized INSERT&quot;&quot;&quot;
+        conn = sqlite3.connect(self.db_path)
+        conn.execute('''
+            INSERT OR REPLACE INTO licenses 
+            (license_key, fingerprint, bound_token, pqc_signature)
+            VALUES (?, ?, ?, ?)
+        ''', (license_key, fingerprint, bound_token, pqc_signature))
+        conn.commit()
+        conn.close()
+
+    def get_license(self, license_key):
+        &quot;&quot;&quot;Fast license lookup with index&quot;&quot;&quot;
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.execute(
+            'SELECT * FROM licenses WHERE license_key = ?',
+            (license_key,)
+        )
+        result = cursor.fetchone()
+        conn.close()
+        return result
+</code></pre>
+<hr />
+<h2 id="monitoring-logging">Monitoring &amp; Logging</h2>
+<h3 id="1-application-logging">1. Application Logging</h3>
+<pre><code class="language-python">import logging
+import logging.handlers
+import json
+
+# Configure structured logging
+class JsonFormatter(logging.Formatter):
+    def format(self, record):
+        log_data = {
+            'timestamp': self.formatTime(record),
+            'level': record.levelname,
+            'logger': record.name,
+            'message': record.getMessage(),
+            'module': record.module,
+            'function': record.funcName,
+            'line': record.lineno
+        }
+
+        if record.exc_info:
+            log_data['exception'] = self.formatException(record.exc_info)
+
+        return json.dumps(log_data)
+
+# Setup logging
+handler = logging.handlers.RotatingFileHandler(
+    '/var/log/your_app/app.log',
+    maxBytes=10*1024*1024,  # 10 MB
+    backupCount=5
+)
+handler.setFormatter(JsonFormatter())
+
+logger = logging.getLogger('your_app')
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
+</code></pre>
+<h3 id="2-security-audit-logging">2. Security Audit Logging</h3>
+<pre><code class="language-python">import logging
+from datetime import datetime
+
+security_logger = logging.getLogger('security_audit')
+security_handler = logging.handlers.RotatingFileHandler(
+    '/var/log/your_app/security.log',
+    maxBytes=50*1024*1024,  # 50 MB
+    backupCount=10
+)
+security_logger.addHandler(security_handler)
+
+def audit_log(event_type, details):
+    &quot;&quot;&quot;Log security events&quot;&quot;&quot;
+    security_logger.info(json.dumps({
+        'timestamp': datetime.now().isoformat(),
+        'event_type': event_type,
+        'details': details
+    }))
+
+# Usage
+audit_log('license_activation', {
+    'license_key': 'ABC-***',  # Partial key
+    'success': True,
+    'confidence_score': 0.95
+})
+
+audit_log('license_verification_failed', {
+    'reason': 'fingerprint_mismatch',
+    'attempts': 3
+})
+</code></pre>
+<h3 id="3-prometheus-metrics">3. Prometheus Metrics</h3>
+<pre><code class="language-python">from prometheus_client import Counter, Histogram, Gauge, start_http_server
+import time
+
+# Define metrics
+license_activations = Counter(
+    'license_activations_total',
+    'Total number of license activations'
+)
+
+license_verifications = Counter(
+    'license_verifications_total',
+    'Total number of license verifications',
+    ['result']  # 'success' or 'failure'
+)
+
+verification_duration = Histogram(
+    'license_verification_duration_seconds',
+    'Time spent verifying licenses'
+)
+
+active_licenses = Gauge(
+    'active_licenses_count',
+    'Number of currently active licenses'
+)
+
+class MetricsLicenseManager(LicenseManager):
+    def activate_license(self, license_key, user_id=None):
+        &quot;&quot;&quot;Activate with metrics&quot;&quot;&quot;
+        license_activations.inc()
+        result = super().activate_license(license_key, user_id)
+        if result['success']:
+            active_licenses.inc()
+        return result
+
+    @verification_duration.time()
+    def verify_license(self):
+        &quot;&quot;&quot;Verify with metrics&quot;&quot;&quot;
+        result = super().verify_license()
+        license_verifications.labels(
+            result='success' if result else 'failure'
+        ).inc()
+        return result
+
+# Start metrics server
+start_http_server(9090)
+</code></pre>
+<h3 id="4-health-checks">4. Health Checks</h3>
+<pre><code class="language-python">from flask import Flask, jsonify
+from device_fingerprinting import DeviceFingerprinter
+from device_fingerprinting.hybrid_pqc import HybridPQC
+
+app = Flask(__name__)
+
+@app.route('/health')
+def health_check():
+    &quot;&quot;&quot;Basic health check&quot;&quot;&quot;
+    return jsonify({'status': 'healthy'}), 200
+
+@app.route('/health/ready')
+def readiness_check():
+    &quot;&quot;&quot;Readiness check with dependencies&quot;&quot;&quot;
+    checks = {}
+
+    # Check fingerprinting
+    try:
+        fp = DeviceFingerprinter()
+        fp.generate()
+        checks['fingerprinting'] = 'ok'
+    except Exception as e:
+        checks['fingerprinting'] = f'error: {str(e)}'
+
+    # Check PQC
+    try:
+        pqc = HybridPQC()
+        info = pqc.get_info()
+        checks['pqc'] = 'ok' if info['pqc_available'] else 'fallback'
+    except Exception as e:
+        checks['pqc'] = f'error: {str(e)}'
+
+    # Check storage
+    try:
+        from device_fingerprinting.secure_storage import SecureStorage
+        storage = SecureStorage()
+        checks['storage'] = 'ok'
+    except Exception as e:
+        checks['storage'] = f'error: {str(e)}'
+
+    # Overall status
+    all_ok = all(v in ['ok', 'fallback'] for v in checks.values())
+    status_code = 200 if all_ok else 503
+
+    return jsonify({
+        'status': 'ready' if all_ok else 'not ready',
+        'checks': checks
+    }), status_code
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080)
+</code></pre>
+<hr />
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="common-issues">Common Issues</h3>
+<h4 id="issue-1-pqc-not-available">Issue 1: PQC Not Available</h4>
+<p><strong>Symptoms:</strong></p>
+<pre><code>WARNING: pqcdualusb not available, using fallback
+</code></pre>
+<p><strong>Solution:</strong></p>
+<pre><code class="language-bash"># Reinstall PQC dependencies
+pip install --upgrade --force-reinstall pqcdualusb pqcrypto
+
+# Verify
+python -c &quot;import pqcdualusb; print(pqcdualusb.__version__)&quot;
+</code></pre>
+<h4 id="issue-2-high-memory-usage">Issue 2: High Memory Usage</h4>
+<p><strong>Symptoms:</strong> Application using &gt;500MB RAM</p>
+<p><strong>Solution:</strong></p>
+<pre><code class="language-python"># Enable garbage collection
+import gc
+
+# After heavy operations
+gc.collect()
+
+# Limit cache size
+fp = DeviceFingerprinter(cache_duration=300)  # 5 minutes instead of 1 hour
+</code></pre>
+<h4 id="issue-3-slow-verification">Issue 3: Slow Verification</h4>
+<p><strong>Symptoms:</strong> Verification taking &gt;1 second</p>
+<p><strong>Solution:</strong></p>
+<pre><code class="language-python"># Enable caching
+from functools import lru_cache
+
+@lru_cache(maxsize=1000)
+def verify_cached(bound_token):
+    return fingerprinter.verify_token(bound_token)
+
+# Use async
+import asyncio
+result = await verify_async(bound_token)
+</code></pre>
+<h4 id="issue-4-storage-errors">Issue 4: Storage Errors</h4>
+<p><strong>Symptoms:</strong> <code>PermissionError</code> or <code>FileNotFoundError</code></p>
+<p><strong>Solution:</strong></p>
+<pre><code class="language-bash"># Check permissions
+ls -la /var/lib/your_app
+
+# Fix permissions
+sudo chown your_app_user:your_app_group /var/lib/your_app -R
+sudo chmod 700 /var/lib/your_app
+</code></pre>
+<hr />
+<h2 id="next-steps">Next Steps</h2>
+<ul>
+<li><strong>Monitoring Guide</strong>: <a href="WIKI_MONITORING.md">Monitoring &amp; Analytics →</a></li>
+<li><strong>Security Best Practices</strong>: <a href="WIKI_SECURITY.html">Security Guide →</a></li>
+<li><strong>API Reference</strong>: <a href="WIKI_API_CORE.html">API Documentation →</a></li>
+<li><strong>Troubleshooting</strong>: <a href="WIKI_TROUBLESHOOTING.md">Troubleshooting Guide →</a></li>
+</ul>
+<hr />
+<p><strong>Navigation</strong>: <a href="WIKI_HOME.html">← Home</a> | <a href="WIKI_SECURITY.html">Security</a> | <a href="WIKI_MONITORING.md">Monitoring →</a></p>
+                </article>
+                <footer class="page-footer">
+                    <div class="pager ">
+                        <a class="pager-link prev" href="WIKI_BASIC_EXAMPLES.html">&#8592; Basic Examples</a>
+                        <a class="pager-link next" href="WIKI_INSTALLATION.html">Installation Guide &#8594;</a>
+                    </div>
+                </footer>
+            </div>
+        </section>
+    </div>
+</body>
+</html>
