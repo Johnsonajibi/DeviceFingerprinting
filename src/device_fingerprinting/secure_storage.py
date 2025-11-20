@@ -197,12 +197,10 @@ class SecureStorage:
             with open(secret_path, "wb") as f:
                 f.write(encrypted)
         except ImportError:
-            # Fallback to base64 if cryptography not available
-            import base64
-
-            obfuscated = base64.b64encode(secret.encode("utf-8"))
-            with open(secret_path, "wb") as f:
-                f.write(obfuscated)
+            # Fallback: Do NOT store the secret if cryptography is not available
+            raise RuntimeError(
+                "cryptography library is required for secure storage, but not available; secret not saved"
+            )
 
     def _load_secret_local(self) -> Optional[str]:
         """Loads the secret from a local file (fallback) and decrypts it."""
