@@ -4,25 +4,28 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "device-fingerprinting-pro"
-version = "2.1.4"
-description = "Production-ready hardware device fingerprinting with post-quantum cryptography and ML-based anomaly detection"
+version = "2.2.0"
+description = "Hardware device fingerprinting with post-quantum cryptography, TPM support, and ML-based anomaly detection"
 readme = "README_PYPI.md"
 license = "MIT"
 authors = [
-    {name = "Johnsonajibi", email = "info@devicefingerprinting.dev"}
+    {name = "Johnsonajibi", email = "ajibijohnson@jtnetsolutions.com"}
 ]
 maintainers = [
-    {name = "Johnsonajibi", email = "info@devicefingerprinting.dev"}
+    {name = "Johnsonajibi", email = "ajibijohnson@jtnetsolutions.com"}
 ]
 keywords = [
     "device-fingerprinting",
-    "hardware-fingerprinting", 
+    "hardware-fingerprinting",
+    "tpm",
+    "trusted-platform-module",
     "machine-learning",
     "anomaly-detection",
     "device-binding",
     "software-licensing",
     "encryption",
-    "security"
+    "security",
+    "post-quantum-cryptography"
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
