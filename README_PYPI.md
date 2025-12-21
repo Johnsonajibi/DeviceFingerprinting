@@ -84,7 +84,36 @@ Generate stable, unique device identifiers from hardware characteristics:
 Hardware Data → Normalization → Sorting → SHA3-512 → Fingerprint Hash
 ```
 
-### 2. Secure Storage
+### 2. TPM/Secure Hardware Fingerprinting
+
+Hardware-backed device identification with dual-mode enforcement:
+
+**Mode A: Software (Default)** - Optional TPM with fallback
+```python
+import device_fingerprinting as df
+
+# Enable TPM if available (graceful fallback)
+df.enable_tpm_fingerprinting(enabled=True)
+fingerprint = df.generate_fingerprint(method="stable", mode="software")
+```
+
+**Mode B: TPM-Strict** - Mandatory TPM requirement
+```python
+import device_fingerprinting as df
+
+# Enforce TPM hardware attestation (fails if unavailable)
+try:
+    fingerprint = df.generate_fingerprint(method="stable", mode="tpm_strict")
+except RuntimeError as e:
+    print(f"TPM required: {e}")
+```
+
+**Platform Support:**
+- Windows: TPM 2.0 (PowerShell/WMI)
+- macOS: Secure Enclave (T2/Apple Silicon)
+- Linux: TPM 2.0 (`/sys/class/tpm`)
+
+### 3. Secure Storage
 
 Encrypted key-value storage with OS keyring integration:
 
@@ -438,6 +467,13 @@ Contributions welcome! Please see [CONTRIBUTING.md](https://github.com/Johnsonaj
 MIT License - see [LICENSE](https://github.com/Johnsonajibi/DeviceFingerprinting/blob/main/LICENSE) for details
 
 ## Changelog
+
+### Version 2.2.0 (2025-12-21)
+- Added TPM/Secure Hardware fingerprinting support
+- Dual-mode architecture: software (default) and tpm_strict (enforced)
+- Cross-platform TPM detection (Windows TPM 2.0, macOS Secure Enclave, Linux TPM)
+- Hardware attestation with privacy-preserving obfuscation
+- Enhanced security for deployment requiring hardware-backed identity
 
 ### Version 2.0.0 (2025-10-18)
 - Initial PyPI release

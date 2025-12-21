@@ -1,12 +1,12 @@
 """Version information for device_fingerprinting package."""
 
-__version__ = "2.2.0"
+__version__ = "2.2.1"
 __version_info__ = tuple(int(i) for i in __version__.split(".") if i.isdigit())
 
 # Version components
 MAJOR = 2
 MINOR = 2
-PATCH = 0
+PATCH = 1
 BUILD = "stable"
 
 # Full version string
