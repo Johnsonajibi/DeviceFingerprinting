@@ -1,20 +1,20 @@
 """Version information for device_fingerprinting package."""
 
-__version__ = "2.0.1"
+__version__ = "2.1.4"
 __version_info__ = tuple(int(i) for i in __version__.split(".") if i.isdigit())
 
 # Version components
 MAJOR = 2
-MINOR = 0
-PATCH = 1
-BUILD = "PQC-DUALUSB"
+MINOR = 1
+PATCH = 4
+BUILD = "stable"
 
 # Full version string
-VERSION = f"{MAJOR}.{MINOR}.{PATCH}-{BUILD}"
+VERSION = f"{MAJOR}.{MINOR}.{PATCH}"
 
 # Release information
-RELEASE_DATE = "2025-10-18"
-RELEASE_NAME = "Post-Quantum Cryptography Integration"
+RELEASE_DATE = "2025-11-07"
+RELEASE_NAME = "Documentation & Comprehensive Testing Update"
 
 # Compatibility information
 MIN_PYTHON_VERSION = (3, 8)

@@ -1,0 +1,266 @@
+PQCDUALUSB LIBRARY - FUNCTION OVERVIEW
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         PQCDUALUSB ARCHITECTURE                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+                          Device Fingerprinting
+                                  │
+                                  ▼
+                    ┌─────────────────────────┐
+                    │   HybridPQC Class       │ (hybrid_pqc.py)
+                    │ (Orchestrates all PQC)  │
+                    └──────────────┬──────────┘
+                                   │
+                    ┌──────────────┴──────────────┐
+                    │                             │
+                    ▼                             ▼
+        ┌──────────────────────┐    ┌──────────────────────────┐
+        │  pqcdualusb Library  │    │  Classical Cryptography  │
+        │                      │    │  (Fallback)              │
+        │  (PostQuantumCrypto) │    │                          │
+        │                      │    │  - RSA-4096              │
+        └──────┬───────────────┘    │  - HMAC-SHA3-256         │
+               │                     │  - SHAKE-256             │
+               ├──────────────────► └──────────────────────────┘
+               │
+        ┌──────┴──────────────────────┐
+        │                             │
+        ▼                             ▼
+┌──────────────────────┐    ┌──────────────────────┐
+│  Dilithium3 (ML-DSA)│    │ Kyber1024 (ML-KEM)  │
+│  Digital Signatures  │    │ Key Encapsulation    │
+│                      │    │                      │
+│  ✓ NIST Level 3      │    │  ✓ NIST Level 5      │
+│  ✓ ~3KB signatures   │    │  ✓ ~1.5KB keys       │
+│  ✓ ~2ms per sign     │    │  ✓ ~0.5ms per KEm   │
+│  ✓ Quantum-safe      │    │  ✓ Quantum-safe      │
+└──────────────────────┘    └──────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          BACKEND SELECTION                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+                    pqcdualusb.PostQuantumCrypto()
+                                 │
+                ┌────────────────┼────────────────┐
+                │                │                │
+                ▼                ▼                ▼
+        ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+        │  pqcrypto    │  │  liboqs      │  │  cpp-pqc     │
+        │  (Python)    │  │  (C/Linux)   │  │  (C++/Fast)  │
+        │              │  │              │  │              │
+        │  Cross-      │  │  2-5x faster │  │  Optimized   │
+        │  platform    │  │  than        │  │  performance │
+        │              │  │  pqcrypto    │  │              │
+        │  Default on  │  │              │  │              │
+        │  Windows/Mac │  │  Optional    │  │  Optional    │
+        └──────────────┘  └──────────────┘  └──────────────┘
+        
+        (Automatic selection based on availability)
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        CRYPTOGRAPHIC FLOW                                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+SIGNING FLOW:
+─────────────
+  Device Fingerprint
+         │
+         ▼
+  [Data to Sign]
+         │
+         ▼
+  pqcdualusb.PostQuantumCrypto.sign()
+         │
+         ├─ Dilithium3 Signature
+         │
+         ▼
+  3293-byte Quantum-Resistant Signature
+         │
+         ├─ Stored with device record
+         └─ Verified on future access
+
+
+VERIFICATION FLOW:
+──────────────────
+  Stored Signature + Device Data
+         │
+         ▼
+  pqcdualusb.PostQuantumCrypto.verify()
+         │
+         ├─ Dilithium3 Verification
+         │
+         ▼
+  ✓ Valid (Quantum-safe confirmation)
+  ✗ Invalid (Device tampered/invalid)
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    PRIMARY FUNCTIONS                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+1. PostQuantumCrypto(allow_fallback=True/False)
+   ├─ Initialize PQC backend
+   ├─ Select algorithm (Dilithium/Kyber)
+   └─ Enable/disable classical fallback
+
+2. generate_sig_keypair()
+   ├─ Generate public key (~1952 bytes)
+   └─ Generate private key (~4032 bytes)
+
+3. sign(data: bytes) -> bytes
+   ├─ Create digital signature
+   ├─ Uses Dilithium3
+   └─ Returns 3293-byte signature
+
+4. verify(data: bytes, signature: bytes) -> bool
+   ├─ Verify digital signature
+   ├─ Returns True if valid
+   └─ Returns False if invalid/tampered
+
+5. generate_kem_keypair()
+   ├─ Generate key encapsulation keypair
+   └─ For secure key exchange
+
+6. encapsulate(public_key: bytes) -> (ciphertext, shared_secret)
+   ├─ Encapsulate shared secret
+   └─ Send to receiver
+
+7. decapsulate(ciphertext: bytes, private_key: bytes) -> shared_secret
+   ├─ Recover shared secret
+   └─ Only receiver can decrypt
+
+8. get_security_info() -> dict
+   ├─ Return security level details
+   ├─ Algorithm information
+   └─ Backend capabilities
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      INTEGRATION POINTS                                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Device Fingerprinting System
+        │
+        ├─ HybridPQC (hybrid_pqc.py)
+        │  ├─ _init_pqcdualusb()          ◄─ Initialize backend
+        │  ├─ _generate_pqc_keys()        ◄─ Generate keypair
+        │  ├─ sign()                      ◄─ Sign fingerprint
+        │  ├─ verify()                    ◄─ Verify signature
+        │  └─ get_info()                  ◄─ Get backend info
+        │
+        ├─ Device Fingerprinting Module
+        │  ├─ Create fingerprint
+        │  ├─ Sign with PQC
+        │  └─ Store quantum-safe signature
+        │
+        ├─ Security Module
+        │  ├─ Verify device integrity
+        │  └─ Detect tampering
+        │
+        └─ Forensic Security
+           ├─ Analyze device changes
+           └─ Quantum-safe auditing
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    SECURITY CHARACTERISTICS                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+CLASSICAL CRYPTOGRAPHY (RSA-2048):
+└─ ✓ Secure TODAY
+└─ ❌ Vulnerable to quantum computers (10-30 years)
+
+WITH PQCDUALUSB (Dilithium3):
+├─ ✓ Secure TODAY (against classical attacks)
+├─ ✓ Secure TOMORROW (against quantum attacks)
+├─ ✓ NIST-standardized (2024)
+├─ ✓ Quantum resistance for 10-30+ years
+├─ ✓ Hybrid approach (defense-in-depth)
+└─ ✓ Power analysis protection
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     FALLBACK MECHANISM                                      │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Initialization Chain:
+─────────────────────
+
+  pqcdualusb._init_pqcdualusb()
+         │
+         ├─ Try: Import pqcdualusb
+         │  └─ Success ✓
+         │     │
+         │     ├─ Try: Real PQC (allow_fallback=False)
+         │     │  ├─ Success ✓ → Use real Dilithium3/Kyber
+         │     │  └─ Fail ✗ → Try fallback
+         │     │     │
+         │     │     └─ Try: Classical fallback (allow_fallback=True)
+         │     │        └─ Success ✓ → Use RSA-4096/HMAC-SHA3
+         │     │
+         │     └─ Store version & backend info
+         │
+         └─ Fail ✗ → pqcdualusb not available
+            └─ Use pure classical cryptography
+               └─ Log warning, continue with fallback
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    PERFORMANCE METRICS                                      │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Operation              | Time (ms)  | Backend
+─────────────────────────────────────────────
+Generate Keypair       | 10-50      | pqcrypto (default)
+Generate Keypair       | 5-20       | liboqs (optimized)
+                       |            |
+Sign (Dilithium3)      | 0.5-2      | pqcdualusb
+Verify (Dilithium3)    | 0.5-2      | pqcdualusb
+                       |            |
+KEM Encapsulate        | 0.1-0.5    | Kyber1024
+KEM Decapsulate        | 0.1-0.5    | Kyber1024
+                       |            |
+Key Size              | Bytes      |
+─────────────────────────────────────────────
+Dilithium3 Public Key | ~1952      |
+Dilithium3 Private Key| ~4032      |
+Dilithium3 Signature  | ~3293      |
+Kyber1024 Public Key  | ~1568      |
+Kyber1024 Ciphertext  | ~1568      |
+Shared Secret         | 32         |
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       SUMMARY                                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+pqcdualusb provides:
+
+✓ Post-Quantum Cryptography (Dilithium3, Kyber1024)
+✓ Quantum-resistant digital signatures
+✓ Secure key encapsulation
+✓ Hybrid security model (classical + PQC)
+✓ Multiple backend support (auto-selection)
+✓ Power analysis protection
+✓ Graceful fallback mechanism
+✓ NIST-standardized algorithms
+✓ Production-ready implementation
+✓ Future-proof security (10-30+ years)
+
+Used by Device Fingerprinting for:
+
+• Creating quantum-safe device fingerprints
+• Signing device authentication tokens
+• Protecting device binding credentials
+• Detecting device tampering
+• Secure forensic analysis
+• Future-proof security architecture
+
+Result: Device fingerprints remain secure even against quantum computers!
+
+================================================================================

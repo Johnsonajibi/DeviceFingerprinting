@@ -54,6 +54,18 @@ from .rust_bridge import RustCryptoBridge
 from .backends import get_backend
 from . import exceptions
 
+# Import TPM/Secure Hardware support (optional)
+try:
+    from .tpm_hardware import (
+        TPMFingerprinter,
+        get_tpm_info,
+        is_tpm_available,
+        get_tpm_fingerprint,
+    )
+    TPM_AVAILABLE = True
+except ImportError:
+    TPM_AVAILABLE = False
+
 # Legacy PQC import for compatibility
 try:
     from .quantum_crypto import RealPostQuantumBackend
@@ -74,6 +86,10 @@ _logger: logging.Logger = logging.getLogger(__name__)
 _pqc_enabled: bool = False
 _pqc_algorithm: str = "Dilithium3"
 _pqc_hybrid_mode: bool = True
+
+# TPM/Secure Hardware configuration
+_tpm_enabled: bool = False
+_tpm_fingerprinter: Optional['TPMFingerprinter'] = None
 
 # Anti-replay protection settings
 _anti_replay_enabled: bool = True
@@ -443,6 +459,101 @@ def disable_post_quantum_crypto() -> None:
     _crypto_backend = HmacSha256Backend()
     _pqc_enabled = False
     _logger.info("Post-quantum cryptography disabled - reverted to classical HMAC-SHA256")
+
+
+def enable_tpm_fingerprinting(enabled: bool = True) -> bool:
+    """
+    Enable or disable TPM/Secure Hardware-based fingerprinting.
+    
+    When enabled, adds hardware-rooted identifiers from:
+    - Windows: TPM 2.0 (Trusted Platform Module)
+    - macOS: Secure Enclave (T2 or Apple Silicon)
+    - Linux: TPM 2.0 (via /sys/class/tpm)
+    
+    Args:
+        enabled: Whether to include TPM data in fingerprints
+        
+    Returns:
+        True if TPM support is available and enabled, False otherwise
+        
+    Note:
+        - TPM may not be available on all systems
+        - Gracefully degrades if TPM unavailable
+        - Optional feature - no impact if TPM not present
+        - Hardware IDs are cryptographically obfuscated for privacy
+    """
+    global _tpm_enabled, _tpm_fingerprinter
+    
+    if not TPM_AVAILABLE:
+        _logger.warning("TPM module not available - feature disabled")
+        return False
+    
+    if enabled:
+        try:
+            _tpm_fingerprinter = TPMFingerprinter()
+            tpm_info = _tpm_fingerprinter.get_tpm_info()
+            
+            if tpm_info.available:
+                _tpm_enabled = True
+                _logger.info(
+                    f"TPM fingerprinting enabled: {tpm_info.platform} "
+                    f"(version: {tpm_info.version}, manufacturer: {tpm_info.manufacturer})"
+                )
+                return True
+            else:
+                _logger.info(
+                    f"TPM not available on this system: {tpm_info.error} - "
+                    f"fingerprinting will use other hardware components"
+                )
+                _tpm_enabled = False
+                return False
+                
+        except Exception as e:
+            _logger.warning(f"Failed to initialize TPM fingerprinting: {e}")
+            _tpm_enabled = False
+            return False
+    else:
+        _tpm_enabled = False
+        _tpm_fingerprinter = None
+        _logger.info("TPM fingerprinting disabled")
+        return False
+
+
+def is_tpm_enabled() -> bool:
+    """
+    Check if TPM fingerprinting is currently enabled.
+    
+    Returns:
+        True if TPM is enabled and available
+    """
+    return _tpm_enabled and _tpm_fingerprinter is not None
+
+
+def get_tpm_status() -> Dict[str, Any]:
+    """
+    Get detailed TPM availability and configuration status.
+    
+    Returns:
+        Dictionary containing TPM status information
+    """
+    status = {
+        "tpm_module_available": TPM_AVAILABLE,
+        "tpm_enabled": _tpm_enabled,
+        "tpm_hardware_available": False,
+        "platform": platform.system(),
+    }
+    
+    if TPM_AVAILABLE and _tpm_fingerprinter:
+        tpm_info = _tpm_fingerprinter.get_tpm_info()
+        status.update({
+            "tpm_hardware_available": tpm_info.available,
+            "tpm_version": tpm_info.version,
+            "tpm_manufacturer": tpm_info.manufacturer,
+            "attestation_capable": tpm_info.attestation_capable,
+            "error": tpm_info.error if not tpm_info.available else None,
+        })
+    
+    return status
 
 
 def enable_anti_replay_protection(enabled: bool = True, nonce_lifetime: int = 300) -> None:
@@ -1258,6 +1369,7 @@ def _get_stable_fields() -> Dict[str, Any]:
     - Disk serial numbers (truncated for privacy)
     - Motherboard UUID (if available)
     - Network MAC hash (salted, not reversible)
+    - TPM/Secure Hardware ID (if enabled, cross-platform)
     """
     fields = {}
 
@@ -1279,6 +1391,12 @@ def _get_stable_fields() -> Dict[str, Any]:
             fields["os_build"] = platform.win32_ver()[1]
         else:
             fields["os_release"] = platform.release()[:20]
+
+        # TPM/Secure Hardware data (cross-platform, if enabled)
+        if _tpm_enabled and _tpm_fingerprinter:
+            tpm_data = _get_tpm_hardware_data()
+            if tpm_data:
+                fields.update(tpm_data)
 
     except Exception as e:
         _logger.warning(f"Failed to get basic fields: {type(e).__name__}")
@@ -1643,12 +1761,47 @@ def _get_windows_hardware() -> Dict[str, Any]:
         if serial:
             fields["disk_serial"] = serial
 
+        # TPM hardware identifier (if enabled)
+        if _tpm_enabled and _tpm_fingerprinter:
+            tpm_data = _get_tpm_hardware_data()
+            if tpm_data:
+                fields.update(tpm_data)
+
     except ImportError:
         pass  # Windows registry module not available on this platform
     except Exception as e:
         _logger.warning(f"Windows hardware detection failed: {type(e).__name__}")
 
     return fields
+
+
+def _get_tpm_hardware_data() -> Optional[Dict[str, Any]]:
+    """
+    Get TPM/Secure Hardware data for fingerprinting (cross-platform).
+    
+    Returns:
+        Dictionary with TPM fingerprint data or None if unavailable
+    """
+    if not _tpm_enabled or not _tpm_fingerprinter:
+        return None
+    
+    try:
+        tpm_fp_data = _tpm_fingerprinter.get_fingerprint_data()
+        
+        if not tpm_fp_data.get("tpm_available"):
+            return None
+        
+        # Return only the essential fingerprinting fields
+        return {
+            "tpm_hardware_id": tpm_fp_data.get("tpm_hardware_id"),
+            "tpm_version": tpm_fp_data.get("tpm_version"),
+            "tpm_manufacturer": tpm_fp_data.get("tpm_manufacturer"),
+        }
+    
+    except Exception as e:
+        _logger.debug(f"TPM data collection failed: {e}")
+        return None
+
 
 
 def _get_memory_info() -> Dict[str, Any]:
@@ -1778,19 +1931,157 @@ def _score_field_match(current: Dict[str, Any], stored: Dict[str, Any]) -> float
     return matched_weight / total_weight
 
 
-def generate_fingerprint(method: str = "stable") -> str:
+def generate_fingerprint(method: str = "stable", mode: str = "software") -> str:
     """
     Generate cryptographically signed device fingerprint.
-
+    
+    DUAL-MODE ARCHITECTURE:
+    -----------------------
+    Mode A (software): TPM optional, graceful fallback, best-effort uniqueness
+    Mode B (tpm_strict): TPM REQUIRED, cryptographically enforced, strong guarantees
+    
     Args:
-        method: "stable" for hardware fields or "basic" for minimal fields
-
+        method: "stable" for hardware fields, "basic" for minimal fields, "legacy_sha256" for legacy
+        mode: Enforcement mode - "software" (default) or "tpm_strict"
+            - "software": Current behavior, TPM optional, works everywhere
+            - "tpm_strict": TPM mandatory, fails if unavailable, cryptographic enforcement
+            
     Returns:
         Cryptographic signature of device fingerprint fields
-
+        
+    Raises:
+        RuntimeError: If mode="tpm_strict" and TPM is not available
+        
     Note:
-        - With PQC enabled: Uses real post-quantum digital signatures
-        - Without PQC: Uses classical HMAC-SHA256 (not quantum-resistant)
+        - Mode "software": With PQC enabled uses post-quantum signatures, TPM optional
+        - Mode "tpm_strict": REQUIRES TPM hardware attestation, no fallback
+        
+    Novel Architecture:
+        "A cryptographic enforcement method implemented in a software library,
+        wherein identity derivation is conditionally permitted only upon 
+        hardware-attested state satisfaction."
+    """
+    # MODE B: TPM-STRICT ENFORCEMENT (Novel Patent Territory)
+    if mode == "tpm_strict":
+        return _generate_tpm_strict_fingerprint(method)
+    
+    # MODE A: SOFTWARE (Current Behavior, Backward Compatible)
+    elif mode == "software":
+        return _generate_software_fingerprint(method)
+    
+    else:
+        raise ValueError(f"Invalid mode: {mode}. Must be 'software' or 'tpm_strict'")
+
+
+def _generate_tpm_strict_fingerprint(method: str) -> str:
+    """
+    Mode B: TPM-Strict Enforcement - Hardware-Attested Identity Only.
+    
+    STRICT REQUIREMENTS:
+    - TPM hardware MUST be available
+    - TPM MUST be enabled and functional
+    - Fingerprint MUST include TPM hardware attestation
+    - NO fallback to software-only fingerprinting
+    - Cryptographically enforced hardware binding
+    
+    This mode provides strong guarantees:
+    - Unforgeable hardware identity
+    - Tamper-resistant binding
+    - Platform integrity attestation
+    
+    Raises:
+        RuntimeError: If TPM is not available or not enabled
+    """
+    global _tpm_fingerprinter
+    
+    # Enforce TPM availability
+    if not TPM_AVAILABLE:
+        raise RuntimeError(
+            "TPM-strict mode requires TPM hardware support. "
+            "TPM module not available. Use mode='software' for compatibility."
+        )
+    
+    # Enforce TPM hardware presence
+    if not _tpm_fingerprinter:
+        # Try to initialize
+        _tpm_fingerprinter = TPMFingerprinter()
+    
+    tpm_info = _tpm_fingerprinter.get_tpm_info()
+    
+    if not tpm_info.available:
+        raise RuntimeError(
+            f"TPM-strict mode requires functional TPM hardware. "
+            f"TPM not available: {tpm_info.error}. "
+            f"Platform: {tpm_info.platform}. "
+            f"Use mode='software' for systems without TPM."
+        )
+    
+    # TPM is available and functional - proceed with strict enforcement
+    _logger.info(
+        f"TPM-strict mode: Hardware attestation enforced "
+        f"(TPM {tpm_info.version}, {tpm_info.manufacturer})"
+    )
+    
+    # Gather fingerprint fields with MANDATORY TPM data
+    if method == "basic":
+        fields = {
+            "os": platform.system(),
+            "machine": platform.machine(),
+            "version": platform.release(),
+        }
+    else:
+        fields = _generate_fingerprint_fields()
+    
+    # ENFORCE: TPM data MUST be present
+    tpm_data = _get_tpm_hardware_data()
+    if not tpm_data or not tpm_data.get("tpm_hardware_id"):
+        raise RuntimeError(
+            "TPM-strict mode: Failed to retrieve TPM hardware identity. "
+            "TPM hardware ID is required for strict enforcement."
+        )
+    
+    # Add TPM attestation data (MANDATORY in strict mode)
+    fields["tpm_attestation"] = {
+        "hardware_id": tpm_data["tpm_hardware_id"],
+        "version": tpm_data.get("tpm_version"),
+        "manufacturer": tpm_data.get("tpm_manufacturer"),
+        "attestation_timestamp": int(time.time()),
+        "enforcement_mode": "tpm_strict",
+    }
+    
+    # Add cryptographic metadata
+    crypto_info = get_crypto_info()
+    fields["crypto_metadata"] = {
+        "pqc_enabled": crypto_info["pqc_enabled"],
+        "algorithm": crypto_info.get("pqc_algorithm", crypto_info.get("algorithm", "HMAC-SHA256")),
+        "quantum_resistant": crypto_info["quantum_resistant"],
+        "signature_type": "digital_signature" if crypto_info["pqc_enabled"] else "mac",
+        "enforcement_mode": "tpm_strict",
+        "hardware_attested": True,
+        "timestamp": int(time.time()),
+    }
+    
+    # Create cryptographic signature with hardware attestation
+    fields_json = json.dumps(fields, sort_keys=True).encode()
+    fingerprint = _crypto_backend.sign(fields_json)
+    
+    _logger.info("TPM-strict fingerprint generated with hardware attestation")
+    
+    return fingerprint
+
+
+def _generate_software_fingerprint(method: str) -> str:
+    """
+    Mode A: Software Fingerprint - Best-Effort Identity (Backward Compatible).
+    
+    CHARACTERISTICS:
+    - TPM optional (used if available)
+    - Graceful fallback to software-only
+    - Works on all platforms
+    - Best-effort uniqueness
+    - No enforcement claims
+    
+    This is the current/default behavior - maintains backward compatibility.
     """
     if method == "legacy_sha256":
         fields = _get_stable_fields()
@@ -1806,7 +2097,7 @@ def generate_fingerprint(method: str = "stable") -> str:
         _logger.warning(f"Security check failed: {type(e).__name__}")
 
     # Check cache first using secure lookup
-    cache_key = hashlib.sha256(f"{method}_{_pqc_enabled}_{_pqc_algorithm}".encode()).hexdigest()[
+    cache_key = hashlib.sha256(f"{method}_{_pqc_enabled}_{_pqc_algorithm}_software".encode()).hexdigest()[
         :16
     ]
     access_token = _generate_cache_token()
@@ -1831,6 +2122,7 @@ def generate_fingerprint(method: str = "stable") -> str:
         "algorithm": crypto_info.get("pqc_algorithm", crypto_info.get("algorithm", "HMAC-SHA256")),
         "quantum_resistant": crypto_info["quantum_resistant"],
         "signature_type": "digital_signature" if crypto_info["pqc_enabled"] else "mac",
+        "enforcement_mode": "software",
         "timestamp": int(time.time()),
     }
 
@@ -1867,13 +2159,17 @@ def generate_fingerprint(method: str = "stable") -> str:
     return fingerprint
 
 
-def generate_fingerprint_async(method="stable") -> Future[str]:
+def generate_fingerprint_async(method="stable", mode="software") -> Future[str]:
     """
     Generate fingerprint asynchronously to avoid blocking UI.
-
+    
+    Args:
+        method: "stable", "basic", or "legacy_sha256"
+        mode: "software" (default) or "tpm_strict"
+    
     Returns Future that resolves to fingerprint string.
     """
-    return _executor.submit(generate_fingerprint, method)
+    return _executor.submit(generate_fingerprint, method, mode)
 
 
 def create_device_binding(

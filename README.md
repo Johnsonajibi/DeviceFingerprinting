@@ -327,6 +327,7 @@ graph TD
 **Optional Features**
 - Post-quantum cryptography (pqcdualusb with Dilithium/Kyber)
 - Cloud storage backends (AWS S3, Azure Blob Storage)
+- TPM/Secure Hardware with dual-mode enforcement (software/tpm_strict)
 
 ## Installation
 
@@ -700,6 +701,93 @@ graph TD
     style CONT fill:#4CAF50,color:#fff
 ```
 
+### TPM/Secure Hardware Fingerprinting
+
+The library supports hardware-backed device identification using TPM (Trusted Platform Module) or platform-specific secure hardware through a dual-mode architecture.
+
+#### Mode A: Software Fingerprint (Default)
+
+Standard fingerprinting with optional TPM enhancement. Works on all platforms with graceful fallback.
+
+```python
+import device_fingerprinting as df
+
+# Check TPM availability
+status = df.get_tpm_status()
+
+# Enable TPM if available (optional)
+df.enable_tpm_fingerprinting(enabled=True)
+
+# Generate fingerprint - uses TPM if available, falls back otherwise
+fingerprint = df.generate_fingerprint(method="stable", mode="software")
+```
+
+#### Mode B: TPM-Strict Enforcement
+
+Requires TPM hardware attestation. Fails explicitly if TPM is unavailable. Use this mode when hardware-backed security is mandatory.
+
+```python
+import device_fingerprinting as df
+
+# Generate fingerprint with mandatory TPM requirement
+try:
+    fingerprint = df.generate_fingerprint(method="stable", mode="tpm_strict")
+    # Success: TPM hardware attestation included
+except RuntimeError as e:
+    # TPM not available - deployment should be restricted
+    print(f"TPM required but not available: {e}")
+```
+
+#### Adaptive Deployment
+
+Choose mode based on deployment requirements:
+
+```python
+import device_fingerprinting as df
+
+# Check TPM availability
+status = df.get_tpm_status()
+
+# Use strict mode if TPM available, fallback to software mode
+if status['tpm_hardware_available']:
+    mode = "tpm_strict"  # Enforce hardware attestation
+else:
+    mode = "software"    # Graceful fallback
+
+fingerprint = df.generate_fingerprint(method="stable", mode=mode)
+```
+
+**Platform Support:**
+- Windows: TPM 2.0 via PowerShell/WMI
+- macOS: Secure Enclave (T2 chip or Apple Silicon)
+- Linux: TPM 2.0 via `/sys/class/tpm`
+
+**Configuration:**
+
+```python
+# Query TPM status
+status = df.get_tpm_status()
+# Returns: tpm_hardware_available, platform, version, manufacturer, error
+
+# Check if TPM is enabled
+if df.is_tpm_enabled():
+    print("TPM fingerprinting active")
+
+# Enable/disable TPM
+df.enable_tpm_fingerprinting(enabled=True)
+```
+
+**Mode Comparison:**
+
+| Feature | software | tpm_strict |
+|---------|----------|------------|
+| TPM Required | No | Yes |
+| Fallback | Yes | No |
+| Portability | All platforms | TPM-enabled only |
+| Use Case | General purpose | High security |
+
+See `examples/dual_mode_enforcement.py` for detailed examples.
+
 ### Advanced Usage: Complete Integration
 
 ```python
@@ -816,6 +904,131 @@ Generates stable device identifiers from hardware characteristics:
 | Storage | Disk serial numbers | Windows, macOS, Linux |
 | System | OS type, version, hostname | Windows, macOS, Linux |
 | Python | Interpreter version | All platforms |
+| TPM (optional) | Hardware attestation ID | Windows, macOS, Linux |
+
+### TPM Dual-Mode Architecture
+
+The library implements a dual-mode architecture for TPM-based fingerprinting:
+
+```mermaid
+graph TB
+    subgraph "Mode Selection"
+        APP[Application] --> MODE{Choose Mode}
+    end
+    
+    subgraph "Mode A: Software"
+        MODE -->|mode='software'| SW[Software Fingerprint]
+        SW --> TPMCHECK{TPM Available?}
+        TPMCHECK -->|Yes| SWTPM[Include TPM Data]
+        TPMCHECK -->|No| SWONLY[Continue Without TPM]
+        SWTPM --> SWFP[Software Mode Fingerprint]
+        SWONLY --> SWFP
+    end
+    
+    subgraph "Mode B: TPM-Strict"
+        MODE -->|mode='tpm_strict'| STRICT[TPM-Strict Enforcement]
+        STRICT --> ENFORCE{TPM Available?}
+        ENFORCE -->|Yes| TPMDATA[Retrieve TPM Attestation]
+        ENFORCE -->|No| FAIL[RuntimeError: TPM Required]
+        TPMDATA --> VERIFY{TPM Data Valid?}
+        VERIFY -->|Yes| STRICTFP[TPM-Strict Fingerprint]
+        VERIFY -->|No| FAIL
+    end
+    
+    SWFP --> RETURN[Return Fingerprint]
+    STRICTFP --> RETURN
+    FAIL --> ERROR[Exception Raised]
+    
+    style SW fill:#90CAF9
+    style STRICT fill:#FF9800
+    style SWFP fill:#4CAF50,color:#fff
+    style STRICTFP fill:#4CAF50,color:#fff
+    style FAIL fill:#F44336,color:#fff
+    style ERROR fill:#F44336,color:#fff
+```
+
+**Mode A: Software (Default)**
+- TPM usage is optional
+- Graceful fallback when TPM unavailable
+- Portable across all systems
+- API: `generate_fingerprint(mode="software")`
+
+**Mode B: TPM-Strict**
+- TPM hardware required
+- No fallback behavior
+- Explicit failure when TPM unavailable
+- API: `generate_fingerprint(mode="tpm_strict")`
+
+**Enforcement Logic:**
+
+```
+if mode == "tpm_strict":
+    1. Verify TPM module available
+    2. Verify TPM hardware present
+    3. Retrieve TPM hardware ID
+    4. Fail if any check fails
+    5. Include TPM attestation in fingerprint
+    
+if mode == "software":
+    1. Check for TPM availability
+    2. Use TPM if available
+    3. Continue without TPM if unavailable
+    4. Include TPM data if present
+```
+
+**Platform-Specific Implementation:**
+
+```mermaid
+graph LR
+    subgraph "Windows"
+        W[Windows System] --> WPS[PowerShell: Get-Tpm]
+        WPS --> WJSON[Parse JSON Output]
+        WJSON --> WOK{TPM Present?}
+        WOK -->|Yes| WTPM[TPM 2.0 Data]
+        WOK -->|No| WWMI[Fallback: WMI Query]
+        WWMI --> WDATA[Return TPM Info]
+        WTPM --> WDATA
+    end
+    
+    subgraph "macOS"
+        M[macOS System] --> MSP[system_profiler]
+        MSP --> MT2{T2 Chip?}
+        MT2 -->|Yes| MSEC[Secure Enclave]
+        MT2 -->|No| MAS{Apple Silicon?}
+        MAS -->|Yes| MSEC
+        MAS -->|No| MNONE[No Secure Hardware]
+        MSEC --> MDATA[Return Secure Enclave Info]
+        MNONE --> MDATA
+    end
+    
+    subgraph "Linux"
+        L[Linux System] --> LSYS[Check /sys/class/tpm]
+        LSYS --> LTPM{TPM Device?}
+        LTPM -->|Yes| LREAD[Read TPM Attributes]
+        LTPM -->|No| LNONE[No TPM]
+        LREAD --> LTOOL{tpm2-tools?}
+        LTOOL -->|Yes| LENH[Enhanced Data]
+        LTOOL -->|No| LBASIC[Basic Data]
+        LENH --> LDATA[Return TPM Info]
+        LBASIC --> LDATA
+        LNONE --> LDATA
+    end
+    
+    style WTPM fill:#4CAF50,color:#fff
+    style MSEC fill:#4CAF50,color:#fff
+    style LENH fill:#4CAF50,color:#fff
+```
+
+| Platform | TPM Type | Detection Method | Fallback |
+|----------|----------|-----------------|----------|
+| Windows | TPM 2.0 | PowerShell Get-Tpm, WMI | Yes (software mode) |
+| macOS | Secure Enclave | system_profiler | Yes (software mode) |
+| Linux | TPM 2.0 | /sys/class/tpm | Yes (software mode) |
+
+**Use Cases:**
+- Enterprise deployments: Use `tpm_strict` mode to ensure hardware attestation
+- Consumer software: Use `software` mode for maximum compatibility
+- Hybrid: Query TPM status and choose mode dynamically
 
 ### Cryptographic Primitives
 

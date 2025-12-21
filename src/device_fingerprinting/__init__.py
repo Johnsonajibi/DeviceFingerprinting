@@ -33,6 +33,10 @@ from .device_fingerprinting import (
     FingerprintMethod,
     FingerprintResult,
     bind_token_to_device,
+    # TPM/Secure Hardware support
+    enable_tpm_fingerprinting,
+    is_tpm_enabled,
+    get_tpm_status,
 )
 
 __all__ = [
@@ -64,6 +68,10 @@ __all__ = [
     "FingerprintMethod",
     "FingerprintResult",
     "bind_token_to_device",
+    # TPM/Secure Hardware support
+    "enable_tpm_fingerprinting",
+    "is_tpm_enabled",
+    "get_tpm_status",
 ]
 
 __version__ = "2.1.3-PQC-DUALUSB-0.15.5"
