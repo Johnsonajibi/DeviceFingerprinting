@@ -42,6 +42,7 @@ class SecureStorage:
         self._password = password
         self._encryptor = None
         self._salt = None
+        self._salt_loaded = False
         self.data: Dict[str, Any] = {}
 
         if not self._password and keyring:
@@ -89,17 +90,20 @@ class SecureStorage:
             # Try to load salt from existing file (new format)
             try:
                 with open(self.file_path, 'rb') as f:
-                    file_size = os.path.getsize(self.file_path)
-                    if file_size >= 16:
-                        self._salt = f.read(16)
+                    self._salt = f.read(16)
+                    if len(self._salt) == 16:
+                        self._salt_loaded = True
                     else:
                         # File too short - generate new salt
                         self._salt = os.urandom(16)
+                        self._salt_loaded = False
             except (IOError, OSError):
                 self._salt = os.urandom(16)
+                self._salt_loaded = False
         else:
             # Generate random salt for new files
             self._salt = os.urandom(16)
+            self._salt_loaded = False
         
         kdf = ScryptKDF()
         self._key = kdf.derive_key(self._password, self._salt)
@@ -129,8 +133,10 @@ class SecureStorage:
             self._setup_encryptor()
 
         with open(self.file_path, "rb") as f:
-            # Salt already read in _setup_encryptor
-            f.seek(16)  # Skip salt for new format
+            if self._salt_loaded:
+                # New format: skip salt prefix
+                f.seek(16)
+            # Old format or file too short: read from beginning
             encrypted_blob = f.read()
 
         try:

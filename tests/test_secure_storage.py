@@ -1,8 +1,10 @@
 import unittest
 import os
+import json
 from unittest.mock import patch, MagicMock
 
 from device_fingerprinting.secure_storage import SecureStorage
+from device_fingerprinting.crypto import AESGCMEncryptor, ScryptKDF
 
 
 class TestSecureStorage(unittest.TestCase):
@@ -209,9 +211,6 @@ class TestSecureStorage(unittest.TestCase):
 
     def test_backward_compatibility_with_old_format(self):
         """Test that files created with old format (hardcoded salt) can still be loaded."""
-        from device_fingerprinting.crypto import AESGCMEncryptor, ScryptKDF
-        import json
-        
         # Create an old format file (no salt prefix, using hardcoded salt)
         old_format_file = "test_old_format.bin"
         
