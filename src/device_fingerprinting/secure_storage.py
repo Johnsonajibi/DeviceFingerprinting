@@ -86,12 +86,14 @@ class SecureStorage:
     def _setup_encryptor(self):
         """Sets up the encryptor with proper random salt."""
         if os.path.exists(self.file_path):
-            # Load salt from existing file
+            # Try to load salt from existing file (new format)
             try:
                 with open(self.file_path, 'rb') as f:
-                    self._salt = f.read(16)
-                    if len(self._salt) != 16:
-                        # Corrupted file or old format - generate new salt
+                    file_size = os.path.getsize(self.file_path)
+                    if file_size >= 16:
+                        self._salt = f.read(16)
+                    else:
+                        # File too short - generate new salt
                         self._salt = os.urandom(16)
             except (IOError, OSError):
                 self._salt = os.urandom(16)
@@ -121,22 +123,39 @@ class SecureStorage:
     def load(self):
         """
         Loads and decrypts the data from the file, reading salt from file.
+        Supports both new format (with salt) and old format (without salt).
         """
         if not self._encryptor:
             self._setup_encryptor()
 
         with open(self.file_path, "rb") as f:
             # Salt already read in _setup_encryptor
-            f.seek(16)  # Skip salt
+            f.seek(16)  # Skip salt for new format
             encrypted_blob = f.read()
 
         try:
             decrypted_data = self._encryptor.decrypt(encrypted_blob, self._key)
             self.data = json.loads(decrypted_data)
         except (ValueError, InvalidTag) as e:
-            raise IOError(
-                f"Failed to decrypt or load data. Incorrect password or corrupted file. Reason: {e}"
-            )
+            # Try old format (no salt prefix) for backward compatibility
+            with open(self.file_path, "rb") as f:
+                encrypted_blob_old = f.read()
+            
+            # Use hardcoded salt for old format
+            old_salt = b"\x00" * 16
+            kdf = ScryptKDF()
+            old_key = kdf.derive_key(self._password, old_salt)
+            
+            try:
+                decrypted_data = self._encryptor.decrypt(encrypted_blob_old, old_key)
+                self.data = json.loads(decrypted_data)
+                # Successfully loaded old format - generate new salt for migration on next save
+                self._salt = os.urandom(16)
+                self._key = kdf.derive_key(self._password, self._salt)
+            except (ValueError, InvalidTag):
+                raise IOError(
+                    f"Failed to decrypt or load data. Incorrect password or corrupted file. Reason: {e}"
+                )
         except json.JSONDecodeError:
             raise IOError("File is corrupted and does not contain valid JSON.")
 

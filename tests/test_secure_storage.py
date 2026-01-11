@@ -198,7 +198,7 @@ class TestSecureStorage(unittest.TestCase):
             salt = f.read(16)
         
         # Salt should NOT be all zeros
-        hardcoded_salt = b"\\x00" * 16
+        hardcoded_salt = b"\x00" * 16
         self.assertNotEqual(salt, hardcoded_salt)
         
         # Salt should have some randomness (very unlikely to have all same bytes)
@@ -206,6 +206,52 @@ class TestSecureStorage(unittest.TestCase):
         # having all same is virtually impossible
         unique_bytes = len(set(salt))
         self.assertGreater(unique_bytes, 1)
+
+    def test_backward_compatibility_with_old_format(self):
+        """Test that files created with old format (hardcoded salt) can still be loaded."""
+        from device_fingerprinting.crypto import AESGCMEncryptor, ScryptKDF
+        import json
+        
+        # Create an old format file (no salt prefix, using hardcoded salt)
+        old_format_file = "test_old_format.bin"
+        
+        try:
+            # Simulate old format: encrypt data with hardcoded salt
+            old_salt = b"\x00" * 16
+            kdf = ScryptKDF()
+            old_key = kdf.derive_key(self.password, old_salt)
+            encryptor = AESGCMEncryptor()
+            
+            test_data = {"legacy": "data", "version": "old"}
+            json_data = json.dumps(test_data).encode("utf-8")
+            encrypted_blob = encryptor.encrypt(json_data, old_key)
+            
+            # Write old format file (no salt prefix)
+            with open(old_format_file, "wb") as f:
+                f.write(encrypted_blob)
+            
+            # Now try to load with new SecureStorage (should handle backward compatibility)
+            with SecureStorage(old_format_file, self.password) as store:
+                self.assertEqual(store.get_item("legacy"), "data")
+                self.assertEqual(store.get_item("version"), "old")
+                # Add new data to trigger migration
+                store.set_item("migrated", "new_data")
+            
+            # After migration, file should have new format with random salt
+            with open(old_format_file, "rb") as f:
+                new_salt = f.read(16)
+            
+            # New salt should not be the hardcoded one
+            self.assertNotEqual(new_salt, old_salt)
+            
+            # Verify data is still accessible after migration
+            with SecureStorage(old_format_file, self.password) as store:
+                self.assertEqual(store.get_item("legacy"), "data")
+                self.assertEqual(store.get_item("migrated"), "new_data")
+                
+        finally:
+            if os.path.exists(old_format_file):
+                os.remove(old_format_file)
 
 
 if __name__ == "__main__":
