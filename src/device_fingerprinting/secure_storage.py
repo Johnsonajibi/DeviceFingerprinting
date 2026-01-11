@@ -41,6 +41,8 @@ class SecureStorage:
         self.key_iterations = key_iterations
         self._password = password
         self._encryptor = None
+        self._salt = None
+        self._salt_loaded = False
         self.data: Dict[str, Any] = {}
 
         if not self._password and keyring:
@@ -83,17 +85,33 @@ class SecureStorage:
             pass
 
     def _setup_encryptor(self):
-        """Sets up the encryptor instance variable."""
-        # Derive a key from the password
-        # In a real application, the salt should be stored with the encrypted data
-        salt = b"\\x00" * 16
+        """Sets up the encryptor with proper random salt."""
+        if os.path.exists(self.file_path):
+            # Try to load salt from existing file (new format)
+            try:
+                with open(self.file_path, 'rb') as f:
+                    self._salt = f.read(16)
+                    if len(self._salt) == 16:
+                        self._salt_loaded = True
+                    else:
+                        # File too short - generate new salt
+                        self._salt = os.urandom(16)
+                        self._salt_loaded = False
+            except (IOError, OSError):
+                self._salt = os.urandom(16)
+                self._salt_loaded = False
+        else:
+            # Generate random salt for new files
+            self._salt = os.urandom(16)
+            self._salt_loaded = False
+        
         kdf = ScryptKDF()
-        self._key = kdf.derive_key(self._password, salt)
+        self._key = kdf.derive_key(self._password, self._salt)
         self._encryptor = AESGCMEncryptor()
 
     def save(self):
         """
-        Saves the data to the file.
+        Saves the data to the file with salt prepended.
         """
         if not self._encryptor:
             self._setup_encryptor()
@@ -101,26 +119,49 @@ class SecureStorage:
         json_data = json.dumps(self.data).encode("utf-8")
         encrypted_blob = self._encryptor.encrypt(json_data, self._key)
 
+        # Write salt + encrypted data
         with open(self.file_path, "wb") as f:
+            f.write(self._salt)
             f.write(encrypted_blob)
 
     def load(self):
         """
-        Loads and decrypts the data from the file.
+        Loads and decrypts the data from the file, reading salt from file.
+        Supports both new format (with salt) and old format (without salt).
         """
         if not self._encryptor:
             self._setup_encryptor()
 
         with open(self.file_path, "rb") as f:
+            if self._salt_loaded:
+                # New format: skip salt prefix
+                f.seek(16)
+            # Old format or file too short: read from beginning
             encrypted_blob = f.read()
 
         try:
             decrypted_data = self._encryptor.decrypt(encrypted_blob, self._key)
             self.data = json.loads(decrypted_data)
         except (ValueError, InvalidTag) as e:
-            raise IOError(
-                f"Failed to decrypt or load data. Incorrect password or corrupted file. Reason: {e}"
-            )
+            # Try old format (no salt prefix) for backward compatibility
+            with open(self.file_path, "rb") as f:
+                encrypted_blob_old = f.read()
+            
+            # Use hardcoded salt for old format
+            old_salt = b"\x00" * 16
+            kdf = ScryptKDF()
+            old_key = kdf.derive_key(self._password, old_salt)
+            
+            try:
+                decrypted_data = self._encryptor.decrypt(encrypted_blob_old, old_key)
+                self.data = json.loads(decrypted_data)
+                # Successfully loaded old format - generate new salt for migration on next save
+                self._salt = os.urandom(16)
+                self._key = kdf.derive_key(self._password, self._salt)
+            except (ValueError, InvalidTag):
+                raise IOError(
+                    f"Failed to decrypt or load data. Incorrect password or corrupted file. Reason: {e}"
+                )
         except json.JSONDecodeError:
             raise IOError("File is corrupted and does not contain valid JSON.")
 
