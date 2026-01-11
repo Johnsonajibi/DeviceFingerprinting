@@ -41,6 +41,7 @@ class SecureStorage:
         self.key_iterations = key_iterations
         self._password = password
         self._encryptor = None
+        self._salt = None
         self.data: Dict[str, Any] = {}
 
         if not self._password and keyring:
@@ -83,17 +84,28 @@ class SecureStorage:
             pass
 
     def _setup_encryptor(self):
-        """Sets up the encryptor instance variable."""
-        # Derive a key from the password
-        # In a real application, the salt should be stored with the encrypted data
-        salt = b"\\x00" * 16
+        """Sets up the encryptor with proper random salt."""
+        if os.path.exists(self.file_path):
+            # Load salt from existing file
+            try:
+                with open(self.file_path, 'rb') as f:
+                    self._salt = f.read(16)
+                    if len(self._salt) != 16:
+                        # Corrupted file or old format - generate new salt
+                        self._salt = os.urandom(16)
+            except (IOError, OSError):
+                self._salt = os.urandom(16)
+        else:
+            # Generate random salt for new files
+            self._salt = os.urandom(16)
+        
         kdf = ScryptKDF()
-        self._key = kdf.derive_key(self._password, salt)
+        self._key = kdf.derive_key(self._password, self._salt)
         self._encryptor = AESGCMEncryptor()
 
     def save(self):
         """
-        Saves the data to the file.
+        Saves the data to the file with salt prepended.
         """
         if not self._encryptor:
             self._setup_encryptor()
@@ -101,17 +113,21 @@ class SecureStorage:
         json_data = json.dumps(self.data).encode("utf-8")
         encrypted_blob = self._encryptor.encrypt(json_data, self._key)
 
+        # Write salt + encrypted data
         with open(self.file_path, "wb") as f:
+            f.write(self._salt)
             f.write(encrypted_blob)
 
     def load(self):
         """
-        Loads and decrypts the data from the file.
+        Loads and decrypts the data from the file, reading salt from file.
         """
         if not self._encryptor:
             self._setup_encryptor()
 
         with open(self.file_path, "rb") as f:
+            # Salt already read in _setup_encryptor
+            f.seek(16)  # Skip salt
             encrypted_blob = f.read()
 
         try:
