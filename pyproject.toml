@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "device-fingerprinting-pro"
-version = "2.2.1"
+version = "2.2.3"
 description = "Hardware device fingerprinting with post-quantum cryptography, TPM support, and ML-based anomaly detection"
 readme = "README_PYPI.md"
 license = "MIT"
