@@ -10,7 +10,7 @@
 
 Production-ready Python library for **hardware-based device fingerprinting** with **post-quantum cryptography**, **ML anomaly detection**, and **TPM integration**.
 
-> **📚 Full Documentation:** For complete documentation with interactive diagrams and detailed examples, visit the [GitHub Repository](https://github.com/Johnsonajibi/DeviceFingerprinting)
+**Documentation:** For detailed documentation and examples, visit the [GitHub Repository](https://github.com/Johnsonajibi/DeviceFingerprinting)
 
 ---
 
@@ -40,62 +40,59 @@ Production-ready Python library for **hardware-based device fingerprinting** wit
 
 ## Hello World
 
-Get a device fingerprint in **10 seconds**:
-
 ```python
 from device_fingerprinting.production_fingerprint import ProductionFingerprintGenerator
 
 generator = ProductionFingerprintGenerator()
 fingerprint = generator.generate_fingerprint()
 
-print(f"Your Device ID: {fingerprint['fingerprint_hash']}")
-print(f"Platform: {fingerprint['system_info']['platform']}")
+print(fingerprint['fingerprint_hash'])
 ```
-
-That's it. Your device now has a stable, unique identifier.
 
 ---
 
 ## Why This Library?
 
-### Compared to FingerprintJS & Browser Fingerprinting
-- ✅ **Hardware-level** identification (not browser cookies)
-- ✅ **Post-quantum cryptography** (SHA3-512)
-- ✅ **Persistent across browser clears** and VPN changes
-- ✅ **Server-side** processing (no client-side leaks)
+### FingerprintJS and Browser Fingerprinting
 
-### Compared to Generic Device ID Libraries
-- ✅ **ML Anomaly Detection** for behavioral analysis
-- ✅ **Encrypted Storage** with OS keyring integration
-- ✅ **TPM/Secure Hardware** backing (Windows, macOS, Linux)
-- ✅ **Deterministic fingerprinting** (same device = same ID, always)
+- Hardware-level identification
+- Post-quantum cryptography (SHA3-512)
+- Server-side processing
 
-### Compared to TPM Attestation Tools
-- ✅ **Cross-platform** TPM support (not just Windows/macOS)
-- ✅ **Graceful fallback** to software mode (optional, not mandatory)
-- ✅ **ML-powered anomaly detection** built-in
-- ✅ **Secure storage** for keys and sensitive data
-- ✅ **Production-ready** with 57 comprehensive tests
+### Generic Device ID Libraries
+
+- ML Anomaly Detection for behavioral analysis
+- Encrypted Storage with OS keyring integration
+- TPM/Secure Hardware backing (Windows, macOS, Linux)
+- Deterministic fingerprinting
+
+### TPM Attestation Tools
+
+- Cross-platform TPM support (Windows, macOS, Linux)
+- Software fallback mode
+- ML-based anomaly detection
+- Secure storage for keys and sensitive data
+- Comprehensive test suite
 
 ### Key Differentiators
 | Feature | Device FP Pro | FingerprintJS | Generic ID | TPM Tools |
 |---------|---------------|---------------|-----------|-----------|
-| Post-Quantum Crypto | ✅ | ❌ | ❌ | ✅ |
-| ML Anomaly Detection | ✅ | ❌ | ❌ | ❌ |
-| TPM Support (Cross-platform) | ✅ | ❌ | ❌ | ✅ |
-| Secure Storage | ✅ | ❌ | ✅ | ❌ |
-| Hardware-Backed | ✅ | ❌ | ❌ | ✅ |
-| Encryption Built-in | ✅ | ❌ | ❌ | ❌ |
+| Post-Quantum Crypto | Yes | No | No | Yes |
+| ML Anomaly Detection | Yes | No | No | No |
+| Cross-platform TPM | Yes | No | No | Yes |
+| Secure Storage | Yes | No | Yes | No |
+| Hardware-Backed | Yes | No | No | Yes |
+| Encryption | Yes | No | No | No |
 
 ## Overview
 
-**Device Fingerprinting Pro** provides production-ready tools for:
+Provides the following components:
 
-- **Hardware Fingerprinting**: Generate unique, stable device identifiers
-- **Cryptographic Security**: AES-GCM encryption with SHA3-512 hashing
-- **Anomaly Detection**: ML-based detection of suspicious system behavior
-- **Secure Storage**: Encrypted key-value store with OS keyring integration
-- **Cross-Platform**: Windows, macOS, and Linux support
+- Hardware fingerprinting for device identification
+- Cryptographic operations with AES-GCM and SHA3-512
+- ML-based anomaly detection
+- Secure storage with OS keyring integration
+- Support for Windows, macOS, and Linux
 
 ## Quick Start
 
@@ -301,18 +298,17 @@ detector.load_model("baseline.pkl")
 
 ### Threat Model
 
-**What We Protect Against:**
-- 🛡️ **Unauthorized device impersonation** - Only legitimate devices can generate valid fingerprints
-- 🛡️ **Data tampering** - AES-GCM authenticated encryption detects any modifications
-- 🛡️ **Key extraction** - Scrypt-derived keys and OS keyring integration prevent plaintext exposure
-- 🛡️ **Anomalous behavior** - ML detection identifies suspicious system changes or intrusions
-- 🛡️ **Quantum attacks** - SHA3-512 is quantum-resistant (post-quantum cryptography)
+Addresses the following threats:
+- Unauthorized device impersonation
+- Data tampering
+- Key extraction
+- Anomalous system behavior
+- Quantum attacks
 
-**Out-of-Scope Threats:**
-- ❌ Compromised OS kernel (assumes kernel-level integrity)
-- ❌ Physical hardware attacks (assumes physical security)
-- ❌ National security-grade adversaries with hardware access
-- ❌ Social engineering / user credential compromise
+Out of scope:
+- Compromised OS kernel
+- Physical hardware attacks
+- User credential compromise
 
 ### Attack Surfaces & Mitigations
 
@@ -326,20 +322,20 @@ detector.load_model("baseline.pkl")
 
 ### Security Guarantees
 
-✅ **What This Library Guarantees:**
-- Fingerprints are **deterministic** (same hardware = same ID)
-- Fingerprints are **collision-resistant** (SHA3-512 @ 256-bit security)
-- Stored secrets are **encrypted** with authenticated encryption (AES-GCM)
-- Keys are **derived securely** using memory-hard KDF (Scrypt)
-- **Anomalies are detectable** via ML-based behavioral analysis
-- **No plaintext storage** - all sensitive data encrypted or hashed
+This library provides:
+- Deterministic fingerprints (same hardware produces same ID)
+- Collision-resistant fingerprints (SHA3-512, 256-bit security)
+- Encrypted storage with authenticated encryption (AES-GCM)
+- Secure key derivation (Scrypt, memory-hard)
+- ML-based behavioral anomaly detection
+- No plaintext storage of sensitive data
 
-❌ **What This Library Does NOT Guarantee:**
-- Protection against **compromised OS kernel** (root/admin)
-- Protection against **physical hardware attacks**
-- **Unbreakable** fingerprints (no perfect uniqueness)
-- **Quantum-safety** for already-harvested encrypted data
-- **Privacy** if user identity is linked to device ID
+This library does not provide:
+- Protection against compromised OS kernel
+- Protection against physical hardware attacks
+- Perfect fingerprint uniqueness
+- Quantum security for previously-collected encrypted data
+- Privacy isolation when device ID is linked to user identity
 
 ### Privacy Considerations
 
@@ -418,7 +414,7 @@ device_id = manager.initialize()
 if manager.verify_device():
     status = manager.check_security()
     if not status['is_normal']:
-        print(f"⚠ Security alert: Anomaly detected")
+        print("Security alert: Anomaly detected")
 ```
 
 ### JWT Authentication Integration
@@ -616,15 +612,9 @@ MIT License - see [LICENSE](https://github.com/Johnsonajibi/DeviceFingerprinting
 
 ### Version 2.0.0 (2025-10-18)
 - Initial PyPI release
-- Production-ready device fingerprinting
+- Device fingerprinting
 - ML-based anomaly detection
 - AES-GCM encryption and secure storage
 - Cross-platform support (Windows, macOS, Linux)
-- Comprehensive test suite (57 tests)
+- Test suite (57 tests)
 - CI/CD pipeline with GitHub Actions
-
----
-
-**Made with ❤️ by the Device Fingerprinting Pro Team**
-
-For detailed documentation with interactive diagrams, visit: https://github.com/Johnsonajibi/DeviceFingerprinting
