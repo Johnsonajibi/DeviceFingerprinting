@@ -1,0 +1,37 @@
+title: Device Fingerprinting Library
+description: Hardware-based device fingerprinting with post-quantum cryptography and ML-based anomaly detection
+theme: jekyll-theme-slate
+remote_theme: pages-themes/slate@v0.2.0
+plugins:
+  - jekyll-remote-theme
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# GitHub Pages settings
+github:
+  repository_url: https://github.com/yourusername/device-fingerprinting
+
+# Markdown settings
+markdown: kramdown
+kramdown:
+  input: GFM
+  hard_wrap: false
+
+# Site settings
+url: https://yourusername.github.io/device-fingerprinting
+baseurl: /device-fingerprinting
+
+# Navigation
+nav_items:
+  - title: Home
+    url: /
+  - title: Getting Started
+    url: /guides/getting-started
+  - title: Installation
+    url: /guides/installation
+  - title: API Reference
+    url: /api/reference
+  - title: Examples
+    url: /guides/examples
+  - title: FAQ
+    url: /guides/faq
