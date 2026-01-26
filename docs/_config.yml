@@ -19,7 +19,7 @@ kramdown:
 
 # Site settings
 url: https://johnsonajibi.github.io
-baseurl: ""
+baseurl: /DeviceFingerprinting
 
 # Navigation
 nav_items:
