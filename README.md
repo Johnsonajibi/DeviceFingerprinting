@@ -5,13 +5,13 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-57_passing-brightgreen.svg)](tests/)
 [![Downloads](https://pepy.tech/badge/device-fingerprinting-pro)](https://pepy.tech/project/device-fingerprinting-pro)
-[![Documentation](https://img.shields.io/badge/docs-GitHub_Pages-blue.svg)](https://yourusername.github.io/device-fingerprinting)
+[![Documentation](https://img.shields.io/badge/docs-GitHub_Pages-blue.svg)](https://johnsonajibi.github.io/DeviceFingerprinting)
 
 A Python library for hardware-based device fingerprinting with anomaly detection. Generates stable device identifiers from hardware characteristics, provides encrypted storage, and detects anomalous system behavior.
 
 ## 📖 Documentation
 
-**For comprehensive documentation, visit the [full documentation site](https://yourusername.github.io/device-fingerprinting).**
+**For comprehensive documentation, visit the [full documentation site](https://johnsonajibi.github.io/DeviceFingerprinting).**
 
 Quick links:
 - [Getting Started Guide](docs/guides/getting-started.md) - Introduction and basic concepts

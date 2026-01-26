@@ -9,7 +9,7 @@ plugins:
 
 # GitHub Pages settings
 github:
-  repository_url: https://github.com/yourusername/device-fingerprinting
+  repository_url: https://github.com/johnsonajibi/DeviceFingerprinting
 
 # Markdown settings
 markdown: kramdown
@@ -18,8 +18,8 @@ kramdown:
   hard_wrap: false
 
 # Site settings
-url: https://yourusername.github.io/device-fingerprinting
-baseurl: /device-fingerprinting
+url: https://johnsonajibi.github.io/DeviceFingerprinting
+baseurl: /DeviceFingerprinting
 
 # Navigation
 nav_items:
