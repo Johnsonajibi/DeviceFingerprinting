@@ -18,8 +18,8 @@ kramdown:
   hard_wrap: false
 
 # Site settings
-url: https://johnsonajibi.github.io/DeviceFingerprinting
-baseurl: /DeviceFingerprinting
+url: https://johnsonajibi.github.io
+baseurl: ""
 
 # Navigation
 nav_items:
