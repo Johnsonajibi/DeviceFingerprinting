@@ -1,7 +1,7 @@
 use aes_gcm::{Aes256Gcm, Key, Nonce, KeyInit, aead::{Aead, OsRng}};
 use chacha20poly1305::{ChaCha20Poly1305, Key as ChaChaKey, Nonce as ChaChaNonce};
 use argon2::{Argon2, password_hash::{PasswordHasher, SaltString}};
-use rand::RngCore;
+use rand::{Rng, RngCore};
 use std::fmt;
 
 /// Custom error type for crypto operations
@@ -92,9 +92,7 @@ impl AesGcmCrypto {
 
     /// Generate cryptographically secure random bytes
     pub fn generate_random(&self, length: usize) -> Vec<u8> {
-        let mut buffer = vec![0u8; length];
-        OsRng.fill_bytes(&mut buffer);
-        buffer
+        (0..length).map(|_| OsRng.gen()).collect()
     }
 }
 

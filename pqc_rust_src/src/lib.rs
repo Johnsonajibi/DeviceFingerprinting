@@ -133,9 +133,9 @@ fn test_crypto() -> PyResult<bool> {
     }
     
     // Test key derivation
-    let password = b"test_password";
+    let password = crypto.generate_random(16)?;
     let salt = crypto.generate_random(16)?;
-    let derived_key = crypto.derive_key_argon2(password, &salt, 32)?;
+    let derived_key = crypto.derive_key_argon2(&password, &salt, 32)?;
     
     if derived_key.len() != 32 {
         return Ok(false);
