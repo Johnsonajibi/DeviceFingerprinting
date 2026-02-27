@@ -2288,7 +2288,11 @@ def reset_device_id(storage_key: str = "device_id") -> None:
 @dataclass
 class FingerprintResult:
     """Represents the result of a fingerprint generation."""
-
+    # Equality method to compare fingerprints
+    def __eq__(self, other):
+        if not isinstance(other, FingerprintResult):
+            return False
+        return self.fingerprint == other.fingerprint
     fingerprint: str
     method: str
     components: Dict[str, Any]
@@ -2321,8 +2325,10 @@ class DeviceFingerprintGenerator:
             confidence = 0.9
         else:
             raise ValueError(f"Unsupported fingerprint method: {method}")
-
-        fingerprint_data = json.dumps(components, sort_keys=True).encode("utf-8")
+        # Remove timestamp from fingerprint components to ensure consistent fingerprints generated at different times
+        fingerprint_components = components.copy()
+        fingerprint_components.pop("collected_at", None)
+        fingerprint_data = json.dumps(fingerprint_components, sort_keys=True).encode("utf-8")
 
         return FingerprintResult(
             fingerprint=base64.b64encode(fingerprint_data).decode("utf-8"),

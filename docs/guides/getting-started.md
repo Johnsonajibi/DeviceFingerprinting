@@ -132,7 +132,7 @@ from device_fingerprinting import DeviceFingerprintGenerator
 generator = DeviceFingerprintGenerator()
 
 # Generate a device fingerprint
-fingerprint = generator.generate_device_fingerprint()
+fingerprint = generator.generate()
 
 # The fingerprint is a unique identifier for this device
 print(f"Device fingerprint: {fingerprint}")
@@ -149,9 +149,9 @@ A key property of device fingerprints is that they remain stable:
 
 ```python
 # Generate fingerprint multiple times
-fp1 = generator.generate_device_fingerprint()
-fp2 = generator.generate_device_fingerprint()
-fp3 = generator.generate_device_fingerprint()
+fp1 = generator.generate()
+fp2 = generator.generate()
+fp3 = generator.generate()
 
 # All should be identical
 assert fp1 == fp2 == fp3
@@ -182,7 +182,7 @@ else:
 
 ```python
 # Generate and store a fingerprint securely
-fingerprint = generator.generate_device_fingerprint()
+fingerprint = generator.generate()
 
 # Store with encryption
 generator.store_fingerprint("my_device", fingerprint)
@@ -243,7 +243,7 @@ Register a device for later verification:
 ```python
 def register_device(user_id, device_name):
     generator = DeviceFingerprintGenerator()
-    fingerprint = generator.generate_device_fingerprint()
+    fingerprint = generator.generate()
     
     # Store with user context
     storage_key = f"user_{user_id}_device_{device_name}"
@@ -262,7 +262,7 @@ Verify that a request comes from a known device:
 ```python
 def verify_device(user_id, device_name):
     generator = DeviceFingerprintGenerator()
-    current_fingerprint = generator.generate_device_fingerprint()
+    current_fingerprint = generator.generate()
     
     # Retrieve stored fingerprint
     storage_key = f"user_{user_id}_device_{device_name}"
@@ -315,7 +315,7 @@ Create device-bound secrets that only work on the original device:
 ```python
 def create_bound_secret(secret_data):
     generator = ProductionFingerprintGenerator()
-    fingerprint = generator.generate_device_fingerprint()
+    fingerprint = generator.generate()
     
     # Bind secret to device
     bound_token = generator.create_device_binding({
@@ -327,7 +327,7 @@ def create_bound_secret(secret_data):
 
 def verify_bound_secret(bound_token):
     generator = ProductionFingerprintGenerator()
-    current_fingerprint = generator.generate_device_fingerprint()
+    current_fingerprint = generator.generate()
     
     # Verify on the same device
     is_valid = generator.verify_device_binding(bound_token, current_fingerprint)
