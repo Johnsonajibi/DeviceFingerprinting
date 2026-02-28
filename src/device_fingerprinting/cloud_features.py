@@ -47,9 +47,10 @@ class CloudStorageBackend(StorageBackend):
 
         # Use Scrypt for key derivation to add resistance against brute-force attacks
         salt = self.config.get("kdf_salt", os.urandom(16))
-        self.kdf = ScryptKDF(salt=salt)
-        self.derived_key = self.kdf.derive_key(encryption_key)
-        self.encryptor = AESGCMEncryptor(self.derived_key)
+        self.kdf = ScryptKDF()
+        password_str = base64.b64encode(encryption_key).decode("utf-8")
+        self.derived_key = self.kdf.derive_key(password_str, salt)
+        self.encryptor = AESGCMEncryptor()
 
         self._init_cloud_client()
 
@@ -93,11 +94,11 @@ class CloudStorageBackend(StorageBackend):
     def _encrypt_data(self, data: Dict[str, Any]) -> bytes:
         """Encrypt data before storing it in the cloud."""
         json_data = json.dumps(data, sort_keys=True).encode("utf-8")
-        return self.encryptor.encrypt(json_data)
+        return self.encryptor.encrypt(json_data, self.derived_key)
 
     def _decrypt_data(self, encrypted_data: bytes) -> Dict[str, Any]:
         """Decrypt data retrieved from the cloud."""
-        decrypted_data = self.encryptor.decrypt(encrypted_data)
+        decrypted_data = self.encryptor.decrypt(encrypted_data, self.derived_key)
         return json.loads(decrypted_data)
 
     def store(self, key: str, data: Dict[str, Any]) -> bool:
@@ -201,7 +202,7 @@ class DistributedVerification:
             for future in concurrent.futures.as_completed(future_to_node):
                 node_url = future_to_node[future]
                 try:
-                    result = future.get()
+                    result = future.result()
                     node_results.append(
                         {"node": node_url, "result": result, "timestamp": time.time()}
                     )
