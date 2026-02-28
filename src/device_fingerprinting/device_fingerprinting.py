@@ -2290,11 +2290,13 @@ def reset_device_id(storage_key: str = "device_id") -> None:
 @dataclass
 class FingerprintResult:
     """Represents the result of a fingerprint generation."""
+
     # Equality method to compare fingerprints
     def __eq__(self, other):
         if not isinstance(other, FingerprintResult):
             return False
         return self.fingerprint == other.fingerprint
+
     fingerprint: str
     method: str
     components: Dict[str, Any]
