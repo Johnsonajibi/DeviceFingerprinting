@@ -89,7 +89,7 @@ class SecureStorage:
         if os.path.exists(self.file_path):
             # Try to load salt from existing file (new format)
             try:
-                with open(self.file_path, 'rb') as f:
+                with open(self.file_path, "rb") as f:
                     self._salt = f.read(16)
                     if len(self._salt) == 16:
                         self._salt_loaded = True
@@ -104,7 +104,7 @@ class SecureStorage:
             # Generate random salt for new files
             self._salt = os.urandom(16)
             self._salt_loaded = False
-        
+
         kdf = ScryptKDF()
         self._key = kdf.derive_key(self._password, self._salt)
         self._encryptor = AESGCMEncryptor()
@@ -146,12 +146,12 @@ class SecureStorage:
             # Try old format (no salt prefix) for backward compatibility
             with open(self.file_path, "rb") as f:
                 encrypted_blob_old = f.read()
-            
+
             # Use hardcoded salt for old format
             old_salt = b"\x00" * 16
             kdf = ScryptKDF()
             old_key = kdf.derive_key(self._password, old_salt)
-            
+
             try:
                 decrypted_data = self._encryptor.decrypt(encrypted_blob_old, old_key)
                 self.data = json.loads(decrypted_data)

@@ -68,6 +68,9 @@ jobs:
         name: fuzzers-${{ matrix.sanitizer }}
         path: build-out/
 
+    - name: Restore Executable Permissions
+      run: chmod +x build-out/* || true
+
     - name: Run Fuzzing (${{ matrix.fuzzer }}, ${{ matrix.sanitizer }})
       id: run_fuzzer
       uses: google/clusterfuzzlite/actions/run_fuzzers@v1
@@ -111,6 +114,9 @@ jobs:
       with:
         name: fuzzers-${{ matrix.sanitizer }}
         path: build-out/
+
+    - name: Restore Executable Permissions
+      run: chmod +x build-out/* || true
 
     - name: Run Batch Fuzzing (${{ matrix.sanitizer }})
       id: run_batch
