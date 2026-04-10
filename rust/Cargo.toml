@@ -9,9 +9,9 @@ crate-type = ["cdylib"] # Compile for C-dynamic library
 
 [dependencies]
 libc = "0.2"
-sha3 = "0.10"
+sha3 = "0.11"
 hex = "0.4"
 cpufeatures = "0.2"
 
 [build-dependencies]
-cbindgen = "0.24"
+cbindgen = "0.29"

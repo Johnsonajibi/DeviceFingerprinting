@@ -5,8 +5,9 @@
 numpy>=1.21.0
 scikit-learn>=1.0.0
 psutil>=5.8.0
-cryptography>=43.0.0  # Updated for security fixes
+cryptography>=44.0.1  # Updated for security fixes (buffer overflow CVE, DNS constraint CVE)
 keyring>=23.0.0
+Pygments>=2.15.1  # Minimum version to avoid ReDoS vulnerability (GHSA-mrwq-x4v8-fh7p)
 certifi>=2024.7.4  # Updated for security fixes
 Markdown>=3.3.4  # Markdown-to-HTML tooling for documentation exporter
 
