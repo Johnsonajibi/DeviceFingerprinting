@@ -20,7 +20,7 @@ secrecy = "0.8"
 rand = "0.8"
 
 # Hashing and encoding
-sha3 = "0.10"
+sha3 = "0.11"
 hex = "0.4"
 
 # Serialization
