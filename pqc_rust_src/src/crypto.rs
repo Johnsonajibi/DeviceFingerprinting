@@ -92,7 +92,9 @@ impl AesGcmCrypto {
 
     /// Generate cryptographically secure random bytes
     pub fn generate_random(&self, length: usize) -> Vec<u8> {
-        (0..length).map(|_| OsRng.gen()).collect()
+        let mut buf = vec![0u8; length];
+        OsRng.fill_bytes(&mut buf);
+        buf
     }
 }
 

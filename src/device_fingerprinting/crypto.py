@@ -608,7 +608,7 @@ class EnhancedCrypto:
 
         # Test Key Derivation
         try:
-            password = b"test_password"
+            password = self.generate_random(16)
             salt = self.generate_random(16)
             key1 = self.derive_key_argon2(password, salt, 32)
             key2 = self.derive_key_argon2(password, salt, 32)
