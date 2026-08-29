@@ -1,6 +1,6 @@
 # Device Fingerprinting Pro
 
-[![Python](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyPI version](https://badge.fury.io/py/device-fingerprinting-pro.svg)](https://badge.fury.io/py/device-fingerprinting-pro)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-57_passing-brightgreen.svg)](tests/)
@@ -523,7 +523,7 @@ def verify_device_bound_token(token, secret_key):
 - **31% code coverage**
 - Automated CI/CD with GitHub Actions
 - Multi-platform testing (Windows, macOS, Linux)
-- Multi-version testing (Python 3.9-3.12)
+- Multi-version testing (Python 3.10-3.13)
 
 ### Run Tests
 

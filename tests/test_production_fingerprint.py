@@ -1,63 +1,33 @@
 import unittest
-import os
 import json
-from unittest.mock import patch, MagicMock
+import hashlib
+import platform
+from unittest.mock import patch
 
-
-# Mock the Rust bridge before importing the module that uses it
-class MockRustBridge:
-    def get_library_version(self):
-        return "0.1.0-mock"
-
-    def sha3_512_hex(self, data: bytes) -> str:
-        import hashlib
-
-        return hashlib.sha3_512(data).hexdigest()
-
-    def get_cpu_features(self):
-        return "avx2,sse4.2,aes"
-
-
-# Apply the patch
-mock_bridge_instance = MockRustBridge()
-mock_rust_bridge_module = MagicMock()
-mock_rust_bridge_module.RustBridge.return_value = mock_bridge_instance
-
-with patch.dict("sys.modules", {"device_fingerprinting.rust_bridge": mock_rust_bridge_module}):
-    from device_fingerprinting.production_fingerprint import ProductionFingerprintGenerator
+from device_fingerprinting.production_fingerprint import ProductionFingerprintGenerator
 
 
 class TestProductionFingerprintGenerator(unittest.TestCase):
 
     def setUp(self):
         """Set up the fingerprint generator for tests."""
-        self.generator = ProductionFingerprintGenerator(use_rust_bridge=True)
+        self.generator = ProductionFingerprintGenerator()
 
     def test_initialization(self):
         """Test that the generator initializes correctly."""
         self.assertIsNotNone(self.generator)
-        # Check if the (mocked) Rust bridge was loaded
-        self.assertTrue(self.generator.rust_bridge_loaded)
-        self.assertEqual(self.generator.get_rust_bridge_version(), "0.1.0-mock")
 
     def test_sha3_512_hashing(self):
-        """Test the SHA3-512 hashing via the (mocked) Rust bridge."""
+        """Test the SHA3-512 hashing helper."""
         data = b"test data for hashing"
-
-        # Python's native hash for comparison
-        import hashlib
-
         expected_hash = hashlib.sha3_512(data).hexdigest()
-
-        # Hash from our generator (which uses the mock)
         actual_hash = self.generator._hash_sha3_512(data)
-
         self.assertEqual(actual_hash, expected_hash)
 
-    def test_get_cpu_features_from_bridge(self):
-        """Test that CPU features are retrieved from the (mocked) Rust bridge."""
+    def test_get_cpu_features(self):
+        """Test that CPU/processor identification is returned."""
         features = self.generator._get_cpu_features()
-        self.assertEqual(features, "avx2,sse4.2,aes")
+        self.assertEqual(features, platform.processor())
 
     def test_generate_fingerprint_structure(self):
         """Test the structure and types of the generated fingerprint."""
@@ -88,7 +58,7 @@ class TestProductionFingerprintGenerator(unittest.TestCase):
             patch("uuid.getnode", return_value=123456789012345),
         ):
 
-            generator = ProductionFingerprintGenerator(use_rust_bridge=True)
+            generator = ProductionFingerprintGenerator()
             fingerprint1 = generator.generate_fingerprint()
             fingerprint2 = generator.generate_fingerprint()
 

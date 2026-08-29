@@ -74,4 +74,4 @@ __all__ = [
     "get_tpm_status",
 ]
 
-__version__ = "2.1.3-PQC-DUALUSB-0.15.5"
+from .version import __version__  # noqa: E402 - single source of truth for the package version

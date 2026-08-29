@@ -1,6 +1,6 @@
 # Device Fingerprinting Library
 
-[![Python](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyPI version](https://badge.fury.io/py/device-fingerprinting-pro.svg)](https://badge.fury.io/py/device-fingerprinting-pro)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-57_passing-brightgreen.svg)](tests/)
@@ -1229,9 +1229,9 @@ graph TD
 graph LR
     PUSH[Git Push] --> CI[GitHub Actions]
     
-    CI --> TEST1[Ubuntu<br/>Python 3.9-3.12]
-    CI --> TEST2[Windows<br/>Python 3.9-3.12]
-    CI --> TEST3[macOS<br/>Python 3.9-3.12]
+    CI --> TEST1[Ubuntu<br/>Python 3.10-3.13]
+    CI --> TEST2[Windows<br/>Python 3.10-3.13]
+    CI --> TEST3[macOS<br/>Python 3.10-3.13]
     
     TEST1 --> LINT[Code Quality<br/>flake8, black, mypy]
     TEST2 --> LINT
@@ -1251,7 +1251,7 @@ graph LR
 
 **GitHub Actions automated testing:**
 - **Platforms:** Ubuntu 22.04, Windows Server 2022, macOS 13
-- **Python versions:** 3.9, 3.10, 3.11, 3.12 (12 combinations)
+- **Python versions:** 3.10, 3.11, 3.12, 3.13 (12 combinations)
 - **Code quality:** flake8 (linting), black (formatting), mypy (type checking)
 - **Security scanning:** bandit (code security), safety (dependency vulnerabilities)
 - **Coverage reporting:** pytest-cov with Codecov integration

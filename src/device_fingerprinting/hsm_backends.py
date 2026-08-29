@@ -23,8 +23,10 @@ except ImportError:
 from .backends import CryptoBackend, StorageBackend
 from .crypto import AESGCMEncryptor, ScryptKDF
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+# Libraries should not call logging.basicConfig() (mutates the host
+# application's root logger as an import side effect) - use a module-scoped
+# logger instead.
+_logger = logging.getLogger(__name__)
 
 
 class HSMCryptoBackend(CryptoBackend):
@@ -76,12 +78,12 @@ class HSMCryptoBackend(CryptoBackend):
 
             if self.key_handle:
                 self.hsm_available = True
-                logging.info("HSM initialized successfully and key is available.")
+                _logger.info("HSM initialized successfully and key is available.")
             else:
-                logging.error("Failed to get or create HSM key.")
+                _logger.error("Failed to get or create HSM key.")
                 self.session.logout()
         except (PyKCS11Error, IndexError, FileNotFoundError) as e:
-            logging.error(f"HSM initialization failed: {e}")
+            _logger.error(f"HSM initialization failed: {e}")
             self.hsm_available = False
 
     def _get_or_create_hsm_key(self) -> Optional[Any]:
@@ -101,7 +103,7 @@ class HSMCryptoBackend(CryptoBackend):
                 return key[0]
 
             # If not found, create a new key
-            logging.info(f"Key '{self.key_label}' not found. Creating a new one.")
+            _logger.info(f"Key '{self.key_label}' not found. Creating a new one.")
             key_template = [
                 (PyKCS11.CKA_CLASS, PyKCS11.CKO_SECRET_KEY),
                 (PyKCS11.CKA_KEY_TYPE, PyKCS11.CKK_AES),
@@ -115,7 +117,7 @@ class HSMCryptoBackend(CryptoBackend):
             ]
             return self.session.generateKey(key_template)
         except PyKCS11Error as e:
-            logging.error(f"Error accessing HSM key: {e}")
+            _logger.error(f"Error accessing HSM key: {e}")
             return None
 
     def sign(self, data: bytes) -> str:
@@ -128,7 +130,7 @@ class HSMCryptoBackend(CryptoBackend):
             signature = bytes(self.session.sign(self.key_handle, data, hmac_mechanism))
             return base64.b64encode(signature).decode("utf-8")
         except PyKCS11Error as e:
-            logging.error(f"HSM signing failed: {e}")
+            _logger.error(f"HSM signing failed: {e}")
             raise
 
     def verify(self, signature: str, data: bytes) -> bool:
@@ -144,7 +146,7 @@ class HSMCryptoBackend(CryptoBackend):
             self.session.verify(self.key_handle, data, signature_bytes, hmac_mechanism)
             return True
         except PyKCS11Error as e:
-            logging.warning(f"HSM verification failed: {e}")
+            _logger.warning(f"HSM verification failed: {e}")
             return False
 
     def __del__(self):
@@ -152,7 +154,7 @@ class HSMCryptoBackend(CryptoBackend):
         if getattr(self, "session", None):
             self.session.logout()
             self.session.closeSession()
-            logging.info("HSM session closed.")
+            _logger.info("HSM session closed.")
 
 
 class SecureEnclaveStorage(StorageBackend):
@@ -193,7 +195,7 @@ class SecureEnclaveStorage(StorageBackend):
         self.derived_key = self.kdf.derive_key(password, salt)
         self.encryptor = AESGCMEncryptor(key_size=len(self.derived_key))
         self.enclave_available = True
-        logging.info("Secure enclave storage initialized.")
+        _logger.info("Secure enclave storage initialized.")
 
     def _get_file_path(self, key: str) -> str:
         """Generate a secure file path for a given key."""
@@ -212,10 +214,10 @@ class SecureEnclaveStorage(StorageBackend):
 
             with open(file_path, "wb") as f:
                 f.write(encrypted_data)
-            logging.info(f"Successfully stored data for key: {key}")
+            _logger.info(f"Successfully stored data for key: {key}")
             return True
         except IOError as e:
-            logging.error(f"Failed to write to secure storage for key {key}: {e}")
+            _logger.error(f"Failed to write to secure storage for key {key}: {e}")
             return False
 
     def load(self, key: str) -> Optional[Dict[str, Any]]:
@@ -232,10 +234,10 @@ class SecureEnclaveStorage(StorageBackend):
                 encrypted_data = f.read()
 
             decrypted_data = self.encryptor.decrypt(encrypted_data, self.derived_key)
-            logging.info(f"Successfully loaded data for key: {key}")
+            _logger.info(f"Successfully loaded data for key: {key}")
             return json.loads(decrypted_data)
         except (IOError, ValueError) as e:
-            logging.error(f"Failed to load or decrypt data for key {key}: {e}")
+            _logger.error(f"Failed to load or decrypt data for key {key}: {e}")
             return None
 
     def delete(self, key: str) -> bool:
@@ -247,9 +249,9 @@ class SecureEnclaveStorage(StorageBackend):
         if os.path.exists(file_path):
             try:
                 os.remove(file_path)
-                logging.info(f"Successfully deleted data for key: {key}")
+                _logger.info(f"Successfully deleted data for key: {key}")
                 return True
             except OSError as e:
-                logging.error(f"Failed to delete data for key {key}: {e}")
+                _logger.error(f"Failed to delete data for key {key}: {e}")
                 return False
         return True  # Key doesn't exist, so it's "deleted"

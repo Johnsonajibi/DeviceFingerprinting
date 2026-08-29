@@ -19,7 +19,11 @@ from .backends import StorageBackend
 from .crypto import AESGCMEncryptor, ScryptKDF
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+# Note: libraries should not call logging.basicConfig() - that mutates the
+# root logger of whatever application imports this module. Use a
+# module-scoped logger instead and let the host application configure
+# handlers/formatting.
+_logger = logging.getLogger(__name__)
 
 
 class CloudStorageBackend(StorageBackend):
@@ -70,7 +74,7 @@ class CloudStorageBackend(StorageBackend):
             # back to an ephemeral salt. Data encrypted in this session will
             # not be decryptable by a future session unless the caller
             # explicitly persists and supplies the same salt via config.
-            logging.warning(
+            _logger.warning(
                 "Cloud client unavailable; using an ephemeral KDF salt. "
                 "Pass config['kdf_salt'] to make encryption reproducible across restarts."
             )
@@ -81,13 +85,13 @@ class CloudStorageBackend(StorageBackend):
             if existing:
                 return existing
         except Exception as e:
-            logging.warning(f"Could not fetch existing KDF salt from cloud storage: {e}")
+            _logger.warning(f"Could not fetch existing KDF salt from cloud storage: {e}")
 
         salt = os.urandom(16)
         try:
             self._raw_put(self._SALT_OBJECT_KEY, salt)
         except Exception as e:
-            logging.warning(f"Could not persist KDF salt to cloud storage: {e}")
+            _logger.warning(f"Could not persist KDF salt to cloud storage: {e}")
         return salt
 
     def _raw_get(self, object_key: str) -> Optional[bytes]:
@@ -136,7 +140,7 @@ class CloudStorageBackend(StorageBackend):
                     region_name=self.config.get("aws_region", "us-east-1"),
                 )
                 self.available = True
-                logging.info("AWS S3 client initialized successfully.")
+                _logger.info("AWS S3 client initialized successfully.")
             elif self.provider == "azure":
                 from azure.storage.blob import BlobServiceClient
 
@@ -147,15 +151,15 @@ class CloudStorageBackend(StorageBackend):
                     raise ValueError("Azure connection string is required.")
                 self.client = BlobServiceClient.from_connection_string(connection_string)
                 self.available = True
-                logging.info("Azure Blob Storage client initialized successfully.")
+                _logger.info("Azure Blob Storage client initialized successfully.")
             else:
-                logging.warning(f"Unsupported cloud provider: {self.provider}")
+                _logger.warning(f"Unsupported cloud provider: {self.provider}")
                 self.available = False
         except ImportError as e:
-            logging.error(f"Failed to import cloud SDK for {self.provider}: {e}")
+            _logger.error(f"Failed to import cloud SDK for {self.provider}: {e}")
             self.available = False
         except Exception as e:
-            logging.error(f"Failed to initialize cloud client for {self.provider}: {e}")
+            _logger.error(f"Failed to initialize cloud client for {self.provider}: {e}")
             self.available = False
 
     def _encrypt_data(self, data: Dict[str, Any]) -> bytes:
@@ -171,7 +175,7 @@ class CloudStorageBackend(StorageBackend):
     def store(self, key: str, data: Dict[str, Any]) -> bool:
         """Store encrypted data in the configured cloud storage."""
         if not self.available:
-            logging.error("Cloud storage is not available.")
+            _logger.error("Cloud storage is not available.")
             return False
 
         try:
@@ -191,10 +195,10 @@ class CloudStorageBackend(StorageBackend):
                 )
                 blob_client.upload_blob(encrypted_data, overwrite=True)
 
-            logging.info(f"Successfully stored data for key: {key}")
+            _logger.info(f"Successfully stored data for key: {key}")
             return True
         except Exception as e:
-            logging.error(f"Failed to store data for key {key}: {e}")
+            _logger.error(f"Failed to store data for key {key}: {e}")
             return False
 
     def load(self, key: str) -> Optional[Dict[str, Any]]:
@@ -216,7 +220,7 @@ class CloudStorageBackend(StorageBackend):
 
             return self._decrypt_data(encrypted_data)
         except Exception as e:
-            logging.error(f"Failed to load data for key {key}: {e}")
+            _logger.error(f"Failed to load data for key {key}: {e}")
             return None
 
     def delete(self, key: str) -> bool:
@@ -236,7 +240,7 @@ class CloudStorageBackend(StorageBackend):
                 return False
             return True
         except Exception as e:
-            logging.error(f"Failed to delete data for key {key}: {e}")
+            _logger.error(f"Failed to delete data for key {key}: {e}")
             return False
 
 
@@ -288,7 +292,7 @@ class DistributedVerification:
                         {"node": node_url, "result": result, "timestamp": time.time()}
                     )
                 except Exception as e:
-                    logging.warning(f"Node {node_url} failed verification: {e}")
+                    _logger.warning(f"Node {node_url} failed verification: {e}")
                     node_results.append(
                         {"node": node_url, "error": str(e), "timestamp": time.time()}
                     )

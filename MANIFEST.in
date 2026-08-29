@@ -5,10 +5,11 @@ include SECURITY.md
 include CONTRIBUTING.md
 include CODE_OF_CONDUCT.md
 include pyproject.toml
-include setup.py
 
-# Include package data
-graft device_fingerprinting
+# Include package data (package lives under src/, not the repo root -
+# "graft device_fingerprinting" without the src/ prefix silently matched
+# nothing on every build)
+graft src/device_fingerprinting
 
 # Exclude unnecessary files
 global-exclude *.py[cod]

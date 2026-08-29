@@ -289,4 +289,4 @@ For questions about the documentation:
 ---
 
 **Last Updated**: January 2026
-**Documentation Version**: 2.2.3 (matches library version)
+**Documentation Version**: 2.3.0 (matches library version)

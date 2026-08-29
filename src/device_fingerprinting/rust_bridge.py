@@ -1,189 +1,161 @@
 """
-Python Bridge to Rust PQC Module
+Python Bridge to the pqc_rust Module
 
-This provides a clean Python interface to the real PQC implementations in Rust.
+Provides a clean Python interface to pqc_rust's real capabilities:
+accelerated AES-256-GCM / ChaCha20-Poly1305 encryption and Argon2id/Scrypt
+key derivation. pqc_rust does not implement post-quantum signatures or KEMs
+(Dilithium/Kyber) - that functionality lives in the pqcrypto/pqcdualusb
+backends used by crypto.py and hybrid_pqc.py, not in this crate.
 """
 
 import os
 import sys
 import subprocess
-from typing import Optional, Tuple, Dict, Any
+from typing import Dict, Any
 import logging
 
-# --- Build and Import ---
+_logger = logging.getLogger(__name__)
+
+# --- Import ---
 try:
-    # Try to import the Rust module
-    from pqc_rust import (
-        generate_keypair as rust_generate_keypair,
-        sign as rust_sign,
-        verify as rust_verify,
-    )
+    from pqc_rust import RustCrypto, SecureKey, get_crypto_info, test_crypto
 
     PQC_RUST_AVAILABLE = True
-    logging.info("✅ Successfully imported Rust PQC module")
+    _logger.info("Successfully imported pqc_rust module")
 
 except ImportError:
-    logging.warning("❌ Rust PQC module not found: No module named 'pqc_rust'")
-    logging.info("💡 Run: pip install maturin && maturin develop")
-
-    # Define dummy functions to avoid crashing the application
-    def rust_generate_keypair() -> tuple[bytes, bytes]:
-        raise NotImplementedError("Rust PQC library not available.")
-
-    def rust_sign(message: bytes, private_key: bytes) -> bytes:
-        raise NotImplementedError("Rust PQC library not available.")
-
-    def rust_verify(message: bytes, signature: bytes, public_key: bytes) -> bool:
-        raise NotImplementedError("Rust PQC library not available.")
-
-    def rust_get_pqc_info() -> dict:
-        raise NotImplementedError("Rust PQC library not available.")
-
-    def rust_test_dilithium() -> bool:
-        raise NotImplementedError("Rust PQC library not available.")
-
-    def rust_real_dilithium3():
-        raise NotImplementedError("Rust PQC library not available.")
-
-    def rust_real_kyber768():
-        raise NotImplementedError("Rust PQC library not available.")
+    _logger.warning("pqc_rust module not found: No module named 'pqc_rust'")
+    _logger.info("Run: pip install maturin && maturin develop (from pqc_rust_src/)")
 
     PQC_RUST_AVAILABLE = False
 
 
 # --- Python Bridge Class ---
 class RustCryptoBridge:
-    """Bridge to communicate with Rust PQC module"""
+    """Bridge to the pqc_rust module's accelerated symmetric crypto/KDF operations."""
 
     def __init__(self):
-        # This check is no longer needed here as we handle it gracefully
-        # if not PQC_RUST_AVAILABLE:
-        #     raise ImportError("Rust PQC library not available or failed to build.")
-        pass
+        self._crypto = RustCrypto() if PQC_RUST_AVAILABLE else None
 
-    def generate_keypair(self) -> tuple[bytes, bytes]:
-        """Generate a new keypair"""
+    def aes_encrypt(self, plaintext: bytes, key: bytes) -> bytes:
+        """Encrypt using AES-256-GCM."""
         if not PQC_RUST_AVAILABLE:
-            raise NotImplementedError("Rust PQC library not available.")
-        return rust_generate_keypair()
+            raise NotImplementedError("pqc_rust module not available.")
+        return self._crypto.aes_encrypt(plaintext, key)
 
-    def sign(self, message: bytes, private_key: bytes) -> bytes:
-        """Sign a message"""
+    def aes_decrypt(self, ciphertext: bytes, key: bytes) -> bytes:
+        """Decrypt using AES-256-GCM."""
         if not PQC_RUST_AVAILABLE:
-            raise NotImplementedError("Rust PQC library not available.")
-        return rust_sign(message, private_key)
+            raise NotImplementedError("pqc_rust module not available.")
+        return self._crypto.aes_decrypt(ciphertext, key)
 
-    def verify(self, message: bytes, signature: bytes, public_key: bytes) -> bool:
-        """Verify a signature"""
+    def chacha_encrypt(self, plaintext: bytes, key: bytes) -> bytes:
+        """Encrypt using ChaCha20-Poly1305."""
         if not PQC_RUST_AVAILABLE:
-            raise NotImplementedError("Rust PQC library not available.")
-        return rust_verify(message, signature, public_key)
+            raise NotImplementedError("pqc_rust module not available.")
+        return self._crypto.chacha_encrypt(plaintext, key)
+
+    def chacha_decrypt(self, ciphertext: bytes, key: bytes) -> bytes:
+        """Decrypt using ChaCha20-Poly1305."""
+        if not PQC_RUST_AVAILABLE:
+            raise NotImplementedError("pqc_rust module not available.")
+        return self._crypto.chacha_decrypt(ciphertext, key)
+
+    def derive_key_argon2(self, password: bytes, salt: bytes, length: int = 32) -> bytes:
+        """Derive a key using Argon2id."""
+        if not PQC_RUST_AVAILABLE:
+            raise NotImplementedError("pqc_rust module not available.")
+        return self._crypto.derive_key_argon2(password, salt, length)
+
+    def derive_key_scrypt(self, password: bytes, salt: bytes, length: int = 32) -> bytes:
+        """Derive a key using Scrypt."""
+        if not PQC_RUST_AVAILABLE:
+            raise NotImplementedError("pqc_rust module not available.")
+        return self._crypto.derive_key_scrypt(password, salt, length)
+
+    def generate_random(self, length: int) -> bytes:
+        """Generate cryptographically secure random bytes."""
+        if not PQC_RUST_AVAILABLE:
+            raise NotImplementedError("pqc_rust module not available.")
+        return bytes(self._crypto.generate_random(length))
 
     @staticmethod
     def is_available() -> bool:
-        """Check if Rust PQC is available"""
+        """Check if the pqc_rust module is available."""
         return PQC_RUST_AVAILABLE
 
     @staticmethod
     def get_info() -> Dict[str, Any]:
-        """Get PQC information"""
+        """Get crypto backend information."""
         if not PQC_RUST_AVAILABLE:
-            return {"error": "Rust PQC not available"}
-
+            return {"error": "pqc_rust module not available"}
         try:
-            return rust_get_pqc_info()
+            return dict(get_crypto_info())
         except Exception as e:
             return {"error": f"Failed to get info: {e}"}
 
     @staticmethod
-    def test_dilithium() -> bool:
-        """Test Dilithium implementation"""
+    def self_test() -> bool:
+        """Run pqc_rust's internal self-test (random generation + key derivation)."""
         if not PQC_RUST_AVAILABLE:
             return False
-
         try:
-            return rust_test_dilithium()
+            return bool(test_crypto())
         except Exception as e:
-            print(f"Dilithium test failed: {e}")
+            _logger.warning(f"pqc_rust self-test failed: {e}")
             return False
-
-    @staticmethod
-    def create_dilithium3():
-        """Create a new Dilithium3 instance"""
-        if not PQC_RUST_AVAILABLE:
-            raise RuntimeError("Rust PQC module not available")
-
-        return rust_real_dilithium3()
-
-    @staticmethod
-    def create_kyber768():
-        """Create a new Kyber768 instance"""
-        if not PQC_RUST_AVAILABLE:
-            raise RuntimeError("Rust PQC module not available")
-
-        return rust_real_kyber768()
 
 
 # Global instance
 rust_pqc = RustCryptoBridge()
 
 
-def install_rust_pqc():
-    """Install and build the Rust PQC module"""
-    print("🔧 Installing Rust PQC module...")
+def install_rust_pqc() -> bool:
+    """Build and install the pqc_rust module in-place (development helper)."""
+    _logger.info("Installing pqc_rust module...")
 
-    # Check if Rust is installed
     try:
         result = subprocess.run(["rustc", "--version"], capture_output=True, text=True, check=True)
-        print(f"✅ Rust found: {result.stdout.strip()}")
+        _logger.info(f"Rust found: {result.stdout.strip()}")
     except (subprocess.CalledProcessError, FileNotFoundError):
-        print("❌ Rust not found. Please install Rust from https://rustup.rs/")
+        _logger.error("Rust not found. Please install Rust from https://rustup.rs/")
         return False
 
-    # Install maturin if not available
     try:
         subprocess.run([sys.executable, "-m", "pip", "install", "maturin"], check=True)
-        print("✅ Maturin installed")
+        _logger.info("Maturin installed")
     except subprocess.CalledProcessError as e:
-        print(f"❌ Failed to install maturin: {e}")
+        _logger.error(f"Failed to install maturin: {e}")
         return False
 
-    # Build and install the Rust module
     try:
-        pqc_rust_dir = os.path.join(os.path.dirname(__file__), "..", "pqc_rust")
+        # The crate directory is pqc_rust_src/ at the repo root (this file
+        # lives at src/device_fingerprinting/, two levels below that).
+        repo_root = os.path.join(os.path.dirname(__file__), "..", "..")
+        pqc_rust_dir = os.path.join(repo_root, "pqc_rust_src")
         if os.path.exists(pqc_rust_dir):
-            print(f"📁 Building Rust module in: {pqc_rust_dir}")
+            _logger.info(f"Building pqc_rust module in: {pqc_rust_dir}")
             subprocess.run(["maturin", "develop"], cwd=pqc_rust_dir, check=True)
-            print("✅ Rust PQC module built and installed!")
+            _logger.info("pqc_rust module built and installed!")
 
-            # Reload the module
             global rust_pqc
             rust_pqc = RustCryptoBridge()
             return True
         else:
-            print(f"❌ pqc_rust directory not found: {pqc_rust_dir}")
+            _logger.error(f"pqc_rust_src directory not found: {pqc_rust_dir}")
             return False
 
     except subprocess.CalledProcessError as e:
-        print(f"❌ Failed to build Rust module: {e}")
+        _logger.error(f"Failed to build pqc_rust module: {e}")
         return False
 
 
 if __name__ == "__main__":
-    # Test the bridge
-    print("🧪 Testing Rust PQC Bridge...")
-
     if rust_pqc.is_available():
-        print("✅ Rust PQC is available!")
-        info = rust_pqc.get_info()
-        for k, v in info.items():
+        print("pqc_rust is available!")
+        for k, v in rust_pqc.get_info().items():
             print(f"   {k}: {v}")
-
-        print("\n🧪 Testing Dilithium3...")
-        if rust_pqc.test_dilithium():
-            print("✅ Dilithium3 test passed!")
-        else:
-            print("❌ Dilithium3 test failed!")
+        print("Self-test:", "passed" if rust_pqc.self_test() else "failed")
     else:
-        print("❌ Rust PQC not available")
-        print("💡 Run install_rust_pqc() to set it up")
+        print("pqc_rust not available")
+        print("Run install_rust_pqc() to set it up")

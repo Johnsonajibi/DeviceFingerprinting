@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "device-fingerprinting-pro"
-version = "2.2.3"
+version = "2.3.0"
 description = "Hardware device fingerprinting with post-quantum cryptography, TPM support, and ML-based anomaly detection"
 readme = "README_PYPI.md"
 license = "MIT"
@@ -32,17 +32,17 @@ classifiers = [
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Security :: Cryptography",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: System :: Hardware",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Typing :: Typed",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "numpy>=1.21.0",
     "scikit-learn>=1.0.0",
@@ -94,6 +94,9 @@ package-dir = {"" = "src"}
 packages = ["device_fingerprinting"]
 include-package-data = true
 
+[tool.setuptools.package-data]
+device_fingerprinting = ["py.typed"]
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = [
@@ -125,14 +128,14 @@ skip_covered = false
 
 [tool.black]
 line-length = 100
-target-version = ["py39", "py310", "py311", "py312"]
+target-version = ["py310", "py311", "py312", "py313"]
 
 [tool.isort]
 profile = "black"
 line_length = 100
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = true

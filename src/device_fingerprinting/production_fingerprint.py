@@ -16,16 +16,10 @@ from enum import Enum
 from dataclasses import dataclass, field
 from typing import Dict, Any, List, Optional
 
-__version__ = "2.1.0"
-
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-
-try:
-    from .rust_bridge import RustBridge
-
-    RUST_BRIDGE_AVAILABLE = True
-except (ImportError, ModuleNotFoundError):
-    RUST_BRIDGE_AVAILABLE = False
+# Libraries should not call logging.basicConfig() (mutates the host
+# application's root logger as an import side effect) - use a module-scoped
+# logger instead.
+_logger = logging.getLogger(__name__)
 
 
 class SecurityLevel(Enum):
@@ -79,45 +73,26 @@ class ProductionFingerprintGenerator:
     It combines hardware, software, and system configuration identifiers.
     """
 
-    def __init__(
-        self, security_level=SecurityLevel.HIGH, cache_ttl: int = 300, use_rust_bridge: bool = False
-    ):
+    def __init__(self, security_level=SecurityLevel.HIGH, cache_ttl: int = 300):
         """
         Initializes the generator.
 
         Args:
             security_level: The security level for fingerprinting.
             cache_ttl: Time-to-live for cache in seconds.
-            use_rust_bridge: If True, attempts to use the Rust bridge for faster hashing.
         """
         self.security_level = security_level
         self._cache = {}
         self._cache_lock = threading.Lock()
         self.cache_ttl = cache_ttl
         self.salt = secrets.token_bytes(16)
-        self.rust_bridge = None
-        self.rust_bridge_loaded = False
-        if use_rust_bridge and RUST_BRIDGE_AVAILABLE:
-            self.rust_bridge = RustBridge()
-            self.rust_bridge_loaded = True
-
-    def get_rust_bridge_version(self) -> str:
-        """Returns the version of the Rust bridge, if loaded."""
-        if self.rust_bridge:
-            return self.rust_bridge.get_library_version()
-        return "not_loaded"
 
     def _hash_sha3_512(self, data: bytes) -> str:
-        """Hashes data using SHA3-512, via Rust bridge if available."""
-        if self.rust_bridge:
-            return self.rust_bridge.sha3_512_hex(data)
+        """Hashes data using SHA3-512."""
         return hashlib.sha3_512(data).hexdigest()
 
     def _get_cpu_features(self) -> str:
-        """Gets CPU features, using Rust bridge if available."""
-        if self.rust_bridge:
-            return self.rust_bridge.get_cpu_features()
-        # Fallback for non-x86 or if Rust bridge fails
+        """Gets the CPU/processor identification string."""
         return platform.processor()
 
     def _get_system_info(self) -> Dict[str, Any]:
@@ -137,7 +112,7 @@ class ProductionFingerprintGenerator:
                 )
                 info["uuid"] = result.stdout.strip().split("\n")[-1]
             except (subprocess.CalledProcessError, FileNotFoundError) as e:
-                logging.warning(f"Could not get UUID on Windows: {e}")
+                _logger.warning(f"Could not get UUID on Windows: {e}")
         elif info["platform"] == "Linux":
             try:
                 with open("/etc/machine-id", "r") as f:
@@ -150,7 +125,7 @@ class ProductionFingerprintGenerator:
                         .decode()
                     )
                 except (FileNotFoundError, subprocess.CalledProcessError) as e:
-                    logging.warning(f"Could not get machine-id on Linux: {e}")
+                    _logger.warning(f"Could not get machine-id on Linux: {e}")
 
         # Add more hardware details
         try:
