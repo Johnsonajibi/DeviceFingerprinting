@@ -1,7 +1,7 @@
-use aes_gcm::{Aes256Gcm, Key, Nonce, KeyInit, aead::{Aead, OsRng}};
+use aes_gcm::{Aes256Gcm, Key, Nonce, KeyInit, aead::Aead};
 use chacha20poly1305::{ChaCha20Poly1305, Key as ChaChaKey, Nonce as ChaChaNonce};
 use argon2::{Argon2, password_hash::{PasswordHasher, SaltString}};
-use rand::{Rng, RngCore};
+use rand::{RngCore, rngs::OsRng};
 use std::fmt;
 
 /// Custom error type for crypto operations

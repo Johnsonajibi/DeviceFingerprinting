@@ -141,9 +141,6 @@ class MLAnomalyDetector:
     """
 
     def __init__(self, window_size: int = 1000, contamination: float = 0.05):
-        if not IsolationForest:
-            raise ImportError("scikit-learn is required for MLAnomalyDetector.")
-
         self.window_size = window_size
         self.model = IsolationForest(contamination=contamination, random_state=42)
         self.scaler = StandardScaler()
@@ -151,6 +148,11 @@ class MLAnomalyDetector:
         self.feature_stats = defaultdict(lambda: {"mean": 0.0, "std": 1.0, "count": 0})
         self.recent_features = deque(maxlen=window_size)
         self.is_fitted = False
+        # Populated by fit_model() to normalize raw IsolationForest scores
+        # (which are unbounded and not on a fixed 0-1 scale) into a
+        # calibrated 0-1 anomaly probability via the training distribution.
+        self.score_mean: float = 0.0
+        self.score_std: float = 1.0
 
     def extract_features(
         self, fingerprint_data: Dict[str, Any], session_info: Optional[Dict[str, Any]] = None
@@ -198,6 +200,13 @@ class MLAnomalyDetector:
         self.scaler.fit(feature_matrix)
         scaled_features = self.scaler.transform(feature_matrix)
         self.model.fit(scaled_features)
+
+        # Calibrate the raw score distribution so detect_anomaly() can map
+        # unbounded IsolationForest scores onto a 0-1 scale.
+        train_scores = -self.model.score_samples(scaled_features)
+        self.score_mean = float(np.mean(train_scores))
+        self.score_std = float(np.std(train_scores)) or 1.0
+
         self.is_fitted = True
 
     def detect_anomaly(
@@ -224,11 +233,19 @@ class MLAnomalyDetector:
             }
 
         scaled_features = self.scaler.transform(features)
-        anomaly_score = -self.model.score_samples(scaled_features)[0]
+        raw_score = -self.model.score_samples(scaled_features)[0]
         is_anomaly = self.model.predict(scaled_features)[0] == -1
+
+        # Normalize the unbounded raw score into a 0-1 anomaly probability
+        # via a sigmoid centered on the training distribution's mean/std, so
+        # downstream fixed thresholds (e.g. AdaptiveSecurityManager) are
+        # comparing against a consistent, calibrated scale.
+        z = (raw_score - self.score_mean) / self.score_std
+        anomaly_score = float(1.0 / (1.0 + np.exp(-z)))
 
         return {
             "anomaly_score": anomaly_score,
+            "raw_score": float(raw_score),
             "is_anomaly": bool(is_anomaly),
             "confidence": 1.0,
             "status": "predicting",
@@ -250,6 +267,12 @@ class AdaptiveSecurityManager:
         }
         self.current_level = "medium"
         self.threat_history = deque(maxlen=100)
+        # Hysteresis state: a new level must be recommended this many
+        # consecutive times before it actually takes effect, to prevent
+        # rapid flapping between security levels on noisy scores.
+        self._pending_level: Optional[str] = None
+        self._pending_count: int = 0
+        self._hysteresis_threshold: int = 3
 
     def assess_and_adapt(
         self, fingerprint_data: Dict[str, Any], session_info: Optional[Dict[str, Any]] = None
@@ -271,9 +294,23 @@ class AdaptiveSecurityManager:
         else:
             recommended_level = "low"
 
-        # Apply hysteresis to prevent rapid switching
-        if self.current_level != recommended_level:
-            self.current_level = recommended_level
+        # Apply hysteresis: only switch after the same new level has been
+        # recommended _hysteresis_threshold times in a row, so a single
+        # noisy score doesn't cause the security level to flap.
+        if recommended_level == self.current_level:
+            self._pending_level = None
+            self._pending_count = 0
+        else:
+            if recommended_level == self._pending_level:
+                self._pending_count += 1
+            else:
+                self._pending_level = recommended_level
+                self._pending_count = 1
+
+            if self._pending_count >= self._hysteresis_threshold:
+                self.current_level = recommended_level
+                self._pending_level = None
+                self._pending_count = 0
 
         return {
             "current_security_level": self.current_level,

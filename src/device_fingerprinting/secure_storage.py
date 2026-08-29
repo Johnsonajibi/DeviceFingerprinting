@@ -8,6 +8,7 @@ Falls back gracefully when secure storage is not available.
 import os
 import sys
 import json
+import hashlib
 from typing import Dict, Any, Optional, List
 
 from .crypto import AESGCMEncryptor, ScryptKDF, InvalidTag
@@ -26,7 +27,11 @@ class SecureStorage:
     """
 
     def __init__(
-        self, file_path: str, password: Optional[str] = None, key_iterations: int = 100_000
+        self,
+        file_path: str,
+        password: Optional[str] = None,
+        key_iterations: int = 100_000,
+        allow_legacy_format: bool = False,
     ):
         """
         Initializes the secure storage.
@@ -36,9 +41,18 @@ class SecureStorage:
             password: The password to use for encryption. If not provided,
                       the system's keyring will be used as a fallback.
             key_iterations: The number of iterations for the key derivation function.
+            allow_legacy_format: If True, load() will fall back to the old
+                fixed-zero-salt file format if the current-format decrypt
+                fails. Off by default: that format uses the same hardcoded
+                salt for every store on every machine (defeating per-file
+                salting) and doubles KDF cost on any read of a corrupted or
+                tampered file. Only enable this while migrating pre-existing
+                files, then turn it back off.
         """
         self.file_path = file_path
         self.key_iterations = key_iterations
+        self.allow_legacy_format = allow_legacy_format
+        self._password_was_explicit = password is not None
         self._password = password
         self._encryptor = None
         self._salt = None
@@ -58,18 +72,44 @@ class SecureStorage:
         if os.path.exists(self.file_path):
             self.load()
         else:
-            # New storage, set password in keyring if possible
-            if keyring and self._password:
+            # New storage, set password in keyring if possible - but only
+            # when the caller didn't supply their own password explicitly.
+            # Otherwise a one-off/ephemeral password a caller derived for
+            # this specific use would get silently persisted system-wide.
+            if keyring and self._password and not self._password_was_explicit:
                 self._set_password_in_keyring(self._password)
+
+    def _keyring_username(self) -> str:
+        """
+        Derives the keyring username from the absolute file path (not just
+        its basename), so two different SecureStorage files that happen to
+        share a filename in different directories don't collide on the same
+        keyring entry and hijack/overwrite each other's password.
+        """
+        abs_path = os.path.normcase(os.path.abspath(self.file_path))
+        return hashlib.sha256(abs_path.encode("utf-8")).hexdigest()
 
     def _get_password_from_keyring(self) -> Optional[str]:
         """Retrieves the password from the system's keyring."""
         if not keyring:
             return None
+        service_name = "device_fingerprinting_library"
         try:
-            service_name = "device_fingerprinting_library"
-            username = os.path.basename(self.file_path)
-            return keyring.get_password(service_name, username)
+            password = keyring.get_password(service_name, self._keyring_username())
+            if password:
+                return password
+        except Exception:
+            pass
+        # Back-compat: earlier versions keyed the keyring entry by the
+        # file's basename, which could collide across directories. Fall
+        # back to it (and migrate forward) so upgrading doesn't strand
+        # passwords already stored under the old key.
+        try:
+            legacy_username = os.path.basename(self.file_path)
+            password = keyring.get_password(service_name, legacy_username)
+            if password:
+                self._set_password_in_keyring(password)
+            return password
         except Exception:
             return None
 
@@ -79,8 +119,7 @@ class SecureStorage:
             return
         try:
             service_name = "device_fingerprinting_library"
-            username = os.path.basename(self.file_path)
-            keyring.set_password(service_name, username, password)
+            keyring.set_password(service_name, self._keyring_username(), password)
         except Exception:
             pass
 
@@ -112,6 +151,10 @@ class SecureStorage:
     def save(self):
         """
         Saves the data to the file with salt prepended.
+
+        Writes to a temp file and atomically replaces the target so a crash
+        or interruption mid-write can't leave a truncated/corrupted file
+        with no recovery path.
         """
         if not self._encryptor:
             self._setup_encryptor()
@@ -119,10 +162,15 @@ class SecureStorage:
         json_data = json.dumps(self.data).encode("utf-8")
         encrypted_blob = self._encryptor.encrypt(json_data, self._key)
 
-        # Write salt + encrypted data
-        with open(self.file_path, "wb") as f:
+        tmp_path = f"{self.file_path}.tmp-{os.getpid()}"
+        with open(tmp_path, "wb") as f:
             f.write(self._salt)
             f.write(encrypted_blob)
+        try:
+            os.chmod(tmp_path, 0o600)
+        except OSError:
+            pass  # chmod semantics are platform-dependent (e.g. Windows)
+        os.replace(tmp_path, self.file_path)
 
     def load(self):
         """
@@ -143,7 +191,18 @@ class SecureStorage:
             decrypted_data = self._encryptor.decrypt(encrypted_blob, self._key)
             self.data = json.loads(decrypted_data)
         except (ValueError, InvalidTag) as e:
-            # Try old format (no salt prefix) for backward compatibility
+            if not self.allow_legacy_format:
+                raise IOError(
+                    f"Failed to decrypt or load data. Incorrect password or corrupted file. Reason: {e}"
+                )
+
+            # Try old format (no salt prefix) for backward compatibility.
+            # Only reached when allow_legacy_format=True was explicitly
+            # opted into: this format uses the same hardcoded zero salt for
+            # every file on every machine, so leaving this fallback on
+            # unconditionally would let an attacker precompute against that
+            # fixed salt, and would double the KDF cost on every read of a
+            # merely-corrupted (not actually legacy) file - a cheap DoS lever.
             with open(self.file_path, "rb") as f:
                 encrypted_blob_old = f.read()
 
@@ -208,79 +267,3 @@ class SecureStorage:
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Saves the data to the file upon exiting the context."""
         self.save()
-
-    # --- Fallback to local file-based secret storage (less secure) ---
-
-    def _get_local_secret_path(self):
-        """Gets the path for the local secret file."""
-        return self.file_path + ".secret"
-
-    def _save_secret_local(self, secret: str):
-        """Saves the secret to a local file (fallback) with encryption."""
-        secret_path = self._get_local_secret_path()
-        # Encrypt the secret before storing to prevent clear-text storage
-        # Use Fernet symmetric encryption with machine-specific key
-        try:
-            from cryptography.fernet import Fernet
-            import hashlib
-
-            # Generate a deterministic key from machine-specific data
-            machine_key = hashlib.sha256(
-                f"{os.environ.get('COMPUTERNAME', 'default')}{os.environ.get('USERNAME', 'user')}".encode()
-            ).digest()
-            # Fernet requires base64-encoded 32-byte key
-            import base64
-
-            fernet_key = base64.urlsafe_b64encode(machine_key)
-            cipher = Fernet(fernet_key)
-
-            encrypted = cipher.encrypt(secret.encode("utf-8"))
-            with open(secret_path, "wb") as f:
-                f.write(encrypted)
-        except ImportError:
-            # Fallback: Do NOT store the secret if cryptography is not available
-            raise RuntimeError(
-                "cryptography library is required for secure storage, but not available; secret not saved"
-            )
-
-    def _load_secret_local(self) -> Optional[str]:
-        """Loads the secret from a local file (fallback) and decrypts it."""
-        secret_path = self._get_local_secret_path()
-        if not os.path.exists(secret_path):
-            return None
-
-        try:
-            from cryptography.fernet import Fernet
-            import hashlib
-            import base64
-
-            # Generate the same machine-specific key
-            machine_key = hashlib.sha256(
-                f"{os.environ.get('COMPUTERNAME', 'default')}{os.environ.get('USERNAME', 'user')}".encode()
-            ).digest()
-            fernet_key = base64.urlsafe_b64encode(machine_key)
-            cipher = Fernet(fernet_key)
-
-            with open(secret_path, "rb") as f:
-                encrypted = f.read()
-
-            try:
-                return cipher.decrypt(encrypted).decode("utf-8")
-            except Exception:
-                # Try base64 fallback for legacy secrets
-                import base64
-
-                try:
-                    return base64.b64decode(encrypted).decode("utf-8")
-                except Exception:
-                    return encrypted.decode("utf-8")
-        except ImportError:
-            # Fallback if cryptography not available
-            import base64
-
-            with open(secret_path, "rb") as f:
-                data = f.read()
-            try:
-                return base64.b64decode(data).decode("utf-8")
-            except Exception:
-                return data.decode("utf-8")

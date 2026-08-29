@@ -67,14 +67,6 @@ try:
 except ImportError:
     TPM_AVAILABLE = False
 
-# Legacy PQC import for compatibility
-try:
-    from .quantum_crypto import RealPostQuantumBackend
-
-    LEGACY_PQC_AVAILABLE = True
-except ImportError:
-    LEGACY_PQC_AVAILABLE = False
-
 __version__ = "1.0.0-HYBRID-PQC"
 
 # Global configuration variables for the fingerprinting system
@@ -870,8 +862,10 @@ def verify_server_nonce(nonce: str, server_signature: str) -> bool:
         _logger.warning("Empty nonce or signature")
         return validation_mode
 
-    # Limit input size to prevent DoS attacks
-    if len(nonce) > 1024 or len(server_signature) > 4096:
+    # Limit input size to prevent DoS attacks. The upper bound must accommodate
+    # hybrid PQC signatures (a base64-encoded Dilithium3 signature plus its
+    # classical component runs to several KB), not just classical HMAC-SHA256.
+    if len(nonce) > 1024 or len(server_signature) > 16384:
         _logger.error("Nonce or signature too large")
         return False
 
@@ -1890,9 +1884,34 @@ def _generate_fingerprint_fields() -> Dict[str, Any]:
     fields.update(_get_memory_info())
     fields.update(_get_network_hash())
 
-    # Add timestamp for debugging
-    fields["collected_at"] = int(time.time())
+    # No timestamp here deliberately: these fields are hashed/signed to
+    # produce a device fingerprint that must stay stable across calls for
+    # unchanged hardware. Embedding time.time() here previously made every
+    # fingerprint (and any binding signature covering it) change on every
+    # cache expiry or process restart even with zero hardware change.
 
+    return fields
+
+
+def _get_basic_binding_fields() -> Dict[str, Any]:
+    """
+    Minimal field set for security_level="basic" device bindings.
+
+    Uses the same key names as _get_stable_fields()/_generate_fingerprint_fields()
+    (os_family, cpu_arch) so _score_field_match() can actually compare them
+    against current hardware at verification time - a prior version used
+    differently-named keys ("os"/"machine"/"version") that _score_field_match
+    never recognized, so every basic-level binding failed verification
+    unconditionally regardless of whether it was the same device.
+    """
+    fields: Dict[str, Any] = {
+        "os_family": platform.system(),
+        "cpu_arch": platform.machine(),
+    }
+    if platform.system() == "Windows":
+        fields["os_build"] = platform.win32_ver()[1]
+    else:
+        fields["os_release"] = platform.release()[:20]
     return fields
 
 
@@ -1907,6 +1926,7 @@ def _score_field_match(current: Dict[str, Any], stored: Dict[str, Any]) -> float
     weights = {
         "cpu_model": 0.25,
         "cpu_name": 0.25,
+        "cpu_arch": 0.10,
         "ram_gb": 0.15,
         "board_uuid": 0.20,
         "disk_serial": 0.10,
@@ -1940,7 +1960,7 @@ def generate_fingerprint(method: str = "stable", mode: str = "software") -> str:
     DUAL-MODE ARCHITECTURE:
     -----------------------
     Mode A (software): TPM optional, graceful fallback, best-effort uniqueness
-    Mode B (tpm_strict): TPM REQUIRED, cryptographically enforced, strong guarantees
+    Mode B (tpm_strict): TPM presence REQUIRED - raises if unavailable (not cryptographic attestation)
 
     Args:
         method: "stable" for hardware fields, "basic" for minimal fields, "legacy_sha256" for legacy
@@ -1958,12 +1978,8 @@ def generate_fingerprint(method: str = "stable", mode: str = "software") -> str:
         - Mode "software": With PQC enabled uses post-quantum signatures, TPM optional
         - Mode "tpm_strict": REQUIRES TPM hardware attestation, no fallback
 
-    Novel Architecture:
-        "A cryptographic enforcement method implemented in a software library,
-        wherein identity derivation is conditionally permitted only upon
-        hardware-attested state satisfaction."
     """
-    # MODE B: TPM-STRICT ENFORCEMENT (Novel Patent Territory)
+    # MODE B: TPM-STRICT ENFORCEMENT
     if mode == "tpm_strict":
         return _generate_tpm_strict_fingerprint(method)
 
@@ -1977,24 +1993,25 @@ def generate_fingerprint(method: str = "stable", mode: str = "software") -> str:
 
 def _generate_tpm_strict_fingerprint(method: str) -> str:
     """
-    Mode B: TPM-Strict Enforcement - Hardware-Attested Identity Only.
+    Mode B: TPM-Strict Enforcement - TPM Presence Required.
 
     STRICT REQUIREMENTS:
-    - TPM hardware MUST be available
-    - TPM MUST be enabled and functional
-    - Fingerprint MUST include TPM hardware attestation
+    - TPM hardware MUST be available and enabled
+    - Fingerprint MUST include TPM manufacturer/version metadata
     - NO fallback to software-only fingerprinting
-    - Cryptographically enforced hardware binding
 
-    This mode provides strong guarantees:
-    - Unforgeable hardware identity
-    - Tamper-resistant binding
-    - Platform integrity attestation
+    Note: this enforces that a TPM is present and enabled, and binds the
+    fingerprint's signature to that fact. It does NOT perform cryptographic
+    TPM attestation (a TPM2_Quote over PCR values signed by an Attestation
+    Identity Key) - see tpm_hardware.py's module docstring. The TPM-derived
+    "hardware_id" is built from public, unauthenticated TPM metadata, so it
+    is not cryptographically bound to the physical chip and is not
+    unforgeable on its own.
 
     Raises:
         RuntimeError: If TPM is not available or not enabled
     """
-    global _tpm_fingerprinter
+    global _tpm_fingerprinter, _tpm_enabled
 
     # Enforce TPM availability
     if not TPM_AVAILABLE:
@@ -2018,19 +2035,18 @@ def _generate_tpm_strict_fingerprint(method: str) -> str:
             f"Use mode='software' for systems without TPM."
         )
 
-    # TPM is available and functional - proceed with strict enforcement
+    # TPM is available and functional - proceed with strict enforcement.
+    # Ensure _get_tpm_hardware_data() below doesn't bail out because the
+    # module-level TPM-enabled flag was never flipped by this path.
+    _tpm_enabled = True
     _logger.info(
-        f"TPM-strict mode: Hardware attestation enforced "
+        f"TPM-strict mode: TPM presence enforced "
         f"(TPM {tpm_info.version}, {tpm_info.manufacturer})"
     )
 
     # Gather fingerprint fields with MANDATORY TPM data
     if method == "basic":
-        fields = {
-            "os": platform.system(),
-            "machine": platform.machine(),
-            "version": platform.release(),
-        }
+        fields = _get_basic_binding_fields()
     else:
         fields = _generate_fingerprint_fields()
 
@@ -2043,11 +2059,14 @@ def _generate_tpm_strict_fingerprint(method: str) -> str:
         )
 
     # Add TPM attestation data (MANDATORY in strict mode)
+    # NOTE: no live timestamp is included here - this fingerprint must stay
+    # stable for unchanged hardware. A per-call timestamp inside the signed
+    # payload would make the fingerprint change on every cache expiry/
+    # process restart even though nothing about the device changed.
     fields["tpm_attestation"] = {
         "hardware_id": tpm_data["tpm_hardware_id"],
         "version": tpm_data.get("tpm_version"),
         "manufacturer": tpm_data.get("tpm_manufacturer"),
-        "attestation_timestamp": int(time.time()),
         "enforcement_mode": "tpm_strict",
     }
 
@@ -2060,7 +2079,6 @@ def _generate_tpm_strict_fingerprint(method: str) -> str:
         "signature_type": "digital_signature" if crypto_info["pqc_enabled"] else "mac",
         "enforcement_mode": "tpm_strict",
         "hardware_attested": True,
-        "timestamp": int(time.time()),
     }
 
     # Create cryptographic signature with hardware attestation
@@ -2109,15 +2127,12 @@ def _generate_software_fingerprint(method: str) -> str:
 
     # Gather fingerprint fields
     if method == "basic":
-        fields = {
-            "os": platform.system(),
-            "machine": platform.machine(),
-            "version": platform.release(),
-        }
+        fields = _get_basic_binding_fields()
     else:
         fields = _generate_fingerprint_fields()
 
-    # Add cryptographic metadata
+    # Add cryptographic metadata. No live timestamp - see the tpm_strict
+    # path's comment for why that would break fingerprint stability.
     crypto_info = get_crypto_info()
     fields["crypto_metadata"] = {
         "pqc_enabled": crypto_info["pqc_enabled"],
@@ -2125,7 +2140,6 @@ def _generate_software_fingerprint(method: str) -> str:
         "quantum_resistant": crypto_info["quantum_resistant"],
         "signature_type": "digital_signature" if crypto_info["pqc_enabled"] else "mac",
         "enforcement_mode": "software",
-        "timestamp": int(time.time()),
     }
 
     # Create cryptographic signature using pluggable backend
@@ -2200,6 +2214,15 @@ def create_device_binding(
     # Verify server nonce if anti-replay is enabled
     if _anti_replay_enabled:
         if not server_nonce or not server_signature:
+            # No server-issued nonce was supplied, so we mint and verify one
+            # against ourselves. This is NOT real anti-replay protection -
+            # a genuine license-server round trip is required for that -
+            # but it lets create_device_binding() remain usable standalone.
+            _logger.warning(
+                "create_device_binding: no server_nonce/server_signature provided; "
+                "self-issuing one. Anti-replay protection is NOT active for this "
+                "binding unless a real server-issued nonce is supplied."
+            )
             server_nonce, server_signature = create_server_nonce()
 
         if not verify_server_nonce(server_nonce, server_signature):
@@ -2214,17 +2237,20 @@ def create_device_binding(
     fields = (
         _generate_fingerprint_fields()
         if fingerprint_method == "stable"
-        else {"os": platform.system(), "machine": platform.machine(), "version": platform.release()}
+        else _get_basic_binding_fields()
     )
 
-    # Add cryptographic metadata to the fields that will be signed
+    # Add cryptographic metadata to the fields that will be signed. No live
+    # timestamp here - it would make the fingerprint (and the binding
+    # signature, which also covers `fields`) change on every call for
+    # otherwise-unchanged hardware. A creation timestamp is recorded
+    # separately below, outside the signed fields.
     crypto_info = get_crypto_info()
     fields["crypto_metadata"] = {
         "pqc_enabled": crypto_info["pqc_enabled"],
         "algorithm": crypto_info.get("pqc_algorithm", crypto_info.get("algorithm", "HMAC-SHA256")),
         "quantum_resistant": crypto_info["quantum_resistant"],
         "signature_type": "digital_signature" if crypto_info["pqc_enabled"] else "mac",
-        "timestamp": int(time.time()),
     }
 
     # Add custom fields if provided
@@ -2245,6 +2271,7 @@ def create_device_binding(
         "security_level": security_level,
         "version": __version__,
         "server_nonce": server_nonce,  # Include nonce for auditing
+        "created_at": int(time.time()),  # Auditing only - not part of the signed fields
     }
 
     # Sign the original binding data and fingerprint together
@@ -2252,7 +2279,7 @@ def create_device_binding(
         {"binding_data": binding_data, "fingerprint_components": fields}, sort_keys=True
     ).encode("utf-8")
 
-    crypto_backend = get_backend("crypto")
+    crypto_backend = _crypto_backend
     if isinstance(crypto_backend, HybridPQC):
         signature = crypto_backend.sign(data_to_sign)
         final_token["device_binding"]["fingerprint_signature"] = {
@@ -2260,10 +2287,12 @@ def create_device_binding(
             "algorithm": "HYBRID_PQC_V2",
         }
     else:
-        # Fallback to a simple HMAC if PQC is not available.
-        # The key for the HMAC will be the fingerprint itself, which is a signature of the fields.
-        hmac_key = fingerprint
-        hmac_sig = hmac.new(hmac_key.encode("utf-8"), data_to_sign, hashlib.sha256).hexdigest()
+        # Fallback to a simple HMAC if PQC is not available. Sign with the
+        # crypto backend's own secret key - never with `fingerprint`, since
+        # that value is stored in cleartext in this same token and would let
+        # anyone who can read the token forge a valid signature over
+        # tampered binding_data.
+        hmac_sig = crypto_backend.sign(data_to_sign)
         final_token["device_binding"]["fingerprint_signature"] = {
             "signature": hmac_sig,
             "algorithm": "HMAC-SHA256",
@@ -2634,42 +2663,47 @@ def verify_device_binding(
         )
         return False, details
 
-    # 6. Verify the overall token signature if it exists
+    # 6. Verify the overall token signature. create_device_binding() always
+    # attaches one, so its absence means it was stripped (e.g. by an
+    # attacker trying to tamper with binding_data, which isn't covered by
+    # the field-confidence check above) - treat that as a failure rather
+    # than silently skipping this check.
     fingerprint_sig_info = binding_info.get("fingerprint_signature", {})
     sig = fingerprint_sig_info.get("signature")
     alg = fingerprint_sig_info.get("algorithm")
 
-    if sig and alg:
-        original_binding_data = {k: v for k, v in bound_token.items() if k != "device_binding"}
-        data_to_verify = json.dumps(
-            {"binding_data": original_binding_data, "fingerprint_components": stored_fields},
-            sort_keys=True,
-        ).encode("utf-8")
+    if not sig or not alg:
+        details["reason"] = "Missing overall token signature (fingerprint_signature)."
+        return False, details
 
-        crypto_backend = get_backend("crypto")
-        is_overall_sig_valid = False
-        if isinstance(crypto_backend, HybridPQC) and alg == "HYBRID_PQC_V2":
-            is_overall_sig_valid = crypto_backend.verify(sig, data_to_verify)
-            if is_overall_sig_valid:
-                details["pqc_verified"] = True
-            else:
-                details["reason"] = "Overall token signature (PQC) is invalid."
-        elif alg == "HMAC-SHA256":
-            # Re-create the HMAC key used during creation, which was the fingerprint itself.
-            hmac_key = fingerprint
-            expected_hmac = hmac.new(
-                hmac_key.encode("utf-8"), data_to_verify, hashlib.sha256
-            ).hexdigest()
-            is_overall_sig_valid = hmac.compare_digest(sig, expected_hmac)
-            if is_overall_sig_valid:
-                details["classical_verified"] = True
-            else:
-                details["reason"] = "Overall token signature (HMAC) is invalid."
+    original_binding_data = {k: v for k, v in bound_token.items() if k != "device_binding"}
+    data_to_verify = json.dumps(
+        {"binding_data": original_binding_data, "fingerprint_components": stored_fields},
+        sort_keys=True,
+    ).encode("utf-8")
+
+    crypto_backend = _crypto_backend
+    is_overall_sig_valid = False
+    if isinstance(crypto_backend, HybridPQC) and alg == "HYBRID_PQC_V2":
+        is_overall_sig_valid = crypto_backend.verify(sig, data_to_verify)
+        if is_overall_sig_valid:
+            details["pqc_verified"] = True
         else:
-            details["reason"] = f"Unknown or unsupported overall signature algorithm: {alg}"
+            details["reason"] = "Overall token signature (PQC) is invalid."
+    elif alg == "HMAC-SHA256":
+        # Verify with the crypto backend's own secret key (matches how it
+        # was signed in create_device_binding) rather than reconstructing
+        # a key from `fingerprint`, which is public/attacker-readable.
+        is_overall_sig_valid = crypto_backend.verify(sig, data_to_verify)
+        if is_overall_sig_valid:
+            details["classical_verified"] = True
+        else:
+            details["reason"] = "Overall token signature (HMAC) is invalid."
+    else:
+        details["reason"] = f"Unknown or unsupported overall signature algorithm: {alg}"
 
-        if not is_overall_sig_valid:
-            return False, details
+    if not is_overall_sig_valid:
+        return False, details
 
     # 7. Perform custom verification if provided
     if custom_verification_logic:

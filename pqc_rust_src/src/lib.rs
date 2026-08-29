@@ -2,6 +2,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use pyo3::exceptions::PyRuntimeError;
 use std::collections::HashMap;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 mod crypto;
 mod secure_memory;
@@ -10,7 +11,9 @@ use crypto::{AesGcmCrypto, ChaCha20Poly1305Crypto, SecureKdf};
 
 /// Secure key storage that automatically zeroizes on drop
 #[pyclass]
+#[derive(ZeroizeOnDrop)]
 pub struct SecureKey {
+    #[zeroize(skip)]
     #[pyo3(get)]
     algorithm: String,
     key_data: Vec<u8>,
@@ -24,12 +27,6 @@ impl SecureKey {
             algorithm,
             key_data,
         }
-    }
-
-    fn get_public_key(&self) -> PyResult<Vec<u8>> {
-        // For demonstration - in reality this would extract public component
-        let len = std::cmp::min(32, self.key_data.len());
-        Ok(self.key_data[..len].to_vec())
     }
 
     fn is_valid(&self) -> bool {
@@ -118,7 +115,7 @@ fn get_crypto_info() -> PyResult<HashMap<String, String>> {
     info.insert("chacha_algorithm".to_string(), "ChaCha20Poly1305".to_string());
     info.insert("kdf_algorithms".to_string(), "Argon2id, Scrypt".to_string());
     info.insert("implementation".to_string(), "RustCrypto".to_string());
-    info.insert("memory_security".to_string(), "Zeroize + Secrecy".to_string());
+    info.insert("memory_security".to_string(), "Zeroize on drop for key material".to_string());
     Ok(info)
 }
 

@@ -28,6 +28,15 @@ except ImportError as e:
     _logger.warning(f"🦀 Rust crypto module not available: {e}")
     _logger.info("💡 Falling back to Python cryptography implementations")
 
+    # Dummy classes for graceful degradation when pqc_rust isn't installed
+    class RustCrypto:
+        def __init__(self):
+            raise NotImplementedError("Rust crypto not available")
+
+    class SecureKey:
+        def __init__(self, *args, **kwargs):
+            raise NotImplementedError("Rust secure key not available")
+
 # Try to import real post-quantum crypto libraries directly
 try:
     import pqcrypto.sign.ml_dsa_44 as ml_dsa_44
@@ -105,15 +114,6 @@ def get_available_pqc_algorithms():
     else:
         return {"signatures": [], "kems": [], "libraries": []}
 
-    # Define dummy classes for graceful degradation
-    class RustCrypto:
-        def __init__(self):
-            raise NotImplementedError("Rust crypto not available")
-
-    class SecureKey:
-        def __init__(self, *args, **kwargs):
-            raise NotImplementedError("Rust secure key not available")
-
 
 class ScryptKDF:
     """
@@ -121,7 +121,7 @@ class ScryptKDF:
     """
 
     def __init__(
-        self, salt_size: int = 16, n: int = 2**14, r: int = 8, p: int = 1, key_size: int = 32
+        self, salt_size: int = 16, n: int = 2**17, r: int = 8, p: int = 1, key_size: int = 32
     ):
         self.salt_size = salt_size
         self.n = n
@@ -212,7 +212,7 @@ class CryptoManager:
 
     def _derive_key(self, password: bytes, salt: bytes) -> bytes:
         """Derive a 32-byte key for AES-256."""
-        kdf = Scrypt(salt=salt, length=32, n=2**14, r=8, p=1, backend=self.backend)
+        kdf = Scrypt(salt=salt, length=32, n=2**17, r=8, p=1, backend=self.backend)
         return kdf.derive(password)
 
     def encrypt(self, plaintext: bytes, associated_data: Optional[bytes] = None) -> bytes:

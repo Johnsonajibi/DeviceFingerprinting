@@ -8,12 +8,10 @@ import psutil
 import uuid
 import hashlib
 import json
-import time
 import logging
 import threading
 import secrets
 import subprocess
-import hmac
 from enum import Enum
 from dataclasses import dataclass, field
 from typing import Dict, Any, List, Optional
@@ -211,74 +209,13 @@ class ProductionFingerprintGenerator:
         }
 
 
-# Aliases for compatibility
-DeviceFingerprintGenerator = ProductionFingerprintGenerator
-
-
-class AdvancedDeviceFingerprinter(DeviceFingerprintGenerator):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-
-def generate_device_fingerprint(method="composite", security_level="high") -> str:
-    sec_level = SecurityLevel(security_level)
-    generator = ProductionFingerprintGenerator(security_level=sec_level)
-
-    fp_method = FingerprintMethod.COMPOSITE
-    try:
-        fp_method = FingerprintMethod(method)
-    except ValueError:
-        logging.warning(f"Invalid fingerprint method '{method}'. Defaulting to composite.")
-
-    result = generator.generate_fingerprint(fp_method)
-    return result.fingerprint
-
-
-def create_device_binding(data: Dict[str, Any], security_level="high") -> Dict[str, Any]:
-    bound_data = data.copy()
-    fingerprint = generate_device_fingerprint(security_level=security_level)
-
-    if not fingerprint:
-        raise RuntimeError("Failed to generate device fingerprint for binding.")
-
-    bound_data["device_fingerprint"] = fingerprint
-    bound_data["binding_timestamp"] = time.time()
-    bound_data["binding_security_level"] = security_level
-
-    # Sign the binding
-    payload = json.dumps(bound_data, sort_keys=True).encode("utf-8")
-    key = generate_device_fingerprint(security_level=security_level).encode(
-        "utf-8"
-    )  # Use fingerprint as key for simplicity
-    signature = hmac.new(key, payload, hashlib.sha256).hexdigest()
-    bound_data["signature"] = signature
-
-    return bound_data
-
-
-def verify_device_binding(bound_data: Dict[str, Any], strict_mode=True) -> bool:
-    if "device_fingerprint" not in bound_data or "signature" not in bound_data:
-        return False
-
-    # Verify signature first
-    signature = bound_data.pop("signature")
-    payload = json.dumps(bound_data, sort_keys=True).encode("utf-8")
-    key = bound_data["device_fingerprint"].encode("utf-8")
-    expected_signature = hmac.new(key, payload, hashlib.sha256).hexdigest()
-
-    if not hmac.compare_digest(signature, expected_signature):
-        return False
-
-    # Restore signature for fingerprint check
-    bound_data["signature"] = signature
-
-    current_fingerprint = generate_device_fingerprint(
-        security_level=bound_data.get("binding_security_level", "high")
-    )
-
-    if strict_mode:
-        return hmac.compare_digest(bound_data["device_fingerprint"], current_fingerprint)
-    else:
-        # In non-strict mode, we might allow for partial matches or older versions.
-        # For now, it's the same as strict.
-        return hmac.compare_digest(bound_data["device_fingerprint"], current_fingerprint)
+# NOTE: This module previously also defined generate_device_fingerprint(),
+# create_device_binding(), verify_device_binding(), and
+# AdvancedDeviceFingerprinter - an unreferenced, untested duplicate of the
+# real device-binding implementation in device_fingerprinting.py, with its
+# own forgeable-signature bug (it HMAC-signed binding data using the
+# fingerprint itself as the key, and that fingerprint was stored in
+# cleartext in the same payload) and an unused self.salt. They were removed
+# as dead code rather than fixed in place, since device_fingerprinting.py's
+# create_device_binding()/verify_device_binding() are the maintained,
+# publicly exported implementation.

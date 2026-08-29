@@ -65,7 +65,10 @@ def test_token_binding_and_verification():
     assert "device_binding" in bound_token
     assert "fingerprint_signature" in bound_token["device_binding"]
     assert "crypto_metadata" in bound_token["device_binding"]["fields"]
-    assert "timestamp" in bound_token["device_binding"]["fields"]["crypto_metadata"]
+    # The creation timestamp lives outside the signed `fields` (so the
+    # fingerprint/signature stay stable for unchanged hardware), not inside
+    # crypto_metadata.
+    assert "created_at" in bound_token["device_binding"]
 
     is_valid, details = verify_device_binding(bound_token, strict_mode=False)
     assert is_valid

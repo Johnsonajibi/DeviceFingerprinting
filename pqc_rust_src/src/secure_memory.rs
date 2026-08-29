@@ -1,14 +1,21 @@
-/// Simple secure buffer implementation
+use zeroize::Zeroize;
+
+/// Simple secure buffer implementation. `data` is zeroized on drop.
 pub struct SecureBuffer {
     data: Vec<u8>,
     metadata: BufferMetadata,
+}
+
+impl Drop for SecureBuffer {
+    fn drop(&mut self) {
+        self.data.zeroize();
+    }
 }
 
 #[derive(Clone, Debug)]
 struct BufferMetadata {
     algorithm: String,
     created_at: std::time::SystemTime,
-    access_count: usize,
 }
 
 impl SecureBuffer {
@@ -19,7 +26,6 @@ impl SecureBuffer {
             metadata: BufferMetadata {
                 algorithm,
                 created_at: std::time::SystemTime::now(),
-                access_count: 0,
             },
         }
     }
@@ -55,7 +61,6 @@ impl std::fmt::Debug for SecureBuffer {
             .field("algorithm", &self.metadata.algorithm)
             .field("length", &self.len())
             .field("created_at", &self.metadata.created_at)
-            .field("access_count", &self.metadata.access_count)
             .finish()
     }
 }
@@ -83,8 +88,7 @@ impl std::error::Error for SecureBufferError {}
 /// Utility functions for secure memory operations
 pub mod secure_utils {
     use super::SecureBuffer;
-    use rand::RngCore;
-    use aes_gcm::aead::OsRng;
+    use rand::{RngCore, rngs::OsRng};
 
     /// Generate a secure random buffer
     pub fn generate_random_buffer(length: usize, algorithm: String) -> SecureBuffer {

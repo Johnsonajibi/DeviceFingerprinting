@@ -8,11 +8,17 @@ secure enclave storage for protecting sensitive data.
 
 import os
 import json
+import base64
 import logging
 from typing import Dict, Any, Optional
 
-import PyKCS11
-from PyKCS11 import PyKCS11Error, Mechanism, Attribute
+try:
+    import PyKCS11
+    from PyKCS11 import PyKCS11Error, Mechanism
+
+    PYKCS11_AVAILABLE = True
+except ImportError:
+    PYKCS11_AVAILABLE = False
 
 from .backends import CryptoBackend, StorageBackend
 from .crypto import AESGCMEncryptor, ScryptKDF
@@ -37,11 +43,16 @@ class HSMCryptoBackend(CryptoBackend):
             user_pin: The PIN for the HSM token/slot.
             key_label: The label of the key to be used or created in the HSM.
         """
+        if not PYKCS11_AVAILABLE:
+            raise ImportError(
+                "PyKCS11 is required for HSMCryptoBackend. Install it with: pip install PyKCS11"
+            )
+
         self.pkcs11_lib_path = pkcs11_lib_path
         self.user_pin = user_pin
         self.key_label = key_label
-        self.session: Optional[PyKCS11.Session] = None
-        self.key_handle: Optional[PyKCS11.Object] = None
+        self.session: Optional[Any] = None
+        self.key_handle: Optional[Any] = None
         self.hsm_available: bool = False
         self._init_hsm()
 
@@ -73,7 +84,7 @@ class HSMCryptoBackend(CryptoBackend):
             logging.error(f"HSM initialization failed: {e}")
             self.hsm_available = False
 
-    def _get_or_create_hsm_key(self) -> Optional[PyKCS11.Object]:
+    def _get_or_create_hsm_key(self) -> Optional[Any]:
         """Get or create a symmetric key in the HSM."""
         if not self.session:
             return None
@@ -82,8 +93,8 @@ class HSMCryptoBackend(CryptoBackend):
             # Look for an existing key with the given label
             key = self.session.findObjects(
                 [
-                    (Attribute.CKA_LABEL, self.key_label),
-                    (Attribute.CKA_CLASS, PyKCS11.CKO_SECRET_KEY),
+                    (PyKCS11.CKA_LABEL, self.key_label),
+                    (PyKCS11.CKA_CLASS, PyKCS11.CKO_SECRET_KEY),
                 ]
             )
             if key:
@@ -92,49 +103,53 @@ class HSMCryptoBackend(CryptoBackend):
             # If not found, create a new key
             logging.info(f"Key '{self.key_label}' not found. Creating a new one.")
             key_template = [
-                (Attribute.CKA_CLASS, PyKCS11.CKO_SECRET_KEY),
-                (Attribute.CKA_KEY_TYPE, PyKCS11.CKK_AES),
-                (Attribute.CKA_VALUE_LEN, 32),  # 256-bit AES key
-                (Attribute.CKA_LABEL, self.key_label),
-                (Attribute.CKA_TOKEN, True),
-                (Attribute.CKA_ENCRYPT, True),
-                (Attribute.CKA_DECRYPT, True),
-                (Attribute.CKA_SENSITIVE, True),
-                (Attribute.CKA_EXTRACTABLE, False),
+                (PyKCS11.CKA_CLASS, PyKCS11.CKO_SECRET_KEY),
+                (PyKCS11.CKA_KEY_TYPE, PyKCS11.CKK_AES),
+                (PyKCS11.CKA_VALUE_LEN, 32),  # 256-bit AES key
+                (PyKCS11.CKA_LABEL, self.key_label),
+                (PyKCS11.CKA_TOKEN, True),
+                (PyKCS11.CKA_ENCRYPT, True),
+                (PyKCS11.CKA_DECRYPT, True),
+                (PyKCS11.CKA_SENSITIVE, True),
+                (PyKCS11.CKA_EXTRACTABLE, False),
             ]
             return self.session.generateKey(key_template)
         except PyKCS11Error as e:
             logging.error(f"Error accessing HSM key: {e}")
             return None
 
-    def sign(self, data: bytes) -> bytes:
-        """Sign data using the HSM (e.g., with HMAC)."""
+    def sign(self, data: bytes) -> str:
+        """Sign data using the HSM (e.g., with HMAC), returning a base64-encoded signature."""
         if not self.hsm_available or not self.session or not self.key_handle:
             raise RuntimeError("HSM is not available for signing.")
 
         try:
             hmac_mechanism = Mechanism(PyKCS11.CKM_SHA256_HMAC, None)
-            return bytes(self.session.sign(self.key_handle, data, hmac_mechanism))
+            signature = bytes(self.session.sign(self.key_handle, data, hmac_mechanism))
+            return base64.b64encode(signature).decode("utf-8")
         except PyKCS11Error as e:
             logging.error(f"HSM signing failed: {e}")
             raise
 
-    def verify(self, signature: bytes, data: bytes) -> bool:
-        """Verify a signature using the HSM."""
+    def verify(self, signature: str, data: bytes) -> bool:
+        """Verify a base64-encoded signature using the HSM."""
         if not self.hsm_available or not self.session or not self.key_handle:
             raise RuntimeError("HSM is not available for verification.")
 
         try:
+            signature_bytes = base64.b64decode(signature)
             hmac_mechanism = Mechanism(PyKCS11.CKM_SHA256_HMAC, None)
-            return self.session.verify(self.key_handle, data, signature)
+            # PyKCS11's Session.verify() returns None on success and raises
+            # PyKCS11Error (CKR_SIGNATURE_INVALID) on a bad signature.
+            self.session.verify(self.key_handle, data, signature_bytes, hmac_mechanism)
+            return True
         except PyKCS11Error as e:
-            # A verification failure can raise an error
             logging.warning(f"HSM verification failed: {e}")
             return False
 
     def __del__(self):
         """Clean up the HSM session on object destruction."""
-        if self.session:
+        if getattr(self, "session", None):
             self.session.logout()
             self.session.closeSession()
             logging.info("HSM session closed.")
@@ -160,11 +175,23 @@ class SecureEnclaveStorage(StorageBackend):
         if not os.path.exists(self.storage_path):
             os.makedirs(self.storage_path, exist_ok=True)
 
-        # Use Scrypt for key derivation
-        salt = os.urandom(16)  # A unique salt should be used per key
-        self.kdf = ScryptKDF(salt=salt)
-        self.derived_key = self.kdf.derive_key(encryption_key)
-        self.encryptor = AESGCMEncryptor(self.derived_key)
+        # Use Scrypt for key derivation. The salt must be persisted (not
+        # regenerated per-instantiation) or previously stored data becomes
+        # permanently undecryptable across restarts.
+        salt_path = os.path.join(self.storage_path, ".salt")
+        if os.path.exists(salt_path):
+            with open(salt_path, "rb") as f:
+                salt = f.read()
+        else:
+            salt = os.urandom(16)
+            with open(salt_path, "wb") as f:
+                f.write(salt)
+            os.chmod(salt_path, 0o600)
+
+        self.kdf = ScryptKDF(key_size=32)
+        password = base64.b64encode(encryption_key).decode("utf-8")
+        self.derived_key = self.kdf.derive_key(password, salt)
+        self.encryptor = AESGCMEncryptor(key_size=len(self.derived_key))
         self.enclave_available = True
         logging.info("Secure enclave storage initialized.")
 
@@ -181,7 +208,7 @@ class SecureEnclaveStorage(StorageBackend):
         file_path = self._get_file_path(key)
         try:
             json_data = json.dumps(data, sort_keys=True).encode("utf-8")
-            encrypted_data = self.encryptor.encrypt(json_data)
+            encrypted_data = self.encryptor.encrypt(json_data, self.derived_key)
 
             with open(file_path, "wb") as f:
                 f.write(encrypted_data)
@@ -204,7 +231,7 @@ class SecureEnclaveStorage(StorageBackend):
             with open(file_path, "rb") as f:
                 encrypted_data = f.read()
 
-            decrypted_data = self.encryptor.decrypt(encrypted_data)
+            decrypted_data = self.encryptor.decrypt(encrypted_data, self.derived_key)
             logging.info(f"Successfully loaded data for key: {key}")
             return json.loads(decrypted_data)
         except (IOError, ValueError) as e:

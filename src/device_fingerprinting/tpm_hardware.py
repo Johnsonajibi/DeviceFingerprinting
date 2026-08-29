@@ -8,11 +8,19 @@ This module provides optional hardware-backed device identification using:
 - Fallback: Graceful degradation when TPM unavailable
 
 Features:
-- Hardware-rooted unique identifiers
-- Platform attestation capabilities
+- Hardware-derived identifiers based on TPM manufacturer/version metadata
 - Cross-platform abstraction layer
 - No dependencies if feature not used
 - Automatic fallback on errors
+
+Note on "attestation": `TPMInfo.attestation_capable` reflects whether the
+TPM is present/activated (e.g. Windows `TpmReady`), NOT whether a real
+cryptographic attestation (a TPM2_Quote over PCR values signed by an
+Attestation Identity Key, verified against a nonce) was performed - this
+module does not implement that. The reported `hardware_id` is derived from
+public, unauthenticated TPM metadata (manufacturer/spec version), not from
+a sealed or EK-bound secret, so it is not cryptographically bound to the
+physical chip.
 
 Security considerations:
 - TPM access may require elevated privileges
@@ -140,6 +148,16 @@ class TPMFingerprinter:
 
             if result.returncode == 0 and result.stdout.strip():
                 tpm_data = json.loads(result.stdout)
+
+                if not isinstance(tpm_data, dict):
+                    # Get-Tpm prints a plain string (still valid JSON, e.g.
+                    # "Administrator privilege is required to execute this
+                    # command.") instead of an object when it can't run -
+                    # most commonly due to insufficient privileges. Fall
+                    # through to the wmic-based fallback below rather than
+                    # crashing on tpm_data.get(...).
+                    _logger.debug(f"Get-Tpm returned non-object output: {tpm_data!r}")
+                    tpm_data = {}
 
                 # Extract TPM information
                 tpm_present = tpm_data.get("TpmPresent", False)

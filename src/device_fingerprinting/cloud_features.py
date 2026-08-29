@@ -45,14 +45,81 @@ class CloudStorageBackend(StorageBackend):
         if not encryption_key:
             raise ValueError("An encryption key is required for CloudStorageBackend.")
 
-        # Use Scrypt for key derivation to add resistance against brute-force attacks
-        salt = self.config.get("kdf_salt", os.urandom(16))
+        self._init_cloud_client()
+
+        # Use Scrypt for key derivation to add resistance against brute-force attacks.
+        # The salt must be persisted (either explicitly via config, or fetched from/
+        # stored to the cloud provider itself) or previously stored data becomes
+        # permanently undecryptable across process restarts.
+        salt = self.config.get("kdf_salt") or self._get_or_create_salt()
+        self.kdf_salt = salt
         self.kdf = ScryptKDF()
         password_str = base64.b64encode(encryption_key).decode("utf-8")
         self.derived_key = self.kdf.derive_key(password_str, salt)
         self.encryptor = AESGCMEncryptor()
 
-        self._init_cloud_client()
+    _SALT_OBJECT_KEY = "fingerprints/_kdf_salt.bin"
+
+    def _get_or_create_salt(self) -> bytes:
+        """Fetch the persisted KDF salt from cloud storage, or create and store one.
+
+        The salt is not secret, so it is stored unencrypted alongside the data.
+        """
+        if not self.available:
+            # No cloud client available (e.g. missing SDK/credentials) - fall
+            # back to an ephemeral salt. Data encrypted in this session will
+            # not be decryptable by a future session unless the caller
+            # explicitly persists and supplies the same salt via config.
+            logging.warning(
+                "Cloud client unavailable; using an ephemeral KDF salt. "
+                "Pass config['kdf_salt'] to make encryption reproducible across restarts."
+            )
+            return os.urandom(16)
+
+        try:
+            existing = self._raw_get(self._SALT_OBJECT_KEY)
+            if existing:
+                return existing
+        except Exception as e:
+            logging.warning(f"Could not fetch existing KDF salt from cloud storage: {e}")
+
+        salt = os.urandom(16)
+        try:
+            self._raw_put(self._SALT_OBJECT_KEY, salt)
+        except Exception as e:
+            logging.warning(f"Could not persist KDF salt to cloud storage: {e}")
+        return salt
+
+    def _raw_get(self, object_key: str) -> Optional[bytes]:
+        """Fetch raw (unencrypted) bytes from the configured cloud provider."""
+        if self.provider == "aws":
+            try:
+                response = self.client.get_object(Bucket=self.bucket_name, Key=object_key)
+                return response["Body"].read()
+            except self.client.exceptions.NoSuchKey:
+                return None
+            except Exception as e:
+                if "NoSuchKey" in str(e) or "404" in str(e):
+                    return None
+                raise
+        elif self.provider == "azure":
+            blob_client = self.client.get_blob_client(
+                container=self.container_name, blob=object_key
+            )
+            if not blob_client.exists():
+                return None
+            return blob_client.download_blob().readall()
+        return None
+
+    def _raw_put(self, object_key: str, data: bytes) -> None:
+        """Store raw (unencrypted) bytes with the configured cloud provider."""
+        if self.provider == "aws":
+            self.client.put_object(Bucket=self.bucket_name, Key=object_key, Body=data)
+        elif self.provider == "azure":
+            blob_client = self.client.get_blob_client(
+                container=self.container_name, blob=object_key
+            )
+            blob_client.upload_blob(data, overwrite=True)
 
     def _init_cloud_client(self) -> None:
         """Initialize cloud storage client based on the provider."""
@@ -131,15 +198,11 @@ class CloudStorageBackend(StorageBackend):
             return False
 
     def load(self, key: str) -> Optional[Dict[str, Any]]:
-        """Load and decrypt data from the configured cloud storage."""
+        """Load and decrypt data from cloud storage."""
         if not self.available:
-            logging.error("Cloud storage is not available.")
             return None
-
         try:
             object_key = f"fingerprints/{key}.enc"
-            encrypted_data = None
-
             if self.provider == "aws":
                 response = self.client.get_object(Bucket=self.bucket_name, Key=object_key)
                 encrypted_data = response["Body"].read()
@@ -148,15 +211,33 @@ class CloudStorageBackend(StorageBackend):
                     container=self.container_name, blob=object_key
                 )
                 encrypted_data = blob_client.download_blob().readall()
+            else:
+                return None
 
-            if encrypted_data:
-                decrypted_data = self._decrypt_data(encrypted_data)
-                logging.info(f"Successfully loaded data for key: {key}")
-                return decrypted_data
-            return None
+            return self._decrypt_data(encrypted_data)
         except Exception as e:
             logging.error(f"Failed to load data for key {key}: {e}")
             return None
+
+    def delete(self, key: str) -> bool:
+        """Delete data from cloud storage."""
+        if not self.available:
+            return False
+        try:
+            object_key = f"fingerprints/{key}.enc"
+            if self.provider == "aws":
+                self.client.delete_object(Bucket=self.bucket_name, Key=object_key)
+            elif self.provider == "azure":
+                blob_client = self.client.get_blob_client(
+                    container=self.container_name, blob=object_key
+                )
+                blob_client.delete_blob()
+            else:
+                return False
+            return True
+        except Exception as e:
+            logging.error(f"Failed to delete data for key {key}: {e}")
+            return False
 
 
 class DistributedVerification:

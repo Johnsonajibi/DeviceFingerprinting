@@ -14,7 +14,6 @@ pyo3-log = "0.12"
 
 # Memory security
 zeroize = { version = "1", features = ["zeroize_derive"] }
-secrecy = "0.8"
 
 # Cryptographic randomness
 rand = "0.9"

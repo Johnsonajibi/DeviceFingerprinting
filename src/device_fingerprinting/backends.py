@@ -7,7 +7,6 @@ that applications can implement with their own backends.
 
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, Tuple
-from .hybrid_pqc import HybridPQC
 
 
 class CryptoBackend(ABC):
@@ -65,24 +64,96 @@ _backend_registry = {
 }
 
 
-def enable_post_quantum_crypto():
-    """Switches the active crypto backend to the Hybrid PQC implementation."""
-    _backend_registry["crypto"] = HybridPQC
+class ScreenResolutionBackend:
+    """Detects the primary display's resolution using platform-native APIs.
 
-
-class _DummyScreenResolutionBackend:
-    """A dummy backend to satisfy imports until a real one is found."""
+    Returns None (rather than a fabricated value) when no display can be
+    queried, e.g. on a headless server or CI runner.
+    """
 
     def get(self) -> Optional[Tuple[int, int]]:
+        import platform
+
+        system = platform.system()
+        if system == "Windows":
+            resolution = self._get_windows()
+        elif system == "Darwin":
+            resolution = self._get_macos()
+        else:
+            resolution = self._get_linux()
+
+        if resolution is None:
+            resolution = self._get_tkinter_fallback()
+
+        return resolution
+
+    @staticmethod
+    def _get_windows() -> Optional[Tuple[int, int]]:
         try:
-            # This is a placeholder. A real implementation would use a library
-            # like 'screeninfo' or platform-specific APIs.
-            return (1920, 1080)
+            import ctypes
+
+            user32 = ctypes.windll.user32
+            width = user32.GetSystemMetrics(0)
+            height = user32.GetSystemMetrics(1)
+            if width > 0 and height > 0:
+                return (width, height)
+            return None
+        except Exception:
+            return None
+
+    @staticmethod
+    def _get_macos() -> Optional[Tuple[int, int]]:
+        try:
+            import subprocess
+            import re
+
+            output = subprocess.run(
+                ["system_profiler", "SPDisplaysDataType"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            ).stdout
+            match = re.search(r"(\d+)\s*x\s*(\d+)", output)
+            if match:
+                return (int(match.group(1)), int(match.group(2)))
+            return None
+        except Exception:
+            return None
+
+    @staticmethod
+    def _get_linux() -> Optional[Tuple[int, int]]:
+        try:
+            import subprocess
+            import re
+
+            output = subprocess.run(
+                ["xrandr", "--current"], capture_output=True, text=True, timeout=5
+            ).stdout
+            match = re.search(r"current\s+(\d+)\s*x\s*(\d+)", output)
+            if match:
+                return (int(match.group(1)), int(match.group(2)))
+            return None
+        except Exception:
+            return None
+
+    @staticmethod
+    def _get_tkinter_fallback() -> Optional[Tuple[int, int]]:
+        try:
+            import tkinter
+
+            root = tkinter.Tk()
+            root.withdraw()
+            width = root.winfo_screenwidth()
+            height = root.winfo_screenheight()
+            root.destroy()
+            if width > 0 and height > 0:
+                return (width, height)
+            return None
         except Exception:
             return None
 
 
-_backend_registry["screen_resolution"] = _DummyScreenResolutionBackend
+_backend_registry["screen_resolution"] = ScreenResolutionBackend
 
 
 def get_backend(name: str) -> Any:

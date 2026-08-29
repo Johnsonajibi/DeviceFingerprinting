@@ -28,7 +28,7 @@ class HybridPQC:
     - Real Dilithium3 signatures (when PQC backend available)
     - Power analysis protection
     - Secure memory handling
-    - Classical RSA-4096 fallback
+    - Classical HMAC-SHA3-256 fallback when no PQC backend is available
     """
 
     def __init__(self, algorithm: str = "Dilithium3") -> None:
@@ -197,49 +197,37 @@ class HybridPQC:
         """
         Create hybrid signature combining classical and PQC elements
 
-        Uses pqcdualusb when available, falls back to strong classical crypto
+        The PQC component is a genuine Dilithium3 signature produced by the
+        pqcdualusb backend when real PQC is available. If no PQC backend is
+        available, the signature is classical-only and is labeled as such
+        (it is never fabricated to look like a PQC signature).
         """
         try:
             # Always create classical signature for hybrid security
             classical_sig: bytes = hmac.new(self.classical_key, data, hashlib.sha3_256).digest()
 
-            # Try pqcdualusb PQC signing
             pqc_sig: Optional[bytes] = None
-            pqc_timestamp: Optional[int] = None
             signature_type: str = "CLASSICAL_ONLY"
 
-            if self.pqc_backend is not None:
+            if self.pqc_backend is not None and self.pqc_available:
                 try:
-                    # Create a hybrid data structure for signing
-                    # pqcdualusb expects specific format, so we hash the data first
+                    # Real PQC signature over classical_sig || SHA3-256(data),
+                    # binding the classical and PQC components together.
                     data_hash: bytes = hashlib.sha3_256(data).digest()
-
-                    # Use our strong classical signature as the "data" to sign
-                    # This creates a hybrid signature: HMAC-SHA3-256(data) signed with PQC
                     sign_data: bytes = classical_sig + data_hash
-
-                    #  We'll use classical since pqcdualusb signing has format requirements
-                    # Create a PQC-style signature using our private key material
-                    pqc_sig, pqc_timestamp = self._create_pqcdualusb_compatible_signature(sign_data)
-                    signature_type = "HYBRID_PQC_COMPATIBLE"
-
+                    pqc_sig = self.pqc_backend.sign(sign_data, self.pqc_private_key)
+                    signature_type = "REAL_PQC"
                 except Exception as e:
-                    self.logger.debug(f"pqcdualusb signing failed: {e}")
-                    # Fall back to strong classical
-                    pqc_sig, pqc_timestamp = self._create_strong_signature(data)
-                    signature_type = "STRONG_CLASSICAL"
-            else:
-                # No PQC backend, use strong classical signature
-                pqc_sig, pqc_timestamp = self._create_strong_signature(data)
-                signature_type = "STRONG_CLASSICAL"
+                    self.logger.warning(f"Real PQC signing failed: {e}")
+                    pqc_sig = None
+                    signature_type = "CLASSICAL_ONLY"
 
             # Combine signatures with metadata
             hybrid_sig: Dict[str, Any] = {
                 "type": "HYBRID_PQC_V2",
                 "signature_type": signature_type,
                 "classical": base64.b64encode(classical_sig).decode(),
-                "pqc": base64.b64encode(pqc_sig).decode(),
-                "pqc_timestamp": pqc_timestamp,  # Include timestamp for verification
+                "pqc": base64.b64encode(pqc_sig).decode() if pqc_sig is not None else None,
                 "algorithm": self.algorithm,
                 "library": self.pqc_library,
                 "timestamp": int(__import__("time").time()),
@@ -253,51 +241,6 @@ class HybridPQC:
             # Emergency fallback to pure classical
             emergency_sig: str = hmac.new(self.classical_key, data, hashlib.sha3_256).hexdigest()
             return base64.b64encode(emergency_sig.encode()).decode()
-
-    def _create_pqcdualusb_compatible_signature(self, data: bytes) -> Tuple[bytes, int]:
-        """
-        Create a signature compatible with pqcdualusb format expectations
-
-        Uses cryptographic key derivation to create a signature that mimics
-        PQC signature characteristics while being verifiable
-
-        Returns:
-            Tuple of (signature_bytes, timestamp_int)
-        """
-        # Use HMAC-based key derivation for signature
-        # This creates a deterministic but unforgeable signature
-        signature_key: bytes = hmac.new(
-            self.pqc_private_key[:64], b"signature_derivation", hashlib.sha3_512
-        ).digest()
-
-        # Create signature with timestamp for freshness
-        timestamp: int = int(__import__("time").time())
-        timestamp_bytes: bytes = timestamp.to_bytes(8, "big")
-        signature_data: bytes = signature_key + data + timestamp_bytes
-
-        # Generate signature with realistic size (Dilithium3: ~3309 bytes)
-        sig_size: int = 3309
-        signature: bytes = hashlib.shake_256(signature_data).digest(sig_size)
-
-        return signature, timestamp
-
-    def _create_strong_signature(self, data: bytes) -> Tuple[bytes, int]:
-        """
-        Create a strong classical signature that mimics PQC characteristics
-
-        Returns:
-            Tuple of (signature_bytes, timestamp_int)
-        """
-        # Use secret key + data + timestamp for signature
-        timestamp: int = int(__import__("time").time())
-        timestamp_bytes: bytes = timestamp.to_bytes(8, "big")
-        signature_input: bytes = self.pqc_private_key[:64] + data + timestamp_bytes
-
-        # Create multi-round hash with NIST signature size
-        sig_size: int = 3309  # Real Dilithium3 signature size
-        signature: bytes = hashlib.shake_256(signature_input).digest(sig_size)
-
-        return signature, timestamp
 
     def verify(self, signature: str, data: bytes) -> bool:
         """Verify hybrid signature with support for v1 and v2 formats"""
@@ -334,21 +277,19 @@ class HybridPQC:
             if not classical_valid:
                 return False
 
-            # Verify PQC component
-            pqc_sig: bytes = base64.b64decode(sig_data["pqc"])
-            signature_type: str = sig_data.get("signature_type", "STRONG_CLASSICAL")
-            pqc_timestamp: Optional[int] = sig_data.get(
-                "pqc_timestamp"
-            )  # Get timestamp from signature
+            # Verify PQC component (only present when the signer had real PQC)
+            signature_type: str = sig_data.get("signature_type", "CLASSICAL_ONLY")
+            pqc_sig_b64: Optional[str] = sig_data.get("pqc")
 
-            if signature_type == "HYBRID_PQC_COMPATIBLE":
-                # Verify pqcdualusb-compatible signature
+            if signature_type == "REAL_PQC" and pqc_sig_b64 is not None:
+                pqc_sig: bytes = base64.b64decode(pqc_sig_b64)
                 data_hash: bytes = hashlib.sha3_256(data).digest()
                 sign_data: bytes = classical_sig + data_hash
-                return self._verify_pqcdualusb_signature(pqc_sig, sign_data, pqc_timestamp)
-            else:
-                # Verify strong classical signature
-                return self._verify_strong_signature(pqc_sig, data, pqc_timestamp)
+                return self._verify_real_pqc_signature(pqc_sig, sign_data)
+
+            # No PQC component was produced for this signature; classical
+            # verification above already confirmed authenticity.
+            return True
 
         except Exception as e:
             self.logger.debug(f"V2 signature verification failed: {e}")
@@ -362,83 +303,22 @@ class HybridPQC:
             expected_classical: bytes = hmac.new(self.classical_key, data, hashlib.sha256).digest()
             classical_valid: bool = hmac.compare_digest(classical_sig, expected_classical)
 
-            # Verify PQC component
-            pqc_sig: bytes = base64.b64decode(sig_data["pqc"])
-            pqc_valid: bool = self._verify_strong_signature(pqc_sig, data)
-
-            return classical_valid and pqc_valid
+            # v1 signatures never carried a genuine PQC component; treat the
+            # classical HMAC as authoritative for backward compatibility.
+            return classical_valid
 
         except Exception as e:
             self.logger.debug(f"V1 signature verification failed: {e}")
             return False
 
-    def _verify_pqcdualusb_signature(
-        self, signature: bytes, data: bytes, timestamp: Optional[int] = None
-    ) -> bool:
-        """Verify pqcdualusb-compatible signature"""
+    def _verify_real_pqc_signature(self, signature: bytes, data: bytes) -> bool:
+        """Verify a genuine PQC signature produced by the pqcdualusb backend"""
+        if self.pqc_backend is None or not self.pqc_available:
+            return False
         try:
-            # Check signature size
-            if len(signature) != 3309:  # Dilithium3 size
-                return False
-
-            # Reconstruct signature key
-            signature_key: bytes = hmac.new(
-                self.pqc_private_key[:64], b"signature_derivation", hashlib.sha3_512
-            ).digest()
-
-            # If timestamp provided, use it directly (much faster!)
-            if timestamp is not None:
-                timestamp_bytes: bytes = timestamp.to_bytes(8, "big")
-                signature_data: bytes = signature_key + data + timestamp_bytes
-                expected_sig: bytes = hashlib.shake_256(signature_data).digest(3309)
-                return hmac.compare_digest(signature, expected_sig)
-
-            # Time window verification (within 24 hours for clock drift) - fallback
-            current_time: int = int(__import__("time").time())
-            for time_offset in range(-86400, 86400, 60):  # Check minute intervals
-                test_time: int = current_time + time_offset
-                timestamp_bytes = test_time.to_bytes(8, "big")
-
-                signature_data = signature_key + data + timestamp_bytes
-                expected_sig = hashlib.shake_256(signature_data).digest(3309)
-
-                if hmac.compare_digest(signature, expected_sig):
-                    return True
-
-            return False
-        except:
-            return False
-
-    def _verify_strong_signature(
-        self, signature: bytes, data: bytes, timestamp: Optional[int] = None
-    ) -> bool:
-        """Verify strong classical signature"""
-        try:
-            # Check signature size
-            if len(signature) != 3309:  # Dilithium3 size
-                return False
-
-            # If timestamp provided, use it directly (much faster!)
-            if timestamp is not None:
-                timestamp_bytes: bytes = timestamp.to_bytes(8, "big")
-                signature_input: bytes = self.pqc_private_key[:64] + data + timestamp_bytes
-                expected_sig: bytes = hashlib.shake_256(signature_input).digest(3309)
-                return hmac.compare_digest(signature, expected_sig)
-
-            # Time window verification (within 24 hours) - fallback
-            current_time: int = int(__import__("time").time())
-            for time_offset in range(-86400, 86400, 60):  # Check minute intervals
-                test_time = current_time + time_offset
-                timestamp_bytes = test_time.to_bytes(8, "big")
-
-                signature_input = self.pqc_private_key[:64] + data + timestamp_bytes
-                expected_sig = hashlib.shake_256(signature_input).digest(3309)
-
-                if hmac.compare_digest(signature, expected_sig):
-                    return True
-
-            return False
-        except:
+            return bool(self.pqc_backend.verify(data, signature, self.pqc_public_key))
+        except Exception as e:
+            self.logger.debug(f"Real PQC verification failed: {e}")
             return False
 
     def _verify_classical(self, signature: str, data: bytes) -> bool:
@@ -457,7 +337,7 @@ class HybridPQC:
             "algorithm": self.algorithm,
             "pqc_library": self.pqc_library,
             "pqc_available": self.pqc_available,
-            "quantum_resistant": True,  # Hybrid approach provides quantum resistance
+            "quantum_resistant": self.pqc_available,
             "classical_fallback": True,
             "signature_size": "~4KB (hybrid)",
             "key_sizes": (
@@ -508,7 +388,7 @@ class HybridPQC:
                 else:
                     info["security_status"] = "CLASSICAL_STRONG"
                     info["note"] = (
-                        "Classical RSA-4096 fallback (cryptographically strong but not quantum-resistant)"
+                        "Classical HMAC-SHA3-256 fallback (cryptographically strong but not quantum-resistant)"
                     )
 
             except Exception as e:

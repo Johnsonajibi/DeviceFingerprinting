@@ -28,14 +28,34 @@ class SystemIntegrityChecker:
     def get_hardware_id(self) -> str:
         """
         Generates a stable hardware ID from various system components.
-        This is a simplified version for demonstration.
         """
-        # In a real scenario, you'd use more robust and stable identifiers.
         cpu_id = str(psutil.cpu_count()) + platform.processor()
-        mac_addr = str(psutil.net_if_addrs().get("Ethernet", [None])[0].address)
+        mac_addr = self._get_stable_mac_address()
 
         hw_string = f"{cpu_id}-{mac_addr}"
         return hashlib.sha256(hw_string.encode()).hexdigest()
+
+    @staticmethod
+    def _get_stable_mac_address() -> str:
+        """
+        Finds a stable MAC address by scanning all interfaces, rather than
+        assuming an interface literally named "Ethernet" exists (it doesn't
+        on Wi-Fi-only, Linux, or macOS systems).
+        """
+        try:
+            interfaces = psutil.net_if_addrs()
+        except Exception:
+            return "unknown"
+
+        # Sort by name for a deterministic choice across calls/reboots.
+        for name in sorted(interfaces):
+            if name.lower().startswith(("lo", "loopback")):
+                continue
+            for addr in interfaces[name]:
+                if addr.family == psutil.AF_LINK and addr.address:
+                    return addr.address
+
+        return "unknown"
 
 
 class EnvironmentValidator:
@@ -89,14 +109,34 @@ class AntiTampering:
     def __init__(self, file_path: str, key: bytes = None):
         self.file_path = file_path
         self.mac_file_path = file_path + ".mac"
-        if key is None:
-            # Generate a secure random key if none provided
-            import secrets
+        self.key_file_path = file_path + ".hmackey"
 
-            self._key = secrets.token_bytes(32)  # 256-bit key
-            # In production, this key should be stored securely or derived from user input
-        else:
+        if key is not None:
             self._key = key
+        else:
+            # A randomly generated key that's never persisted would make
+            # generate_mac() in one process/run unverifiable by verify_mac()
+            # in any later one (a fresh random key every time never matches
+            # the key a MAC was generated with) - tamper detection would
+            # silently never work unless a caller manually threads the same
+            # key through every call. Persist it next to the MAC file instead.
+            self._key = self._load_or_create_key()
+
+    def _load_or_create_key(self) -> bytes:
+        import secrets
+
+        if os.path.exists(self.key_file_path):
+            with open(self.key_file_path, "rb") as f:
+                return f.read()
+
+        new_key = secrets.token_bytes(32)  # 256-bit key
+        with open(self.key_file_path, "wb") as f:
+            f.write(new_key)
+        try:
+            os.chmod(self.key_file_path, 0o600)
+        except OSError:
+            pass  # chmod semantics are platform-dependent (e.g. Windows)
+        return new_key
 
     def generate_mac(self):
         """Generates and saves an HMAC for the file."""
@@ -140,12 +180,24 @@ class SecurityAuditor:
 
             self.logger = logging.getLogger(__name__)
 
+    _LOG_METHODS = {
+        "debug": "debug",
+        "info": "info",
+        "low": "info",
+        "warning": "warning",
+        "medium": "warning",
+        "error": "error",
+        "high": "error",
+        "critical": "critical",
+    }
+
     def log_security_event(self, event: str, level: str, details: dict):
-        """Logs a structured security event."""
+        """Logs a structured security event at the log level matching `level`."""
         log_message = json.dumps(
             {"event": event, "level": level, "details": details, "timestamp": psutil.time.time()}
         )
-        self.logger.warning(log_message)
+        method_name = self._LOG_METHODS.get(level.lower(), "warning")
+        getattr(self.logger, method_name)(log_message)
 
     def get_system_state(self) -> dict:
         """Captures a snapshot of the current system state for auditing."""

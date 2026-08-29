@@ -1,9 +1,11 @@
 """
-Performance monitoring and analytics dashboard for device fingerprinting.
+Performance monitoring and analytics for device fingerprinting.
 
-This module provides a real-time analytics dashboard using Plotly for
-visualization and Flask for serving. It offers insights into fingerprinting
-performance, security events, and usage patterns.
+This module collects operation and security-event metrics and exposes them
+as a JSON-serializable summary (optionally including Plotly chart figures,
+when plotly is installed). It does not serve anything itself: callers are
+responsible for exposing get_dashboard_json()'s output via their own web
+framework/endpoint if a live dashboard is desired.
 """
 
 import time

@@ -100,21 +100,28 @@ class TestSecurityModules(unittest.TestCase):
         self.assertFalse(self.anti_tampering.verify_mac())
 
     # --- SecurityAuditor Tests ---
-    @patch.object(auditor_logger, "warning")
-    def test_auditor_log_security_event(self, mock_log_warning):
-        """Test that security events are logged via the provided logger."""
+    @patch.object(auditor_logger, "error")
+    def test_auditor_log_security_event(self, mock_log_error):
+        """Test that security events are logged at a level matching their severity."""
         event_details = {"detail": "some data"}
+        # "High" severity routes to logger.error(), not a blanket .warning()
         self.auditor.log_security_event("Test Event", "High", event_details)
 
-        mock_log_warning.assert_called_once()
+        mock_log_error.assert_called_once()
 
         # The argument to the logger should be a JSON string
-        call_args = mock_log_warning.call_args[0][0]
+        call_args = mock_log_error.call_args[0][0]
         log_data = json.loads(call_args)
 
         self.assertEqual(log_data["event"], "Test Event")
         self.assertEqual(log_data["level"], "High")
         self.assertEqual(log_data["details"], event_details)
+
+    @patch.object(auditor_logger, "info")
+    def test_auditor_log_security_event_info_level(self, mock_log_info):
+        """Test that low-severity events route to logger.info(), not .warning()."""
+        self.auditor.log_security_event("Routine Check", "info", {})
+        mock_log_info.assert_called_once()
 
     def test_auditor_get_system_state(self):
         """Test that system state is captured."""

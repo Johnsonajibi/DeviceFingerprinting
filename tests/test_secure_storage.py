@@ -230,7 +230,7 @@ class TestSecureStorage(unittest.TestCase):
                 f.write(encrypted_blob)
 
             # Now try to load with new SecureStorage (should handle backward compatibility)
-            with SecureStorage(old_format_file, self.password) as store:
+            with SecureStorage(old_format_file, self.password, allow_legacy_format=True) as store:
                 self.assertEqual(store.get_item("legacy"), "data")
                 self.assertEqual(store.get_item("version"), "old")
                 # Add new data to trigger migration
@@ -244,10 +244,30 @@ class TestSecureStorage(unittest.TestCase):
             self.assertNotEqual(new_salt, old_salt)
 
             # Verify data is still accessible after migration
-            with SecureStorage(old_format_file, self.password) as store:
+            with SecureStorage(old_format_file, self.password, allow_legacy_format=True) as store:
                 self.assertEqual(store.get_item("legacy"), "data")
                 self.assertEqual(store.get_item("migrated"), "new_data")
 
+        finally:
+            if os.path.exists(old_format_file):
+                os.remove(old_format_file)
+
+    def test_legacy_format_rejected_by_default(self):
+        """Old-format (hardcoded-salt) files must not load unless explicitly opted into."""
+        old_format_file = "test_old_format_rejected.bin"
+        try:
+            old_salt = b"\x00" * 16
+            kdf = ScryptKDF()
+            old_key = kdf.derive_key(self.password, old_salt)
+            encryptor = AESGCMEncryptor()
+            encrypted_blob = encryptor.encrypt(
+                json.dumps({"legacy": "data"}).encode("utf-8"), old_key
+            )
+            with open(old_format_file, "wb") as f:
+                f.write(encrypted_blob)
+
+            with self.assertRaises(IOError):
+                SecureStorage(old_format_file, self.password)
         finally:
             if os.path.exists(old_format_file):
                 os.remove(old_format_file)

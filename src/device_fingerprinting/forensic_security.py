@@ -141,13 +141,49 @@ class ForensicSecurity:
         return 0
 
     def _check_code_integrity(self) -> int:
-        """Checks for basic signs of code tampering."""
-        # This is a placeholder. A real implementation would involve checking
-        # file hashes against a known-good manifest.
-        script_path = os.path.abspath(sys.argv[0])
-        if "temp" in script_path.lower() or "tmp" in script_path.lower():
-            self.evidence.append(f"Code is running from a temporary directory: {script_path}")
-            return 2
+        """
+        Checks the installed package's .py files against a signed manifest
+        of known-good SHA-256 hashes, when one is present.
+
+        This performs no verification (and reports evidence of that,
+        without contributing to the suspicion score) if no manifest is
+        shipped - it does not fall back to an unrelated heuristic like
+        the script's file path, which says nothing about code integrity.
+        """
+        package_dir = os.path.dirname(os.path.abspath(__file__))
+        manifest_path = os.path.join(package_dir, "_integrity_manifest.json")
+
+        if not os.path.exists(manifest_path):
+            self.evidence.append(
+                "Code integrity check skipped: no _integrity_manifest.json present."
+            )
+            return 0
+
+        try:
+            import json
+
+            with open(manifest_path, "r") as f:
+                manifest = json.load(f)
+        except (OSError, ValueError) as e:
+            self.evidence.append(f"Code integrity check failed to load manifest: {e}")
+            return 0
+
+        mismatches = []
+        for rel_path, expected_hash in manifest.items():
+            file_path = os.path.join(package_dir, rel_path)
+            try:
+                with open(file_path, "rb") as f:
+                    actual_hash = hashlib.sha256(f.read()).hexdigest()
+            except OSError:
+                mismatches.append(f"{rel_path} (missing)")
+                continue
+            if actual_hash != expected_hash:
+                mismatches.append(rel_path)
+
+        if mismatches:
+            self.evidence.append(f"Code integrity mismatch for: {', '.join(mismatches)}")
+            return 3
+
         return 0
 
     def _check_suspicious_processes(self) -> int:
