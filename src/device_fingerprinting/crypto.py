@@ -37,6 +37,7 @@ except ImportError as e:
         def __init__(self, *args, **kwargs):
             raise NotImplementedError("Rust secure key not available")
 
+
 # Try to import real post-quantum crypto libraries directly
 try:
     import pqcrypto.sign.ml_dsa_44 as ml_dsa_44
