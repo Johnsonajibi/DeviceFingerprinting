@@ -1,8 +1,7 @@
 use pyo3::prelude::*;
-use pyo3::types::PyBytes;
 use pyo3::exceptions::PyRuntimeError;
 use std::collections::HashMap;
-use zeroize::{Zeroize, ZeroizeOnDrop};
+use zeroize::ZeroizeOnDrop;
 
 mod crypto;
 mod secure_memory;
@@ -60,31 +59,27 @@ impl RustCrypto {
     }
 
     /// Encrypt data using AES-256-GCM
-    fn aes_encrypt(&self, py: Python, plaintext: &[u8], key: &[u8]) -> PyResult<PyObject> {
-        let ciphertext = self.aes_crypto.encrypt(plaintext, key)
-            .map_err(|e| PyRuntimeError::new_err(format!("AES encryption failed: {}", e)))?;
-        Ok(PyBytes::new(py, &ciphertext).into())
+    fn aes_encrypt(&self, plaintext: &[u8], key: &[u8]) -> PyResult<Vec<u8>> {
+        self.aes_crypto.encrypt(plaintext, key)
+            .map_err(|e| PyRuntimeError::new_err(format!("AES encryption failed: {}", e)))
     }
 
     /// Decrypt data using AES-256-GCM
-    fn aes_decrypt(&self, py: Python, ciphertext: &[u8], key: &[u8]) -> PyResult<PyObject> {
-        let plaintext = self.aes_crypto.decrypt(ciphertext, key)
-            .map_err(|e| PyRuntimeError::new_err(format!("AES decryption failed: {}", e)))?;
-        Ok(PyBytes::new(py, &plaintext).into())
+    fn aes_decrypt(&self, ciphertext: &[u8], key: &[u8]) -> PyResult<Vec<u8>> {
+        self.aes_crypto.decrypt(ciphertext, key)
+            .map_err(|e| PyRuntimeError::new_err(format!("AES decryption failed: {}", e)))
     }
 
     /// Encrypt data using ChaCha20Poly1305
-    fn chacha_encrypt(&self, py: Python, plaintext: &[u8], key: &[u8]) -> PyResult<PyObject> {
-        let ciphertext = self.chacha_crypto.encrypt(plaintext, key)
-            .map_err(|e| PyRuntimeError::new_err(format!("ChaCha20 encryption failed: {}", e)))?;
-        Ok(PyBytes::new(py, &ciphertext).into())
+    fn chacha_encrypt(&self, plaintext: &[u8], key: &[u8]) -> PyResult<Vec<u8>> {
+        self.chacha_crypto.encrypt(plaintext, key)
+            .map_err(|e| PyRuntimeError::new_err(format!("ChaCha20 encryption failed: {}", e)))
     }
 
     /// Decrypt data using ChaCha20Poly1305
-    fn chacha_decrypt(&self, py: Python, ciphertext: &[u8], key: &[u8]) -> PyResult<PyObject> {
-        let plaintext = self.chacha_crypto.decrypt(ciphertext, key)
-            .map_err(|e| PyRuntimeError::new_err(format!("ChaCha20 decryption failed: {}", e)))?;
-        Ok(PyBytes::new(py, &plaintext).into())
+    fn chacha_decrypt(&self, ciphertext: &[u8], key: &[u8]) -> PyResult<Vec<u8>> {
+        self.chacha_crypto.decrypt(ciphertext, key)
+            .map_err(|e| PyRuntimeError::new_err(format!("ChaCha20 decryption failed: {}", e)))
     }
 
     /// Derive key using Argon2id
