@@ -365,7 +365,7 @@ class EnhancedCrypto:
         if self.is_rust_available():
             backends.append("Rust (RustCrypto)")
             algorithms.extend(["AES-256-GCM", "ChaCha20Poly1305", "Argon2id", "Scrypt"])
-            memory_security = "zeroize + secrecy"
+            memory_security = "zeroize on drop"
             performance = "optimized"
         else:
             backends.append("Python (cryptography)")

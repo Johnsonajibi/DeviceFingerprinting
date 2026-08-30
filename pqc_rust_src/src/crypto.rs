@@ -1,7 +1,7 @@
 use aes_gcm::{Aes256Gcm, Key, Nonce, KeyInit, aead::Aead};
 use chacha20poly1305::{ChaCha20Poly1305, Key as ChaChaKey, Nonce as ChaChaNonce};
 use argon2::{Argon2, password_hash::{PasswordHasher, SaltString}};
-use rand::{RngCore, rngs::OsRng};
+use rand::{RngCore, TryRngCore, rngs::OsRng};
 use std::fmt;
 
 /// Custom error type for crypto operations
@@ -51,7 +51,8 @@ impl AesGcmCrypto {
 
         // Generate random nonce
         let mut nonce_bytes = [0u8; 12];
-        OsRng.fill_bytes(&mut nonce_bytes);
+        OsRng.try_fill_bytes(&mut nonce_bytes)
+            .map_err(|_| CryptoError::RandomGenerationFailed)?;
         let nonce = Nonce::from_slice(&nonce_bytes);
 
         // Encrypt
@@ -93,7 +94,10 @@ impl AesGcmCrypto {
     /// Generate cryptographically secure random bytes
     pub fn generate_random(&self, length: usize) -> Vec<u8> {
         let mut buf = vec![0u8; length];
-        OsRng.fill_bytes(&mut buf);
+        // OsRng is fallible in rand 0.9 (TryRngCore); unwrap_err() adapts it
+        // to the infallible RngCore this function's signature commits to -
+        // an OS RNG failure here is unrecoverable anyway.
+        OsRng.unwrap_err().fill_bytes(&mut buf);
         buf
     }
 }
@@ -119,7 +123,8 @@ impl ChaCha20Poly1305Crypto {
 
         // Generate random nonce
         let mut nonce_bytes = [0u8; 12];
-        OsRng.fill_bytes(&mut nonce_bytes);
+        OsRng.try_fill_bytes(&mut nonce_bytes)
+            .map_err(|_| CryptoError::RandomGenerationFailed)?;
         let nonce = ChaChaNonce::from_slice(&nonce_bytes);
 
         // Encrypt

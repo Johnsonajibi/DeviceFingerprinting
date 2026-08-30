@@ -143,20 +143,20 @@ fn test_crypto() -> PyResult<bool> {
 
 /// Python module definition
 #[pymodule]
-fn pqc_rust(_py: Python, m: &PyModule) -> PyResult<()> {
+fn pqc_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     pyo3_log::init();
 
     // Classes
     m.add_class::<RustCrypto>()?;
     m.add_class::<SecureKey>()?;
 
-    // Functions  
+    // Functions
     m.add_function(wrap_pyfunction!(get_crypto_info, m)?)?;
     m.add_function(wrap_pyfunction!(test_crypto, m)?)?;
 
     // Module info
     m.add("__version__", "0.1.0")?;
     m.add("__author__", "Device Fingerprinting Team")?;
-    
+
     Ok(())
 }

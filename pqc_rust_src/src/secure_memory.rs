@@ -88,12 +88,14 @@ impl std::error::Error for SecureBufferError {}
 /// Utility functions for secure memory operations
 pub mod secure_utils {
     use super::SecureBuffer;
-    use rand::{RngCore, rngs::OsRng};
+    use rand::{RngCore, TryRngCore, rngs::OsRng};
 
     /// Generate a secure random buffer
     pub fn generate_random_buffer(length: usize, algorithm: String) -> SecureBuffer {
         let mut data = vec![0u8; length];
-        OsRng.fill_bytes(&mut data);
+        // OsRng is fallible in rand 0.9 (TryRngCore); unwrap_err() adapts it
+        // to the infallible RngCore this function's signature commits to.
+        OsRng.unwrap_err().fill_bytes(&mut data);
         SecureBuffer::new(data, algorithm)
     }
 
