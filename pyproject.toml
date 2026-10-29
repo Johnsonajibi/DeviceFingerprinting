@@ -54,7 +54,7 @@ dependencies = [
 
 [project.optional-dependencies]
 pqc = [
-    "pqcdualusb>=0.15.5",
+    "pqcdualusb>=0.15.6",  # 0.15.6 fixes an AUDIT_KEY regression that broke storage.py imports
 ]
 cloud = [
     "boto3>=1.28.0",
